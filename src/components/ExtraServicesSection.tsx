@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 
 const ExtraServicesSection = () => {
   return (
-    <div className="bg-yellow-50 rounded-lg p-6 shadow-sm border border-yellow-200 h-full flex flex-col">
+    <div className="bg-gray-50 rounded-lg p-6 shadow-sm border border-gray-200 h-full flex flex-col">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <div className="bg-yellow-500 p-3 rounded-full mr-3">
@@ -37,13 +37,13 @@ const ExtraServicesSection = () => {
                 <p className="text-xs text-gray-500 mt-1">{service.description}</p>
               )}
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-yellow-300 shadow-sm">
+            <div className="text-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="text-lg font-bold text-gray-900">${service.pricing.sedan}</div>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-yellow-300 shadow-sm">
+            <div className="text-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="text-lg font-bold text-gray-900">${service.pricing.wagon}</div>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-yellow-300 shadow-sm">
+            <div className="text-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="text-lg font-bold text-gray-900">${service.pricing.suv}</div>
             </div>
           </div>

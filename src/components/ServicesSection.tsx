@@ -4,14 +4,14 @@ import { Star } from 'lucide-react';
 
 const ServicesSection = () => {
   return (
-    <div className="bg-blue-50 rounded-lg p-6 shadow-sm border border-blue-200 h-full flex flex-col">
+    <div className="bg-gray-50 rounded-lg p-6 shadow-sm border border-gray-200 h-full flex flex-col">
       <div className="text-center mb-12">
         <div className="flex items-center justify-center mb-4">
           <div className="bg-blue-600 p-3 rounded-full mr-3">
             <Star className="h-6 w-6 text-white" />
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-blue-900">
-            Our Premium Services
+            Premium Services
           </h2>
         </div>
         <p className="text-lg text-blue-700">
@@ -26,7 +26,7 @@ const ServicesSection = () => {
               key={service.id}
               className={`${
                 service.id === 'super-sparkles'
-                  ? 'bg-blue-50 rounded-lg p-6 border-2 border-blue-200 shadow-sm relative'
+                  ? 'bg-white rounded-lg p-6 border border-gray-300 shadow-sm relative'
                   : 'bg-white rounded-lg p-6 shadow-sm border border-gray-200'
               }`}
             >
@@ -56,7 +56,7 @@ const ServicesSection = () => {
                   <div className="space-y-3">
                     <div className={`flex items-center justify-between p-4 rounded-lg ${
                       service.id === 'super-sparkles'
-                        ? 'bg-white border border-blue-100'
+                        ? 'bg-gray-50 border border-gray-200'
                         : 'bg-gray-50 border border-gray-100'
                     }`}>
                       <span className="text-sm font-medium text-gray-700">Sedan</span>
@@ -64,7 +64,7 @@ const ServicesSection = () => {
                     </div>
                     <div className={`flex items-center justify-between p-4 rounded-lg ${
                       service.id === 'super-sparkles'
-                        ? 'bg-white border border-blue-100'
+                        ? 'bg-gray-50 border border-gray-200'
                         : 'bg-gray-50 border border-gray-100'
                     }`}>
                       <span className="text-sm font-medium text-gray-700">Wagon</span>
@@ -72,7 +72,7 @@ const ServicesSection = () => {
                     </div>
                     <div className={`flex items-center justify-between p-4 rounded-lg ${
                       service.id === 'super-sparkles'
-                        ? 'bg-white border border-blue-100'
+                        ? 'bg-gray-50 border border-gray-200'
                         : 'bg-gray-50 border border-gray-100'
                     }`}>
                       <span className="text-sm font-medium text-gray-700">4x4</span>

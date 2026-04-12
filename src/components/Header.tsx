@@ -30,15 +30,25 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) =>
+              item.href.startsWith("#") ? (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  {item.name}
+                </Link>
+              )
+            )}
           </nav>
 
           {/* Contact Info & CTA */}
@@ -61,7 +71,7 @@ export default function Header() {
                 </Button>
               </LoginTrigger>
               <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold px-8">
-                <Link href="#booking">Book Now</Link>
+                <a href="#booking">Book Now</a>
               </Button>
             </div>
           </div>
@@ -74,7 +84,10 @@ export default function Header() {
                   <Menu className="h-7 w-7" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent
+                side="right"
+                className="w-[300px] sm:w-[400px] px-5 sm:px-6 pt-2 pb-6"
+              >
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex flex-col space-y-6 mt-6">
                   {/* Mobile Logo */}
@@ -84,16 +97,27 @@ export default function Header() {
 
                   {/* Mobile Navigation */}
                   <nav className="flex flex-col space-y-4">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
+                    {navigation.map((item) =>
+                      item.href.startsWith("#") ? (
+                        <a
+                          key={item.name}
+                          href={item.href}
+                          className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {item.name}
+                        </a>
+                      ) : (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      )
+                    )}
                   </nav>
 
                   {/* Mobile Contact Info */}
@@ -117,9 +141,9 @@ export default function Header() {
                       </Button>
                     </LoginTrigger>
                     <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl font-semibold" size="lg" asChild>
-                      <Link href="#booking" onClick={() => setIsOpen(false)}>
+                      <a href="#booking" onClick={() => setIsOpen(false)}>
                         Book Now
-                      </Link>
+                      </a>
                     </Button>
                   </div>
                 </div>
