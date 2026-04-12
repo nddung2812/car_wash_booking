@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -25,16 +25,7 @@ export default function BannerSlider() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  useEffect(() => {
-    if (isAutoPlaying) {
-      const timer = setInterval(() => {
-        handleSlideChange((currentSlide + 1) % banners.length);
-      }, 5000);
-      return () => clearInterval(timer);
-    }
-  }, [isAutoPlaying, currentSlide]);
-
-  const handleSlideChange = (newSlide: number) => {
+  const handleSlideChange = useCallback((newSlide: number) => {
     if (isTransitioning) return;
 
     setIsTransitioning(true);
@@ -43,7 +34,16 @@ export default function BannerSlider() {
     setTimeout(() => {
       setIsTransitioning(false);
     }, 500);
-  };
+  }, [isTransitioning]);
+
+  useEffect(() => {
+    if (isAutoPlaying) {
+      const timer = setInterval(() => {
+        handleSlideChange((currentSlide + 1) % banners.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [isAutoPlaying, currentSlide, handleSlideChange]);
 
   const goToSlide = (index: number) => {
     if (index === currentSlide) return;
