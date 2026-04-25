@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db, bookings } from "@/db";
 import { listBookings } from "@/db/queries";
 import { services } from "@/data/services";
+import { sendBookingNotification } from "@/lib/email";
 
 const bodySchema = z.object({
   service: z.string().min(1),
@@ -85,6 +86,24 @@ export async function POST(req: Request) {
       status: "pending",
     })
     .returning();
+
+  void sendBookingNotification({
+    confirmationCode: code,
+    serviceId: data.service,
+    serviceName: pricing.svc.name,
+    vehicleType: data.vehicleType,
+    date: data.date,
+    time: data.time,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    address: data.address,
+    notes: data.notes ?? null,
+    subtotal: pricing.subtotal,
+    gst: pricing.gst,
+    total: pricing.total,
+  });
 
   return NextResponse.json({ booking: row }, { status: 201 });
 }

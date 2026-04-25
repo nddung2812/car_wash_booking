@@ -15,12 +15,12 @@ const banners = [
   },
   {
     id: 2,
-    image: "/banner2.jpg",
+    image: "/banner2.webp",
     alt: "Interior detail in progress at Hyperdome Car Wash, Logan QLD",
   },
   {
     id: 3,
-    image: "/banner3.jpeg",
+    image: "/banner3.webp",
     alt: "Showroom-fresh finish on a 4×4 after a Full Detail at Hyperdome Car Wash, Loganholme",
   },
 ];
@@ -142,8 +142,9 @@ export default function BannerSlider() {
                   fill
                   className="object-cover brightness-110 contrast-105 saturate-125"
                   priority={index === 0}
-                  fetchPriority={index === 0 ? "high" : "auto"}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  fetchPriority={index === 0 ? "high" : "low"}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  sizes="(max-width: 1024px) 100vw, 640px"
                 />
               </div>
             ))}
