@@ -19,6 +19,11 @@ export default function Header() {
     { name: "Contact", href: "#contact" },
   ];
 
+  const locations = [
+    { name: "Shailer Park", href: "/#location-shailer-park" },
+    { name: "Loganholme", href: "/#location-loganholme" },
+  ];
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-background/72 backdrop-blur-xl backdrop-saturate-150 shadow-[0_1px_0_rgba(255,255,255,0.4)_inset,0_10px_30px_-24px_rgba(0,0,0,0.25)]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,7 +31,7 @@ export default function Header() {
           {/* Brand */}
           <Link href="/" className="group flex items-center gap-2.5">
             <ChromeBrand size={36} />
-            <span className="font-serif text-[22px] leading-none tracking-tight">Hyperdome</span>
+            <span className="font-sans text-[22px] leading-none tracking-tight">Hyperdome</span>
           </Link>
 
           {/* Desktop nav */}
@@ -54,13 +59,18 @@ export default function Header() {
 
           {/* Right cluster — sign-in + book at md+, status pill + phone only at lg+ */}
           <div className="hidden items-center gap-2 md:flex lg:gap-3">
-            <span className="hidden items-center gap-2 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 lg:inline-flex">
-              <span className="relative flex size-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/70 opacity-75" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-              </span>
-              Both locations open now
-            </span>
+            <div className="hidden items-center gap-1.5 lg:flex">
+              {locations.map((location) => (
+                <a
+                  key={location.name}
+                  href={location.href}
+                  className="inline-flex items-center gap-1.5 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:border-primary/40 hover:text-foreground"
+                >
+                  <MapPin className="size-3.5" />
+                  {location.name}
+                </a>
+              ))}
+            </div>
             <a
               href="tel:0738060358"
               className="hidden items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground lg:inline-flex"
@@ -107,7 +117,7 @@ export default function Header() {
                     className="flex items-center gap-2.5"
                   >
                     <ChromeBrand size={40} />
-                    <span className="font-serif text-2xl tracking-tight">Hyperdome</span>
+                    <span className="font-sans text-2xl tracking-tight">Hyperdome</span>
                   </Link>
 
                   <nav className="flex flex-col gap-1.5">

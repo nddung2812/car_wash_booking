@@ -32,12 +32,14 @@ const howItWorks = [
 const locations = [
   {
     name: "Shailer Park",
+    id: "location-shailer-park",
     address: "Hyperdome Shopping Centre",
     line2: "Carpark Basement — Mandew St",
     region: "Shailer Park QLD 4128",
   },
   {
     name: "Loganholme",
+    id: "location-loganholme",
     address: "Hyperdome Shopping Centre",
     line2: "Carpark Basement — 2 Leda Dr",
     region: "Loganholme QLD 4129",
@@ -210,7 +212,8 @@ export default function Home() {
                 {locations.map((loc) => (
                   <article
                     key={loc.name}
-                    className="lift flex flex-col gap-3 rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft"
+                    id={loc.id}
+                    className="lift flex scroll-mt-24 flex-col gap-3 rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft"
                   >
                     <div className="flex items-center justify-between">
                       <h3 className="font-serif text-[28px] leading-tight tracking-tight text-foreground">

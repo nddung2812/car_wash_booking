@@ -1,6 +1,7 @@
 export interface Service {
   id: string;
   name: string;
+  tagline: string;
   pricing: {
     sedan: number;
     wagon: number;
@@ -8,53 +9,71 @@ export interface Service {
   };
   duration: string;
   description: string;
+  image: string;
   videoUrl: string;
 }
+
+const UNSPLASH_PARAMS = "?w=1200&auto=format&fit=crop&q=80";
 
 export const services: Service[] = [
   {
     id: "sparkles",
     name: "Sparkles Wash",
+    tagline: "Hand wash, dry & shine — in and out fast.",
     pricing: { sedan: 40, wagon: 42, suv: 45 },
     duration: "30 min",
     description:
       "Hand wash and dry. Wheels detailed. Door frames wiped. External windows cleaned. Tyres shined.",
+    // Unsplash search: "car hand wash sponge"
+    image: `https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2${UNSPLASH_PARAMS}`,
     videoUrl: "http://youtu.be/6tRqXG0OUqA",
   },
   {
     id: "super-sparkles",
     name: "Super Sparkles",
+    tagline: "Wash plus full interior vacuum and deodorise.",
     pricing: { sedan: 60, wagon: 65, suv: 70 },
     duration: "45 min",
     description:
       "Sparkles Wash service plus full interior and boot vacuum. Windows cleaned inside and out. Cleaning of dash board and console. Vehicle deodorised.",
+    // Unsplash search: "car interior vacuum"
+    image: `https://images.unsplash.com/photo-1520340356584-f9917d1eea6f${UNSPLASH_PARAMS}`,
     videoUrl: "http://youtu.be/6tRqXG0OUqA",
   },
   {
     id: "mini-detail",
     name: "Mini Detail",
+    tagline: "Wax, vinyl dressing, bug & tar removal.",
     pricing: { sedan: 70, wagon: 80, suv: 90 },
     duration: "90 min",
     description:
       "Super Sparkles service plus Bugs and road tar removed. Cup holders and compartments cleaned. Ash tray cleaned. All vinyl surfaces cleaned and dressed Bonus spray on wax.",
+    // Unsplash search: "car polish microfiber close up"
+    image: `https://images.unsplash.com/photo-1601362840469-51e4d8d58785${UNSPLASH_PARAMS}`,
     videoUrl: "https://www.youtube.com/watch?v=Hhtg8EVIT-E",
   },
   {
     id: "interior-detail",
     name: "Interior Detail",
+    tagline: "Seats, carpets, floor mats & boot shampooed.",
     pricing: { sedan: 250, wagon: 280, suv: 330 },
     duration: "2-3 hours",
     description:
       "Full interior vacuum. Seats, carpets, floor mats & boot shampooed Doors and door frames detailed. All vinyl surfaces cleaned and dressed.",
+    // Unsplash search: "leather car seats interior"
+    image: `https://images.unsplash.com/photo-1583121274602-3e2820c69888${UNSPLASH_PARAMS}`,
     videoUrl: "http://youtu.be/qR_9u-rrN9c",
   },
   {
     id: "full-detail",
     name: "Full Detail",
+    tagline: "Inside, outside, engine bay — the works.",
     pricing: { sedan: 350, wagon: 390, suv: 430 },
     duration: "4-5 hours",
     description:
       "Mini Detail service plus Engine-bay detailing service. Upholstery detailing service. Door frames and seals cleaned. Boot shampoo. Complete car clean inside and out. Hand polish.",
+    // Unsplash search: "clean detailed car showroom"
+    image: `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7${UNSPLASH_PARAMS}`,
     videoUrl: "http://youtu.be/MbEWHzYdND0",
   },
 ];

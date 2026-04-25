@@ -128,23 +128,27 @@ export default function BannerSlider() {
                   src={banner.image}
                   alt=""
                   fill
-                  className="object-cover"
+                  className="object-cover brightness-110 contrast-105 saturate-125"
                   priority={index === 0}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>
             ))}
 
-            {/* Dark wash overlay (radial bokeh + grid + droplets) */}
+            {/* Bright wash overlay (radial bokeh + grid + droplets) */}
             <div
               aria-hidden="true"
               className="absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(120% 80% at 30% 20%, rgba(30,94,255,0.45) 0%, transparent 60%), radial-gradient(80% 60% at 80% 80%, rgba(255,214,52,0.18) 0%, transparent 65%), linear-gradient(180deg, rgba(14,14,12,0.55) 0%, rgba(14,14,12,0.85) 100%)",
+                  "radial-gradient(80% 55% at 78% 16%, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.18) 34%, transparent 66%), radial-gradient(120% 80% at 30% 20%, rgba(30,94,255,0.28) 0%, transparent 60%), radial-gradient(80% 60% at 80% 80%, rgba(255,214,52,0.30) 0%, transparent 65%), linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(14,14,12,0.36) 100%)",
               }}
             />
-            <div aria-hidden="true" className="grid-scan absolute inset-0 opacity-60" />
+            <div
+              aria-hidden="true"
+              className="absolute -right-20 top-8 h-44 w-80 rotate-[-18deg] rounded-full bg-white/35 blur-3xl"
+            />
+            <div aria-hidden="true" className="grid-scan absolute inset-0 opacity-35" />
 
             {/* Falling droplets */}
             <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
