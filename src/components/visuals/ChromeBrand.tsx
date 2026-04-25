@@ -15,7 +15,7 @@ export function ChromeBrand({ size = 36, className, children }: ChromeBrandProps
   return (
     <span
       className={cn(
-        "relative inline-grid place-items-center rounded-full chrome-bg overflow-hidden",
+        "relative inline-grid place-items-center rounded-full chrome-brand-bg overflow-hidden",
         "shadow-[0_0_0_1px_rgba(255,255,255,0.18),inset_0_1px_0_rgba(255,255,255,0.45),0_6px_14px_-6px_rgba(30,94,255,0.45)]",
         className
       )}

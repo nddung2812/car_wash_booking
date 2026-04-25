@@ -52,9 +52,9 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Right cluster */}
-          <div className="hidden items-center gap-3 lg:flex">
-            <span className="inline-flex items-center gap-2 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70">
+          {/* Right cluster — sign-in + book at md+, status pill + phone only at lg+ */}
+          <div className="hidden items-center gap-2 md:flex lg:gap-3">
+            <span className="hidden items-center gap-2 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 lg:inline-flex">
               <span className="relative flex size-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/70 opacity-75" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
@@ -63,7 +63,7 @@ export default function Header() {
             </span>
             <a
               href="tel:0738060358"
-              className="inline-flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground"
+              className="hidden items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground lg:inline-flex"
             >
               <Phone className="size-3.5" />
               (07) 3806 0358

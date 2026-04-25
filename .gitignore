@@ -18,5 +18,8 @@ drizzle/
 # OS
 .DS_Store
 
+# TypeScript
+*.tsbuildinfo
+
 # clerk configuration (can include secrets)
 /.clerk/

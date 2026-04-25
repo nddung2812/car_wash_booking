@@ -78,7 +78,7 @@ export default function CostAnalytics({ data }: { data: CostAnalyticsData }) {
         <CardContent className="space-y-4">
           {monthlyCosts.map((m) => (
             <div key={m.month} className="space-y-1.5">
-              <div className="flex justify-between text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
                 <span className="text-muted-foreground">{m.month}</span>
                 <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
                   Revenue ${m.revenue.toLocaleString()} · Costs ${m.costs.toLocaleString()}

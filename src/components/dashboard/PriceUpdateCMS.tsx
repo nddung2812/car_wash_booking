@@ -74,9 +74,9 @@ export default function PriceUpdateCMS() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-serif text-2xl leading-tight tracking-tight">Update service prices</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {saved && (
             <Badge className="border-transparent bg-emerald-500/15 text-emerald-700">Saved</Badge>
           )}

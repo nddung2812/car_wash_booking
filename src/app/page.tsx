@@ -68,11 +68,9 @@ export default function Home() {
 
         {/* Services + add-ons */}
         <section id="services" className="py-20 lg:py-24">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 gap-16 xl:grid-cols-[1.4fr_1fr] xl:gap-12">
-              <ServicesSection />
-              <ExtraServicesSection />
-            </div>
+          <div className="container mx-auto flex flex-col gap-20 px-4 sm:px-6 lg:px-8">
+            <ServicesSection />
+            <ExtraServicesSection />
           </div>
         </section>
 

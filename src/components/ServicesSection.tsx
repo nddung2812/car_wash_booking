@@ -17,7 +17,7 @@ const ServicesSection = () => {
         className="mb-10"
       />
 
-      <div className="grid flex-1 grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid flex-1 grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service, index) => {
           const featured = service.id === "super-sparkles";
           const features = service.description
@@ -40,12 +40,9 @@ const ServicesSection = () => {
                 </Badge>
               )}
 
-              <div className="flex items-baseline justify-between gap-3">
+              <div className="flex items-baseline gap-3">
                 <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                   0{index + 1}
-                </span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {service.duration}
                 </span>
               </div>
 

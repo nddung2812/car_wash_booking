@@ -112,6 +112,11 @@
     background-size: 200% 100%;
     animation: chromeShine 6s linear infinite;
   }
+  .chrome-brand-bg {
+    background: var(--chrome);
+    background-size: 220% 220%;
+    animation: logoDiagonalShine 6s linear infinite;
+  }
   .lift {
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
@@ -136,6 +141,7 @@
 }
 
 @keyframes chromeShine { 0% { background-position: -200% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes logoDiagonalShine { 0% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
 @keyframes sparkle     { 0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
 @keyframes pulseRing   { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes floaty      { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }

@@ -18,15 +18,17 @@ export default function MetricCard({
 }: MetricCardProps) {
   return (
     <Card>
-      <CardContent className="flex items-center gap-4">
-        <div className={`grid size-11 place-items-center rounded-pill ${color}`}>
-          <Icon className="size-5" />
+      <CardContent className="flex items-center gap-3 sm:gap-4">
+        <div className={`grid size-10 shrink-0 place-items-center rounded-pill sm:size-11 ${color}`}>
+          <Icon className="size-4 sm:size-5" />
         </div>
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="min-w-0">
+          <p className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:text-[11px]">
             {title}
           </p>
-          <p className="font-serif text-3xl leading-none tracking-tight text-foreground">{value}</p>
+          <p className="truncate font-serif text-2xl leading-none tracking-tight text-foreground sm:text-3xl">
+            {value}
+          </p>
         </div>
       </CardContent>
     </Card>
