@@ -10,6 +10,8 @@ type ChromeBrandProps = {
   children?: React.ReactNode
 }
 
+const LOGO_ASPECT_RATIO = 213 / 260
+
 export function ChromeBrand({ size = 36, className, children }: ChromeBrandProps) {
   const inner = Math.round(size * 0.62)
   return (
@@ -27,7 +29,7 @@ export function ChromeBrand({ size = 36, className, children }: ChromeBrandProps
           src="/sparklesLogo.png"
           alt=""
           width={inner}
-          height={inner}
+          height={Math.round(inner * LOGO_ASPECT_RATIO)}
           className="object-contain drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
           priority
         />

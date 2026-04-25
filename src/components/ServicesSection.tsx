@@ -36,10 +36,10 @@ const ServicesSection = () => {
             <article
               key={service.id}
               className={cn(
-                "lift group relative flex flex-col overflow-hidden rounded-[20px] border bg-card-gradient shadow-soft",
-                tier === "featured" && "border-primary/40 shadow-glow",
+                "group relative flex flex-col overflow-hidden rounded-[20px] border bg-card-gradient shadow-none transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-glow",
+                tier === "featured" && "border-primary/40 hover:border-primary/60",
                 tier === "top" && "border-line-2",
-                tier === "standard" && "border-line"
+                tier === "standard" && "border-line hover:border-line-2"
               )}
             >
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">

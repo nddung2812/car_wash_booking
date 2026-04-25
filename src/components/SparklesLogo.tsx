@@ -7,6 +7,8 @@ interface SparklesLogoProps {
   showText?: boolean;
 }
 
+const LOGO_ASPECT_RATIO = 213 / 260;
+
 export default function SparklesLogo({ className = "", size = 80, showText = false }: SparklesLogoProps) {
   return (
     <div className={`flex items-center ${className}`}>
@@ -14,7 +16,7 @@ export default function SparklesLogo({ className = "", size = 80, showText = fal
         src="/sparklesLogo.png"
         alt="Hyperdome Logo"
         width={size}
-        height={size}
+        height={Math.round(size * LOGO_ASPECT_RATIO)}
         className="object-contain"
         priority
       />

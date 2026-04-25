@@ -13,10 +13,10 @@ export default function Header() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Services", href: "#services" },
-    { name: "Booking", href: "#booking" },
-    { name: "Reviews", href: "#reviews" },
-    { name: "Contact", href: "#contact" },
+    { name: "Services", href: "/services" },
+    { name: "Booking", href: "/bookings" },
+    { name: "Reviews", href: "/reviews" },
+    { name: "Contact", href: "/contact" },
   ];
 
   const locations = [
@@ -90,10 +90,10 @@ export default function Header() {
               <UserButton />
             </Show>
             <Button asChild size="sm">
-              <a href="#booking">
+              <Link href="/bookings">
                 Book a wash
                 <ArrowRight className="size-4" />
-              </a>
+              </Link>
             </Button>
           </div>
 
@@ -181,10 +181,10 @@ export default function Header() {
                       </div>
                     </Show>
                     <Button asChild size="lg" className="w-full justify-center">
-                      <a href="#booking" onClick={() => setIsOpen(false)}>
+                      <Link href="/bookings" onClick={() => setIsOpen(false)}>
                         Book a wash
                         <ArrowRight className="size-4" />
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 </div>
