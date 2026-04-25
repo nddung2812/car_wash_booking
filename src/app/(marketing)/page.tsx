@@ -1,3 +1,6 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+
 import BannerSlider from "@/components/BannerSlider";
 import BookingForm from "@/components/BookingForm";
 import CTABand from "@/components/CTABand";
@@ -8,6 +11,29 @@ import ReviewsSection from "@/components/ReviewsSection";
 import { SectionIntro } from "@/components/SectionIntro";
 import ServicesSection from "@/components/ServicesSection";
 import { Marquee } from "@/components/visuals/Marquee";
+import JsonLd from "@/components/seo/JsonLd";
+import {
+  allLocationsLd,
+  breadcrumbLd,
+  offerCatalogLd,
+} from "@/lib/seo/jsonld";
+
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Hyperdome Car Wash Logan QLD — Hand-Finished Detailing & Same-Day Bookings",
+  },
+  description:
+    "Professional car wash in Logan QLD. Hyperdome Car Wash offers hand-finished detailing, eco-grade chemistry and same-day bookings at two locations inside Hyperdome Shopping Centre.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    url: "/",
+    title:
+      "Hyperdome Car Wash Logan QLD — Hand-Finished Detailing & Same-Day Bookings",
+    description:
+      "Professional car wash in Logan QLD with hand-finished detailing, eco-grade chemistry and same-day bookings at two Hyperdome Shopping Centre locations.",
+  },
+};
 
 const tickerItems = [
   "★ 4.9 Google rating",
@@ -21,6 +47,11 @@ const tickerItems = [
 export default function Home() {
   return (
     <>
+      <h1 className="sr-only">
+        Professional Car Wash in Logan QLD — Hyperdome Car Wash, Shailer Park &
+        Loganholme
+      </h1>
+
       {/* Hero */}
       <BannerSlider />
 
@@ -47,7 +78,9 @@ export default function Home() {
             description="Schedule online in under a minute. We'll be ready when you arrive."
             className="mb-10"
           />
-          <BookingForm />
+          <Suspense fallback={null}>
+            <BookingForm />
+          </Suspense>
         </div>
       </section>
 
@@ -61,6 +94,10 @@ export default function Home() {
 
       {/* Contact / locations */}
       <LocationsSection />
+
+      <JsonLd id="ld-home-breadcrumb" data={breadcrumbLd([{ name: "Home", url: "/" }])} />
+      <JsonLd id="ld-home-locations" data={allLocationsLd()} />
+      <JsonLd id="ld-home-offers" data={offerCatalogLd()} />
     </>
   );
 }

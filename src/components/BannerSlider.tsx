@@ -8,9 +8,21 @@ import { Button } from "@/components/ui/button";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 
 const banners = [
-  { id: 1, image: "/banner1.webp" },
-  { id: 2, image: "/banner2.jpg" },
-  { id: 3, image: "/banner3.jpeg" },
+  {
+    id: 1,
+    image: "/banner1.webp",
+    alt: "Hyperdome Car Wash detailer hand-finishing a sedan in the Logan QLD bay",
+  },
+  {
+    id: 2,
+    image: "/banner2.jpg",
+    alt: "Interior detail in progress at Hyperdome Car Wash, Logan QLD",
+  },
+  {
+    id: 3,
+    image: "/banner3.jpeg",
+    alt: "Showroom-fresh finish on a 4×4 after a Full Detail at Hyperdome Car Wash, Loganholme",
+  },
 ];
 
 const AUTOPLAY_INTERVAL = 5500;
@@ -126,10 +138,11 @@ export default function BannerSlider() {
               >
                 <Image
                   src={banner.image}
-                  alt=""
+                  alt={banner.alt}
                   fill
                   className="object-cover brightness-110 contrast-105 saturate-125"
                   priority={index === 0}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>

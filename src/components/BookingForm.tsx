@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "@clerk/nextjs";
@@ -98,7 +99,13 @@ function buildDays(): { iso: string; weekday: string; day: number; month: string
 }
 
 export default function BookingForm() {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const searchParams = useSearchParams();
+  const preselectedService = searchParams.get("service");
+  const hasValidPreselection = services.some((s) => s.id === preselectedService);
+
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(
+    hasValidPreselection ? 2 : 1,
+  );
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [confirmationId, setConfirmationId] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -114,6 +121,7 @@ export default function BookingForm() {
     formState: { errors, isSubmitting },
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
+    defaultValues: hasValidPreselection ? { service: preselectedService! } : undefined,
   });
 
   useEffect(() => {

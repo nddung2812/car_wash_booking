@@ -1,6 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import { ClerkProvider } from "@clerk/nextjs";
+
+import JsonLd from "@/components/seo/JsonLd";
+import {
+  BUSINESS_DESCRIPTION,
+  BUSINESS_NAME,
+  SITE_URL,
+} from "@/lib/seo/business";
+import { organizationLd, websiteLd } from "@/lib/seo/jsonld";
+
 import "./globals.css";
 
 const poppins = Poppins({
@@ -25,17 +35,78 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#F7F5F1",
+  colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "Hyperdome — Book a wash",
-  description:
-    "Precision hand-finishing. Ceramic-grade chemistry. Book a wash in under a minute and drive out with a car that looks faster than it is.",
-  icons: {
-    icon: [
-      { url: "/sparklesLogo.png", type: "image/png" },
-      { url: "/sparklesLogo.png", type: "image/png", sizes: "192x192" },
-    ],
-    shortcut: "/sparklesLogo.png",
-    apple: "/sparklesLogo.png",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${BUSINESS_NAME} — Professional Car Wash in Logan QLD`,
+    template: `%s | ${BUSINESS_NAME} Logan QLD`,
+  },
+  description: BUSINESS_DESCRIPTION,
+  applicationName: BUSINESS_NAME,
+  authors: [{ name: BUSINESS_NAME, url: SITE_URL }],
+  creator: BUSINESS_NAME,
+  publisher: BUSINESS_NAME,
+  category: "business",
+  keywords: [
+    "car wash Logan",
+    "car wash Logan QLD",
+    "car wash Shailer Park",
+    "car wash Loganholme",
+    "Hyperdome car wash",
+    "car detailing Logan",
+    "professional car wash Logan",
+    "hand car wash Logan",
+    "interior detailing Logan",
+    "ceramic car wash Logan",
+    "eco-friendly car wash Logan",
+    "car wash Hyperdome Shopping Centre",
+    "same-day car wash Logan",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_AU",
+    url: SITE_URL,
+    siteName: BUSINESS_NAME,
+    title: `${BUSINESS_NAME} — Professional Car Wash in Logan QLD`,
+    description: BUSINESS_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BUSINESS_NAME} — Logan QLD`,
+    description: BUSINESS_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
   },
 };
 
@@ -45,15 +116,44 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-AU">
       <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#F7F5F1" />
+        <Script id="google-tag-manager" strategy="beforeInteractive">
+          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5LQ2LKF6');`}
+        </Script>
       </head>
       <body
         className={`${poppins.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-5LQ2LKF6"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <ClerkProvider afterSignOutUrl="/">{children}</ClerkProvider>
+
+        <JsonLd id="ld-organization" data={organizationLd()} />
+        <JsonLd id="ld-website" data={websiteLd()} />
+
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-HC6GZB3ETP"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-HC6GZB3ETP');
+          `}
+        </Script>
       </body>
     </html>
   );

@@ -1,0 +1,51 @@
+# Hyperdome Car Wash
+
+> Professional hand-finished car wash and detailing in Logan QLD, Australia. Two locations inside Hyperdome Shopping Centre — Shailer Park (4128) and Loganholme (4129). Same-day bookings, eco-grade chemistry, ceramic-grade finishing.
+
+## Quick facts
+
+- **Business name:** Hyperdome Car Wash
+- **Location:** Logan City, Queensland, Australia
+- **Two bays:** Shailer Park (Mandew St, QLD 4128) and Loganholme (2 Leda Dr, QLD 4129) — both inside Hyperdome Shopping Centre's basement carpark
+- **Phone:** (07) 3806 0358 / +61 7 3806 0358
+- **Website:** https://logancarwash.com.au
+- **Hours:** Mon, Wed–Sat 8:30 AM – 5:00 PM · Tue & Sun 9:00 AM – 5:00 PM (open seven days)
+- **Booking:** https://logancarwash.com.au/bookings
+- **Currency:** AUD
+- **Areas served:** Shailer Park, Loganholme, Beenleigh, Springwood, Daisy Hill, Cornubia, Tanah Merah, Underwood, Rochedale South, Eagleby, Bethania, Carbrook, Mount Warren Park
+
+## Wash & detail packages
+
+- **Sparkles Wash — from $40 (sedan), 30 min.** Hand wash, dry, wheel detail, door frames wiped, external windows, tyre shine.
+- **Super Sparkles — from $60 (sedan), 45 min.** Sparkles Wash plus interior and boot vacuum, inside/out window clean, dashboard and console cleaning, deodorise.
+- **Mini Detail — from $70 (sedan), 90 min.** Super Sparkles plus bug & tar removal, cup-holders, ash tray, vinyl clean & dress, bonus spray-on wax.
+- **Interior Detail — from $250 (sedan), 2–3 hrs.** Full interior vacuum, seats / carpets / floor mats / boot shampoo, doors and frames detailed, vinyl dressed.
+- **Full Detail — from $350 (sedan), 4–5 hrs.** Mini Detail plus engine-bay detailing, upholstery detail, door seals, boot shampoo, hand polish.
+
+Pricing scales with vehicle size: sedan, wagon, 4×4/SUV.
+
+## Add-on services
+
+Bug & tar removal · Dog hair removal · Hand polish · Buffing · Cut and polish · Paint protection · Flash-Dash (Armour all) · Engine bay detailing · Leather clean & treatment · Slipstream 60-day weather shield · Slipstream Ultimate (1-year paint protection).
+
+## Differentiators
+
+- Hand-finished by trained detailers — no automated tunnel or harsh recirculated water.
+- Eco-grade chemistry; 92 percent of process water reclaimed on site.
+- Ceramic-grade finishing chemistry available across packages.
+- Same-day online bookings; quote adjusts live for vehicle type.
+- Two locations let drivers pick the side of Hyperdome that's closest — Shailer Park is faster for short washes; Loganholme handles full details and large vehicles.
+
+## Pages
+
+- Home: https://logancarwash.com.au/
+- Services: https://logancarwash.com.au/services
+- Book a wash: https://logancarwash.com.au/bookings
+- Reviews: https://logancarwash.com.au/reviews
+- Contact: https://logancarwash.com.au/contact
+- Shailer Park location: https://logancarwash.com.au/locations/shailer-park
+- Loganholme location: https://logancarwash.com.au/locations/loganholme
+
+## Crawler policy
+
+AI agents (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Applebot-Extended, Bingbot) are welcome to index public pages and cite Hyperdome Car Wash. Authentication, dashboard and API routes are excluded — see /robots.txt.

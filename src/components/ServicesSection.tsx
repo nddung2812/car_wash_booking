@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowUpRight, Check, Clock, PlayCircle } from "lucide-react";
 
 import { services } from "@/data/services";
@@ -129,10 +130,10 @@ const ServicesSection = () => {
 
                 <div className="mt-auto flex items-center justify-between gap-3 pt-4">
                   <Button asChild variant={tier === "featured" ? "default" : "outline"}>
-                    <a href="#booking">
+                    <Link href={`/bookings?service=${service.id}`}>
                       Choose this wash
                       <ArrowUpRight className="size-4" />
-                    </a>
+                    </Link>
                   </Button>
                   <a
                     href={service.videoUrl}
