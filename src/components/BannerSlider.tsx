@@ -1,161 +1,237 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles as SparkleIcon, Star, Clock, Droplet } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 
 const banners = [
-  {
-    id: 1,
-    image: "/banner1.webp",
-  },
-  {
-    id: 2,
-    image: "/banner2.jpg",
-  },
-  {
-    id: 3,
-    image: "/banner3.jpeg",
-  }
+  { id: 1, image: "/banner1.webp" },
+  { id: 2, image: "/banner2.jpg" },
+  { id: 3, image: "/banner3.jpeg" },
+];
+
+const AUTOPLAY_INTERVAL = 5500;
+const RESUME_DELAY = 10000;
+
+const droplets = [
+  { left: "12%", delay: "0s",   duration: "3.6s" },
+  { left: "34%", delay: "0.8s", duration: "4.2s" },
+  { left: "58%", delay: "1.6s", duration: "3.8s" },
+  { left: "82%", delay: "2.4s", duration: "4.6s" },
+];
+
+const stats = [
+  { icon: Droplet, label: "Water reclaimed", value: "92%" },
+  { icon: Clock,   label: "Avg wash",        value: "38 min" },
+  { icon: Star,    label: "Rating",          value: "4.9 · 2.4k" },
 ];
 
 export default function BannerSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const handleSlideChange = useCallback((newSlide: number) => {
-    if (isTransitioning) return;
-
-    setIsTransitioning(true);
-    setCurrentSlide(newSlide);
-
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 500);
-  }, [isTransitioning]);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (isAutoPlaying) {
-      const timer = setInterval(() => {
-        handleSlideChange((currentSlide + 1) % banners.length);
-      }, 5000);
-      return () => clearInterval(timer);
-    }
-  }, [isAutoPlaying, currentSlide, handleSlideChange]);
+    if (!isAutoPlaying) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % banners.length);
+    }, AUTOPLAY_INTERVAL);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying]);
 
-  const goToSlide = (index: number) => {
-    if (index === currentSlide) return;
-    handleSlideChange(index);
+  useEffect(() => {
+    return () => {
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    };
+  }, []);
+
+  const navigate = (index: number) => {
+    const next = ((index % banners.length) + banners.length) % banners.length;
+    if (next === currentSlide) return;
+    setCurrentSlide(next);
     setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => setIsAutoPlaying(true), RESUME_DELAY);
   };
 
-  const goToPrevious = () => {
-    const newSlide = (currentSlide - 1 + banners.length) % banners.length;
-    handleSlideChange(newSlide);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
-  const goToNext = () => {
-    const newSlide = (currentSlide + 1) % banners.length;
-    handleSlideChange(newSlide);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
+  const goToPrevious = () => navigate(currentSlide - 1);
+  const goToNext = () => navigate(currentSlide + 1);
 
   return (
-    <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-lg shadow-xl">
-      {/* Background Images with Transitions */}
-      {banners.map((banner, index) => (
-        <div
-          key={banner.id}
-          className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-            index === currentSlide ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <Image
-            src={banner.image}
-            alt={`Banner ${index + 1}`}
-            fill
-            className="object-cover"
-            priority={index === 0}
-          />
-        </div>
-      ))}
+    <section className="relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-10 py-12 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:py-20">
+          {/* Left — copy */}
+          <div className="relative">
+            <span className="relative z-10 inline-flex items-center gap-2 rounded-pill border border-line bg-card/70 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-foreground/70 backdrop-blur">
+              <span className="relative flex size-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/70 opacity-75" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+              </span>
+              Now booking today
+            </span>
 
-      {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40" />
+            <h1
+              className="relative z-10 mt-6 font-serif italic leading-[0.95] tracking-[-0.02em] text-foreground"
+              style={{ fontSize: "clamp(48px, 7.2vw, 96px)" }}
+            >
+              A carwash that{" "}
+              <span className="not-italic">
+                <span className="yellow-highlight">shines</span>
+              </span>{" "}
+              on every detail.
+            </h1>
 
-      {/* CTA Content with Animation */}
-      <div className="relative h-full flex items-center justify-center z-10">
-        <div
-          className={`text-center space-y-6 transform transition-all duration-500 ease-in-out ${
-            isTransitioning ? 'scale-95 opacity-80' : 'scale-100 opacity-100'
-          }`}
-        >
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold px-8"
-              asChild
+            <p className="relative z-10 mt-6 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+              Precision hand-finishing. Ceramic-grade chemistry. Book a wash in under a minute and drive
+              out with a car that looks faster than it is.
+            </p>
+
+            <div className="relative z-10 mt-8 flex flex-wrap items-center gap-3">
+              <Button asChild size="lg">
+                <a href="#booking">
+                  Book a wash
+                  <ArrowRight className="size-4" />
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <a href="#services">See packages</a>
+              </Button>
+            </div>
+
+            <div className="relative z-10 mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <SparkleIcon className="size-3.5 text-primary" />
+                Hand-finished, every time
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Star className="size-3.5 fill-yellow text-yellow" />
+                4.9 · 2.4k Google reviews
+              </span>
+            </div>
+          </div>
+
+          {/* Right — visual panel */}
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[28px] border border-line shadow-soft-lg lg:aspect-[5/6]">
+            {/* Rotating background images */}
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  index === currentSlide ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <Image
+                  src={banner.image}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  priority={index === 0}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
+            ))}
+
+            {/* Dark wash overlay (radial bokeh + grid + droplets) */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(120% 80% at 30% 20%, rgba(30,94,255,0.45) 0%, transparent 60%), radial-gradient(80% 60% at 80% 80%, rgba(255,214,52,0.18) 0%, transparent 65%), linear-gradient(180deg, rgba(14,14,12,0.55) 0%, rgba(14,14,12,0.85) 100%)",
+              }}
+            />
+            <div aria-hidden="true" className="grid-scan absolute inset-0 opacity-60" />
+
+            {/* Falling droplets */}
+            <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+              {droplets.map((d, i) => (
+                <span
+                  key={i}
+                  className="absolute top-0 size-2 rounded-full bg-white/70"
+                  style={{
+                    left: d.left,
+                    boxShadow: "0 0 12px rgba(255,255,255,0.55)",
+                    animation: `drop ${d.duration} ease-in ${d.delay} infinite`,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Chrome label top-left */}
+            <div className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-pill border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-md">
+              <ChromeBrand size={20} />
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/85">
+                Hyperdome · Est. 2024
+              </span>
+            </div>
+
+            {/* Slide counter top-right */}
+            <div className="absolute right-5 top-5 z-10 rounded-pill border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-white/75 backdrop-blur-md">
+              {String(currentSlide + 1).padStart(2, "0")} / {String(banners.length).padStart(2, "0")}
+            </div>
+
+            {/* Caption + stat chips */}
+            <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-4 p-6">
+              <p className="font-serif italic text-white/90" style={{ fontSize: "clamp(20px, 2.4vw, 28px)" }}>
+                Hand-finished. Showroom-fresh. Every drive.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {stats.map((s) => {
+                  const Icon = s.icon;
+                  return (
+                    <div
+                      key={s.label}
+                      className="rounded-2xl border border-white/15 bg-white/8 p-3 backdrop-blur-md"
+                    >
+                      <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-white/70">
+                        <Icon className="size-3" />
+                        {s.label}
+                      </span>
+                      <span className="mt-1.5 block font-serif text-lg leading-none text-white">
+                        {s.value}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Arrows */}
+            <button
+              onClick={goToPrevious}
+              aria-label="Previous"
+              className="absolute left-4 top-1/2 z-20 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur-md transition-colors hover:bg-black/60"
             >
-              <a href="#booking">Book Now</a>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-white text-white hover:bg-white hover:text-gray-900 shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold px-8 bg-transparent backdrop-blur-sm"
-              asChild
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              onClick={goToNext}
+              aria-label="Next"
+              className="absolute right-4 top-1/2 z-20 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur-md transition-colors hover:bg-black/60"
             >
-              <a href="#services">Learn More</a>
-            </Button>
+              <ChevronRight className="size-4" />
+            </button>
+
+            {/* Dots */}
+            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => navigate(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${
+                    index === currentSlide ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Navigation arrows with better visibility */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/30 shadow-xl bg-black/20 backdrop-blur-sm border border-white/20 transform hover:scale-110 transition-all duration-200 z-20"
-        onClick={goToPrevious}
-        disabled={isTransitioning}
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/30 shadow-xl bg-black/20 backdrop-blur-sm border border-white/20 transform hover:scale-110 transition-all duration-200 z-20"
-        onClick={goToNext}
-        disabled={isTransitioning}
-      >
-        <ChevronRight className="h-6 w-6" />
-      </Button>
-
-      {/* Enhanced dots indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
-        {banners.map((_, index) => (
-          <button
-            key={index}
-            className={`w-3 h-3 rounded-full transition-all duration-300 shadow-lg transform hover:scale-125 ${
-              index === currentSlide
-                ? "bg-white shadow-white/50"
-                : "bg-white/50 hover:bg-white/80"
-            }`}
-            onClick={() => goToSlide(index)}
-            disabled={isTransitioning}
-          />
-        ))}
-      </div>
-
-      {/* Slide counter */}
-      <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium z-20">
-        {currentSlide + 1} / {banners.length}
-      </div>
-    </div>
+    </section>
   );
 }

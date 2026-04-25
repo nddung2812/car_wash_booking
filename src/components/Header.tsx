@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Phone, MapPin, User } from "lucide-react";
-import { LoginTrigger } from "@/components/LoginPortal";
-import SparklesLogo from "@/components/SparklesLogo";
+import { Menu, Phone, MapPin, User, ArrowRight } from "lucide-react";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,22 +20,23 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-line bg-background/72 backdrop-blur-xl backdrop-saturate-150 shadow-[0_1px_0_rgba(255,255,255,0.4)_inset,0_10px_30px_-24px_rgba(0,0,0,0.25)]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <SparklesLogo size={50} showText={true} />
+        <div className="flex h-16 items-center justify-between gap-6 lg:h-[68px]">
+          {/* Brand */}
+          <Link href="/" className="group flex items-center gap-2.5">
+            <ChromeBrand size={36} />
+            <span className="font-serif text-[22px] leading-none tracking-tight">Hyperdome</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-7 md:flex">
             {navigation.map((item) =>
               item.href.startsWith("#") ? (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="font-mono text-[12px] uppercase tracking-[0.14em] text-foreground/70 transition-colors hover:text-foreground"
                 >
                   {item.name}
                 </a>
@@ -43,7 +44,7 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="font-mono text-[12px] uppercase tracking-[0.14em] text-foreground/70 transition-colors hover:text-foreground"
                 >
                   {item.name}
                 </Link>
@@ -51,59 +52,72 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Contact Info & CTA */}
-          <div className="hidden lg:flex items-center space-x-6">
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <div className="flex items-center space-x-1">
-                <Phone className="h-4 w-4" />
-                <span>(07) 3806 0358</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MapPin className="h-4 w-4" />
-                <span>2 Locations</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <LoginTrigger>
-                <Button variant="outline" size="sm" className="flex items-center space-x-1">
-                  <User className="h-4 w-4" />
-                  <span>Login</span>
+          {/* Right cluster */}
+          <div className="hidden items-center gap-3 lg:flex">
+            <span className="inline-flex items-center gap-2 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70">
+              <span className="relative flex size-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/70 opacity-75" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+              </span>
+              Both locations open now
+            </span>
+            <a
+              href="tel:0738060358"
+              className="inline-flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground"
+            >
+              <Phone className="size-3.5" />
+              (07) 3806 0358
+            </a>
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <Button variant="ghost" size="sm">
+                  <User className="size-4" />
+                  <span>Sign in</span>
                 </Button>
-              </LoginTrigger>
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold px-8">
-                <a href="#booking">Book Now</a>
-              </Button>
-            </div>
+              </SignInButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+            <Button asChild size="sm">
+              <a href="#booking">
+                Book a wash
+                <ArrowRight className="size-4" />
+              </a>
+            </Button>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile button */}
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="lg" className="p-2">
-                  <Menu className="h-7 w-7" />
+                <Button variant="ghost" size="icon" aria-label="Open menu">
+                  <Menu className="size-6" />
                 </Button>
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="w-[300px] sm:w-[400px] px-5 sm:px-6 pt-2 pb-6"
+                className="w-[300px] sm:w-[380px] px-6 pt-6 pb-8"
               >
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <div className="flex flex-col space-y-6 mt-6">
-                  {/* Mobile Logo */}
-                  <div className="flex flex-col items-center">
-                    <SparklesLogo size={60} showText={true} />
-                  </div>
+                <div className="flex flex-col gap-7">
+                  <Link
+                    href="/"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2.5"
+                  >
+                    <ChromeBrand size={40} />
+                    <span className="font-serif text-2xl tracking-tight">Hyperdome</span>
+                  </Link>
 
-                  {/* Mobile Navigation */}
-                  <nav className="flex flex-col space-y-4">
+                  <nav className="flex flex-col gap-1.5">
                     {navigation.map((item) =>
                       item.href.startsWith("#") ? (
                         <a
                           key={item.name}
                           href={item.href}
-                          className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
                           onClick={() => setIsOpen(false)}
+                          className="rounded-xl px-3 py-2.5 font-serif text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
                         >
                           {item.name}
                         </a>
@@ -111,8 +125,8 @@ export default function Header() {
                         <Link
                           key={item.name}
                           href={item.href}
-                          className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
                           onClick={() => setIsOpen(false)}
+                          className="rounded-xl px-3 py-2.5 font-serif text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
                         >
                           {item.name}
                         </Link>
@@ -120,29 +134,46 @@ export default function Header() {
                     )}
                   </nav>
 
-                  {/* Mobile Contact Info */}
-                  <div className="space-y-3 pt-6 border-t">
-                    <div className="flex items-center space-x-3">
-                      <Phone className="h-5 w-5 text-gray-500" />
-                      <span className="text-gray-700">(07) 3806 0358</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <MapPin className="h-5 w-5 text-gray-500" />
-                      <span className="text-gray-700">Hyperdome Shopping Centre (2 Locations)</span>
-                    </div>
+                  <div className="flex flex-col gap-2 border-t border-line pt-5">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Reach us
+                    </span>
+                    <a
+                      href="tel:0738060358"
+                      className="flex items-center gap-2.5 text-[15px] text-foreground"
+                    >
+                      <Phone className="size-4 text-muted-foreground" />
+                      (07) 3806 0358
+                    </a>
+                    <span className="flex items-center gap-2.5 text-[15px] text-foreground">
+                      <MapPin className="size-4 text-muted-foreground" />
+                      Hyperdome Shopping Centre — 2 locations
+                    </span>
                   </div>
 
-                  {/* Mobile CTA */}
-                  <div className="pt-4 space-y-3">
-                    <LoginTrigger>
-                      <Button variant="outline" className="w-full flex items-center space-x-2">
-                        <User className="h-4 w-4" />
-                        <span>Login / Sign Up</span>
-                      </Button>
-                    </LoginTrigger>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl font-semibold" size="lg" asChild>
+                  <div className="flex flex-col gap-2.5 pt-2">
+                    <Show when="signed-out">
+                      <SignInButton mode="modal">
+                        <Button variant="outline" className="w-full justify-center">
+                          <User className="size-4" />
+                          Sign in
+                        </Button>
+                      </SignInButton>
+                      <SignUpButton mode="modal">
+                        <Button variant="ghost" className="w-full justify-center">
+                          Create account
+                        </Button>
+                      </SignUpButton>
+                    </Show>
+                    <Show when="signed-in">
+                      <div className="flex items-center justify-center py-1">
+                        <UserButton />
+                      </div>
+                    </Show>
+                    <Button asChild size="lg" className="w-full justify-center">
                       <a href="#booking" onClick={() => setIsOpen(false)}>
-                        Book Now
+                        Book a wash
+                        <ArrowRight className="size-4" />
                       </a>
                     </Button>
                   </div>

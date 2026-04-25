@@ -18,9 +18,12 @@ export default function DataTable({ columns, rows }: DataTableProps<any>) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b">
+          <tr className="border-b border-line">
             {columns.map((col) => (
-              <th key={col.key} className="text-left py-3 px-4 font-medium text-gray-500">
+              <th
+                key={col.key}
+                className="py-3 px-4 text-left font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground"
+              >
                 {col.label}
               </th>
             ))}
@@ -28,20 +31,23 @@ export default function DataTable({ columns, rows }: DataTableProps<any>) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b last:border-0 hover:bg-gray-50">
+            <tr key={i} className="border-b border-line/60 last:border-0 hover:bg-secondary/60">
               {columns.map((col) => (
-                <td key={col.key} className="py-3 px-4">
+                <td key={col.key} className="py-3 px-4 text-foreground">
                   {col.key === "status" ? (
                     <Badge
                       variant={
-                        row[col.key] === "Completed" ? "default" :
-                        row[col.key] === "Pending" ? "secondary" : "destructive"
+                        row[col.key] === "Completed"
+                          ? "default"
+                          : row[col.key] === "Pending"
+                            ? "secondary"
+                            : "destructive"
                       }
                     >
                       {String(row[col.key])}
                     </Badge>
                   ) : col.key === "amount" ? (
-                    `$${row[col.key]}`
+                    <span className="font-mono tabular-nums">${row[col.key]}</span>
                   ) : (
                     String(row[col.key])
                   )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export default function PriceUpdateCMS() {
     JSON.parse(JSON.stringify(originalExtras))
   );
   const [saved, setSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -31,6 +32,12 @@ export default function PriceUpdateCMS() {
       setServiceList(parsed.services);
       setExtraList(parsed.extras);
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    };
   }, []);
 
   const updateServicePrice = (index: number, vehicle: keyof Service["pricing"], value: number) => {
@@ -53,7 +60,8 @@ export default function PriceUpdateCMS() {
     const data: SavedPrices = { services: serviceList, extras: extraList };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
   };
 
   const handleReset = () => {
@@ -67,14 +75,16 @@ export default function PriceUpdateCMS() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Update Service Prices</h2>
+        <h2 className="font-serif text-2xl leading-tight tracking-tight">Update service prices</h2>
         <div className="flex items-center gap-3">
-          {saved && <Badge className="bg-green-500">Saved!</Badge>}
+          {saved && (
+            <Badge className="border-transparent bg-emerald-500/15 text-emerald-700">Saved</Badge>
+          )}
           <Button variant="outline" size="sm" onClick={handleReset}>
-            <RotateCcw className="h-4 w-4 mr-1" /> Reset
+            <RotateCcw className="size-4" /> Reset
           </Button>
           <Button size="sm" onClick={handleSave}>
-            <Save className="h-4 w-4 mr-1" /> Save Prices
+            <Save className="size-4" /> Save prices
           </Button>
         </div>
       </div>
@@ -84,19 +94,19 @@ export default function PriceUpdateCMS() {
           <CardTitle>Main Services</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="hidden sm:grid grid-cols-[1fr_100px_100px_100px] gap-3 text-sm font-medium text-gray-500 px-1">
+          <div className="hidden sm:grid grid-cols-[1fr_100px_100px_100px] gap-3 px-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             <span>Service</span>
             <span>Sedan</span>
             <span>Wagon</span>
             <span>SUV</span>
           </div>
           {serviceList.map((service, i) => (
-            <div key={service.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_100px] gap-3 items-center border-b pb-3 last:border-0">
+            <div key={service.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_100px] gap-3 items-center border-b border-line/60 pb-3 last:border-0">
               <span className="font-medium">{service.name}</span>
               {vehicleKeys.map((v) => (
                 <div key={v} className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400 sm:hidden capitalize">{v}:</span>
-                  <span className="text-gray-400">$</span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground sm:hidden">{v}:</span>
+                  <span className="text-muted-foreground">$</span>
                   <Input
                     type="number"
                     min={0}
@@ -116,19 +126,19 @@ export default function PriceUpdateCMS() {
           <CardTitle>Extra Services</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="hidden sm:grid grid-cols-[1fr_100px_100px_100px] gap-3 text-sm font-medium text-gray-500 px-1">
+          <div className="hidden sm:grid grid-cols-[1fr_100px_100px_100px] gap-3 px-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             <span>Service</span>
             <span>Sedan</span>
             <span>Wagon</span>
             <span>SUV</span>
           </div>
           {extraList.map((service, i) => (
-            <div key={service.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_100px] gap-3 items-center border-b pb-3 last:border-0">
+            <div key={service.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_100px] gap-3 items-center border-b border-line/60 pb-3 last:border-0">
               <span className="font-medium">{service.name}</span>
               {vehicleKeys.map((v) => (
                 <div key={v} className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400 sm:hidden capitalize">{v}:</span>
-                  <span className="text-gray-400">$</span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground sm:hidden">{v}:</span>
+                  <span className="text-muted-foreground">$</span>
                   <Input
                     type="number"
                     min={0}

@@ -18,14 +18,17 @@ export default function BarChart({ title, data, suffix = "" }: BarChartProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {data.map((item) => (
-          <div key={item.label} className="space-y-1">
+          <div key={item.label} className="space-y-1.5">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{item.label}</span>
-              <span className="font-medium">{item.value}{suffix}</span>
+              <span className="text-muted-foreground">{item.label}</span>
+              <span className="font-mono tabular-nums text-foreground">
+                {item.value}
+                {suffix}
+              </span>
             </div>
-            <div className="h-3 w-full rounded-full bg-gray-100">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
               <div
-                className={`h-3 rounded-full ${item.color || "bg-blue-500"}`}
+                className={`h-2.5 rounded-full ${item.color || "bg-primary"}`}
                 style={{ width: `${(item.value / max) * 100}%` }}
               />
             </div>

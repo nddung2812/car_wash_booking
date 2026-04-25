@@ -2,3 +2,21 @@ node_modules
 
 # Next.js
 .next/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Drizzle
+drizzle/
+.drizzle/
+
+# OS
+.DS_Store
+
+# clerk configuration (can include secrets)
+/.clerk/

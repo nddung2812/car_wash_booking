@@ -1,89 +1,112 @@
-import React from 'react';
-import { services } from '@/data/services';
-import { Star } from 'lucide-react';
+import React from "react";
+import { ArrowUpRight, Check } from "lucide-react";
+
+import { services } from "@/data/services";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SectionIntro } from "@/components/SectionIntro";
 
 const ServicesSection = () => {
   return (
-    <div className="bg-gray-50 rounded-lg p-6 shadow-sm border border-gray-200 h-full flex flex-col">
-      <div className="text-center mb-12">
-        <div className="flex items-center justify-center mb-4">
-          <div className="bg-blue-600 p-3 rounded-full mr-3">
-            <Star className="h-6 w-6 text-white" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-blue-900">
-            Premium Services
-          </h2>
-        </div>
-        <p className="text-lg text-blue-700">
-          Professional car wash and detailing services designed to keep your vehicle looking its best.
-        </p>
-      </div>
+    <div className="flex h-full flex-col">
+      <SectionIntro
+        kicker="01 — Packages"
+        title="Pick the wash that fits the day."
+        description="From a fast freshen-up to a full hand detail. Prices shown for sedans — selecting a larger vehicle in checkout adjusts the total."
+        className="mb-10"
+      />
 
-        {/* Services Grid */}
-        <div className="space-y-8 flex-1">
-          {services.map((service, index) => (
-            <div
+      <div className="grid flex-1 grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        {services.map((service, index) => {
+          const featured = service.id === "super-sparkles";
+          const features = service.description
+            .split(/\.\s+|\.$/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .slice(0, 4);
+
+          return (
+            <article
               key={service.id}
-              className={`${
-                service.id === 'super-sparkles'
-                  ? 'bg-white rounded-lg p-6 border border-gray-300 shadow-sm relative'
-                  : 'bg-white rounded-lg p-6 shadow-sm border border-gray-200'
-              }`}
-            >
-              {service.id === 'super-sparkles' && (
-                <div className="absolute -top-3 left-6">
-                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Most Popular
-                  </span>
-                </div>
+              className={cn(
+                "lift relative flex flex-col gap-5 rounded-[20px] border bg-card-gradient p-6 shadow-soft",
+                featured ? "border-primary/40 shadow-glow" : "border-line"
               )}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                <div className="lg:col-span-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{service.name}</h3>
-                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
-                    {service.description}
-                  </p>
-                  <a
-                    href={service.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
-                  >
-                    Watch Video →
-                  </a>
-                </div>
-                <div className="lg:col-span-1">
-                  <div className="space-y-3">
-                    <div className={`flex items-center justify-between p-4 rounded-lg ${
-                      service.id === 'super-sparkles'
-                        ? 'bg-gray-50 border border-gray-200'
-                        : 'bg-gray-50 border border-gray-100'
-                    }`}>
-                      <span className="text-sm font-medium text-gray-700">Sedan</span>
-                      <span className="text-xl font-bold text-gray-900">${service.pricing.sedan}</span>
-                    </div>
-                    <div className={`flex items-center justify-between p-4 rounded-lg ${
-                      service.id === 'super-sparkles'
-                        ? 'bg-gray-50 border border-gray-200'
-                        : 'bg-gray-50 border border-gray-100'
-                    }`}>
-                      <span className="text-sm font-medium text-gray-700">Wagon</span>
-                      <span className="text-xl font-bold text-gray-900">${service.pricing.wagon}</span>
-                    </div>
-                    <div className={`flex items-center justify-between p-4 rounded-lg ${
-                      service.id === 'super-sparkles'
-                        ? 'bg-gray-50 border border-gray-200'
-                        : 'bg-gray-50 border border-gray-100'
-                    }`}>
-                      <span className="text-sm font-medium text-gray-700">4x4</span>
-                      <span className="text-xl font-bold text-gray-900">${service.pricing.suv}</span>
-                    </div>
-                  </div>
-                </div>
+            >
+              {featured && (
+                <Badge className="absolute right-5 top-5">
+                  Most booked
+                </Badge>
+              )}
+
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  0{index + 1}
+                </span>
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  {service.duration}
+                </span>
               </div>
-            </div>
-          ))}
-        </div>
+
+              <h3 className="font-serif text-[28px] leading-tight tracking-tight text-foreground">
+                {service.name}
+              </h3>
+
+              <div className="flex items-baseline gap-2">
+                <span className="font-serif text-[44px] leading-none text-primary">
+                  ${service.pricing.sedan}
+                </span>
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  / sedan
+                </span>
+              </div>
+
+              <ul className="flex flex-col gap-2 border-t border-dashed border-line pt-4 text-[14px] text-foreground/80">
+                {features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <span className="leading-snug">{feature}.</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+                <a
+                  href={service.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Watch video
+                  <ArrowUpRight className="size-3.5" />
+                </a>
+                <Button asChild size="sm" variant={featured ? "default" : "outline"}>
+                  <a href="#booking">Choose</a>
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 border-t border-line pt-4 font-mono text-[11px] uppercase tracking-[0.12em]">
+                {[
+                  { label: "Sedan", value: service.pricing.sedan },
+                  { label: "Wagon", value: service.pricing.wagon },
+                  { label: "4×4", value: service.pricing.suv },
+                ].map((p) => (
+                  <div
+                    key={p.label}
+                    className="flex flex-col items-center rounded-lg border border-line bg-card/40 px-2 py-2"
+                  >
+                    <span className="text-muted-foreground">{p.label}</span>
+                    <span className="mt-1 text-[14px] font-semibold tracking-normal text-foreground">
+                      ${p.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
 };
