@@ -47,12 +47,7 @@ const tickerItems = [
 export default function Home() {
   return (
     <>
-      <h1 className="sr-only">
-        Professional Car Wash in Logan QLD — Hyperdome Car Wash, Shailer Park &
-        Loganholme
-      </h1>
-
-      {/* Hero */}
+      {/* Hero (visible <h1> lives inside BannerSlider) */}
       <BannerSlider />
 
       {/* Marquee */}

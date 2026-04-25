@@ -90,7 +90,7 @@ export default function BannerSlider() {
               className="relative z-10 mt-6 font-serif italic leading-[0.95] tracking-[-0.02em] text-foreground"
               style={{ fontSize: "clamp(48px, 7.2vw, 96px)" }}
             >
-              A carwash that{" "}
+              A Logan car wash that{" "}
               <span className="not-italic">
                 <span className="yellow-highlight">shines</span>
               </span>{" "}
