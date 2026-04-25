@@ -1,6 +1,3 @@
-import { config } from "dotenv";
-config({ path: ".env.local" });
-
 import { db, bookings } from "./index";
 import { mockBookings } from "../data/mock-dashboard";
 

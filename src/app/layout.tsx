@@ -45,18 +45,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider afterSignOutUrl="/">
-      <html lang="en">
-        <head>
-          <link rel="manifest" href="/manifest.json" />
-          <meta name="theme-color" content="#F7F5F1" />
-        </head>
-        <body
-          className={`${poppins.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} font-sans antialiased`}
-        >
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#F7F5F1" />
+      </head>
+      <body
+        className={`${poppins.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+      >
+        <ClerkProvider afterSignOutUrl="/">{children}</ClerkProvider>
+      </body>
+    </html>
   );
 }
