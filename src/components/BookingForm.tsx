@@ -397,6 +397,24 @@ export default function BookingForm() {
       <p className="mt-4 px-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
         * Prices indicative. Excessively dirty vehicles may incur extra.
       </p>
+
+      {currentStep === 3 && (
+        <div className="mt-5 flex flex-col gap-3 lg:hidden">
+          {submitError && (
+            <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 font-mono text-[12px] text-destructive">
+              {submitError}
+            </p>
+          )}
+          <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? "Booking…" : "Confirm & book"}
+            <ArrowRight className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" onClick={goBack} className="w-full">
+            <ArrowLeft className="size-4" />
+            Back
+          </Button>
+        </div>
+      )}
     </aside>
   );
 
@@ -595,7 +613,7 @@ export default function BookingForm() {
                       onClick={() => setValue("date", d.iso, { shouldValidate: true })}
                       aria-pressed={active}
                       className={cn(
-                        "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl border text-center transition-all",
+                        "flex flex-col items-center justify-center gap-1 rounded-xl border py-3 text-center transition-all",
                         active
                           ? "border-primary bg-primary text-primary-foreground shadow-glow"
                           : "border-line bg-card/40 text-foreground hover:border-line-2",
@@ -609,7 +627,14 @@ export default function BookingForm() {
                       >
                         {d.weekday}
                       </span>
-                      <span className="font-serif text-2xl leading-none">{d.day}</span>
+                      <span
+                        className={cn(
+                          "font-serif text-3xl font-light leading-none",
+                          active ? "text-primary-foreground" : "text-foreground/70",
+                        )}
+                      >
+                        {d.day}
+                      </span>
                       <span
                         className={cn(
                           "font-mono text-[10px] uppercase tracking-[0.14em]",
@@ -777,7 +802,12 @@ export default function BookingForm() {
         )}
 
         {currentStep > 1 && (
-          <div className="flex flex-col-reverse items-stretch gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className={cn(
+              "flex flex-col-reverse items-stretch gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between",
+              currentStep === 3 && "hidden lg:flex",
+            )}
+          >
             <Button type="button" variant="ghost" onClick={goBack} className="sm:w-auto">
               <ArrowLeft className="size-4" />
               Back
