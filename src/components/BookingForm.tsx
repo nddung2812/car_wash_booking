@@ -327,7 +327,7 @@ export default function BookingForm() {
 
   // ============ Summary sidebar ============
   const summary = (
-    <aside className="lg:sticky lg:top-[88px]">
+    <aside className="lg:sticky lg:top-24 lg:self-start">
       <div className="overflow-hidden rounded-[20px] border border-line bg-card-gradient shadow-soft-lg">
         <div className="flex items-center justify-between gap-3 border-b border-line px-6 py-5">
           <div className="flex items-center gap-3">
@@ -480,6 +480,28 @@ export default function BookingForm() {
                         </span>
                       </div>
                     </button>
+                    <div
+                      className={cn(
+                        "overflow-hidden transition-all duration-300 ease-out",
+                        active
+                          ? "mt-3 max-h-32 opacity-100 translate-y-0"
+                          : "mt-0 max-h-0 opacity-0 -translate-y-1",
+                      )}
+                      aria-hidden={!active}
+                    >
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          size="lg"
+                          onClick={() => void goNext()}
+                          className="w-full sm:w-auto"
+                          tabIndex={active ? 0 : -1}
+                        >
+                          Continue
+                          <ArrowRight className="size-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </li>
                 );
               })}
@@ -754,28 +776,26 @@ export default function BookingForm() {
           </p>
         )}
 
-        <div className="flex flex-col-reverse items-stretch gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-          {currentStep > 1 ? (
+        {currentStep > 1 && (
+          <div className="flex flex-col-reverse items-stretch gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
             <Button type="button" variant="ghost" onClick={goBack} className="sm:w-auto">
               <ArrowLeft className="size-4" />
               Back
             </Button>
-          ) : (
-            <span className="hidden sm:inline" />
-          )}
 
-          {currentStep < 3 ? (
-            <Button type="button" size="lg" onClick={() => void goNext()} className="sm:w-auto">
-              Continue
-              <ArrowRight className="size-4" />
-            </Button>
-          ) : (
-            <Button type="submit" size="lg" disabled={isSubmitting} className="sm:w-auto">
-              {isSubmitting ? "Booking…" : "Confirm & book"}
-              <ArrowRight className="size-4" />
-            </Button>
-          )}
-        </div>
+            {currentStep < 3 ? (
+              <Button type="button" size="lg" onClick={() => void goNext()} className="sm:w-auto">
+                Continue
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : (
+              <Button type="submit" size="lg" disabled={isSubmitting} className="sm:w-auto">
+                {isSubmitting ? "Booking…" : "Confirm & book"}
+                <ArrowRight className="size-4" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {summary}
