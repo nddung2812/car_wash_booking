@@ -29,6 +29,7 @@ import { Sparkles } from "@/components/visuals/Sparkles";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 import { services, vehicleTypes, timeSlots } from "@/data/services";
 import { cn } from "@/lib/utils";
+import { trackGenerateLead } from "@/lib/analytics";
 
 const bookingSchema = z.object({
   service: z.string().min(1, "Please select a service"),
@@ -157,6 +158,16 @@ export default function BookingForm() {
         throw new Error(body.error ?? "Could not create booking");
       }
       const { booking } = await res.json();
+
+      trackGenerateLead({
+        value: total,
+        currency: "AUD",
+        serviceId: data.service,
+        serviceName: selectedServiceData?.name ?? data.service,
+        vehicleType: data.vehicleType,
+        confirmationCode: booking.confirmationCode,
+      });
+
       setConfirmationId(booking.confirmationCode);
       setIsSubmitted(true);
     } catch (err) {
