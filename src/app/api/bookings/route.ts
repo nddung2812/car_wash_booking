@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, bookings } from "@/db";
 import { listBookings } from "@/db/queries";
@@ -34,8 +35,25 @@ function priceFor(serviceId: string, vehicleType: string) {
   return { svc, subtotal, gst, total };
 }
 
-function genCode() {
-  return "HD-" + Math.floor(10000 + Math.random() * 90000).toString();
+async function genCode() {
+  const parts = new Intl.DateTimeFormat("en-AU", {
+    timeZone: "Australia/Brisbane",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(new Date());
+  const dd = parts.find((p) => p.type === "day")!.value;
+  const mm = parts.find((p) => p.type === "month")!.value;
+  const yyyy = parts.find((p) => p.type === "year")!.value;
+  const prefix = `LCW-${dd}/${mm}/${yyyy}-`;
+
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(bookings)
+    .where(sql`${bookings.confirmationCode} LIKE ${prefix + "%"}`);
+
+  const next = (row?.count ?? 0) + 1;
+  return `${prefix}${String(next).padStart(3, "0")}`;
 }
 
 function isAdmin(email: string | null | undefined) {
@@ -61,7 +79,7 @@ export async function POST(req: Request) {
   }
 
   const { userId } = await auth();
-  const code = genCode();
+  const code = await genCode();
 
   const [row] = await db
     .insert(bookings)
