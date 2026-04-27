@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     title: "Car Wash Shailer Park QLD — Hyperdome Shopping Centre",
     description:
       "Professional hand-finished car wash on the Mandew St side of Hyperdome Shopping Centre, Shailer Park QLD 4128. Open seven days.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Hyperdome Car Wash — Professional car wash in Logan QLD" }],
   },
 };
 

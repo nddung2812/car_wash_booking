@@ -79,11 +79,20 @@ export const metadata: Metadata = {
     siteName: BUSINESS_NAME,
     title: `${BUSINESS_NAME} — Professional Car Wash in Logan QLD`,
     description: BUSINESS_DESCRIPTION,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Hyperdome Car Wash — Professional car wash in Logan QLD",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${BUSINESS_NAME} — Logan QLD`,
     description: BUSINESS_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,

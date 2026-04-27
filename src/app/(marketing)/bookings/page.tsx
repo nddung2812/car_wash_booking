@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     title: "Book a Car Wash Online in Logan QLD — Hyperdome",
     description:
       "Same-day car wash bookings at Hyperdome Shopping Centre, Logan QLD. Sedans, wagons and 4×4s welcome — confirm a slot in under a minute.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Hyperdome Car Wash — Professional car wash in Logan QLD" }],
   },
 };
 

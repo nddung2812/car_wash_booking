@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import CTABand from "@/components/CTABand";
 import ReviewsSection from "@/components/ReviewsSection";
 import JsonLd from "@/components/seo/JsonLd";
-import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { breadcrumbLd, reviewsLd } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
   title: "Reviews — Hyperdome Car Wash, Logan QLD",
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: "Hyperdome Car Wash Reviews — Logan QLD",
     description:
       "Customer reviews of Hyperdome Car Wash at Hyperdome Shopping Centre, Logan QLD — Shailer Park and Loganholme bays.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Hyperdome Car Wash — Professional car wash in Logan QLD" }],
   },
 };
 
@@ -51,6 +52,7 @@ export default function ReviewsPage() {
           { name: "Reviews", url: "/reviews" },
         ])}
       />
+      <JsonLd id="ld-reviews-reviews" data={reviewsLd()} />
     </>
   );
 }

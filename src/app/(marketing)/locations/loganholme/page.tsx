@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     title: "Car Wash Loganholme QLD — Hyperdome Shopping Centre",
     description:
       "Hand-finished car wash on the Leda Drive side of Hyperdome Shopping Centre, Loganholme QLD 4129. Higher clearance for 4×4s. Open seven days.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Hyperdome Car Wash — Professional car wash in Logan QLD" }],
   },
 };
 

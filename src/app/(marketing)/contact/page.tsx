@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: "Contact Hyperdome Car Wash — Logan QLD",
     description:
       "Call (07) 3806 0358 or visit Hyperdome Car Wash at Shailer Park or Loganholme. Open seven days, same-day bookings available.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Hyperdome Car Wash — Professional car wash in Logan QLD" }],
   },
 };
 
