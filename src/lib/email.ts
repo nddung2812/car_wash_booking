@@ -13,6 +13,7 @@ type BookingEmailParams = {
   phone: string;
   address: string;
   notes?: string | null;
+  extras: { name: string; price: number }[];
   subtotal: number;
   gst: number;
   total: number;
@@ -46,6 +47,10 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     timeStyle: "short",
   });
 
+  const extrasFormatted = params.extras.length
+    ? params.extras.map((e) => `${e.name} ($${e.price.toFixed(2)})`).join(", ")
+    : "—";
+
   const templateParams = {
     confirmation_code: params.confirmationCode,
     service_id: params.serviceId,
@@ -62,6 +67,7 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     phone: params.phone,
     address: params.address,
     notes: params.notes?.trim() ? params.notes : "—",
+    extras: extrasFormatted,
     subtotal: params.subtotal.toFixed(2),
     gst: params.gst.toFixed(2),
     total: params.total.toFixed(2),

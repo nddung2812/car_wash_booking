@@ -3,7 +3,6 @@ import { Suspense } from "react";
 
 import BookingForm from "@/components/BookingForm";
 import CTABand from "@/components/CTABand";
-import ExtraServicesSection from "@/components/ExtraServicesSection";
 import { SectionIntro } from "@/components/SectionIntro";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbLd } from "@/lib/seo/jsonld";
@@ -55,7 +54,6 @@ export default function BookingsPage() {
               <BookingForm />
             </Suspense>
           </div>
-          <ExtraServicesSection />
         </div>
       </section>
       <CTABand />

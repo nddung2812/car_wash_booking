@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "@clerk/nextjs";
@@ -16,8 +16,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  Shield,
-  Sparkles as SparkleIcon,
   User,
 } from "lucide-react";
 
@@ -25,9 +23,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles } from "@/components/visuals/Sparkles";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
-import { services, vehicleTypes, timeSlots } from "@/data/services";
+import {
+  services,
+  vehicleTypes,
+  timeSlots,
+  extraServices,
+  getExtraPrice,
+} from "@/data/services";
 import { cn } from "@/lib/utils";
 import { trackGenerateLead } from "@/lib/analytics";
 
@@ -42,9 +45,11 @@ const bookingSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   address: z.string().min(5, "Address must be at least 5 characters"),
   notes: z.string().optional(),
+  extras: z.array(z.string()).default([]),
 });
 
-type BookingFormData = z.infer<typeof bookingSchema>;
+type BookingFormInput = z.input<typeof bookingSchema>;
+type BookingFormData = z.output<typeof bookingSchema>;
 
 const STEP_FIELDS: Record<1 | 2 | 3, (keyof BookingFormData)[]> = {
   1: ["service"],
@@ -100,6 +105,7 @@ function buildDays(): { iso: string; weekday: string; day: number; month: string
 }
 
 export default function BookingForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedService = searchParams.get("service");
   const hasValidPreselection = services.some((s) => s.id === preselectedService);
@@ -107,8 +113,6 @@ export default function BookingForm() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(
     hasValidPreselection ? 2 : 1,
   );
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [confirmationId, setConfirmationId] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user, isLoaded: isUserLoaded } = useUser();
 
@@ -118,11 +122,12 @@ export default function BookingForm() {
     setValue,
     watch,
     trigger,
-    reset,
     formState: { errors, isSubmitting },
-  } = useForm<BookingFormData>({
+  } = useForm<BookingFormInput, unknown, BookingFormData>({
     resolver: zodResolver(bookingSchema),
-    defaultValues: hasValidPreselection ? { service: preselectedService! } : undefined,
+    defaultValues: hasValidPreselection
+      ? { service: preselectedService!, extras: [] }
+      : { extras: [] },
   });
 
   useEffect(() => {
@@ -137,11 +142,17 @@ export default function BookingForm() {
   const watchedVehicle = watch("vehicleType");
   const watchedDate = watch("date");
   const watchedTime = watch("time");
+  const watchedExtras = watch("extras") ?? [];
   const selectedServiceData = services.find((s) => s.id === watchedService);
+  const selectedExtraObjs = extraServices.filter((e) => watchedExtras.includes(e.id));
 
   const days = useMemo(buildDays, []);
 
-  const subtotal = getServicePrice(selectedServiceData, watchedVehicle);
+  const extrasSubtotal = selectedExtraObjs.reduce(
+    (sum, e) => sum + getExtraPrice(e, watchedVehicle),
+    0,
+  );
+  const subtotal = getServicePrice(selectedServiceData, watchedVehicle) + extrasSubtotal;
   const gst = +(subtotal * 0.1).toFixed(2);
   const total = +(subtotal + gst).toFixed(2);
 
@@ -168,8 +179,7 @@ export default function BookingForm() {
         confirmationCode: booking.confirmationCode,
       });
 
-      setConfirmationId(booking.confirmationCode);
-      setIsSubmitted(true);
+      router.push(`/success?code=${encodeURIComponent(booking.confirmationCode)}`);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong");
     }
@@ -182,113 +192,6 @@ export default function BookingForm() {
   const goBack = () => {
     if (currentStep > 1) setCurrentStep((s) => (s - 1) as 1 | 2 | 3);
   };
-  const handleBookAnother = () => {
-    setIsSubmitted(false);
-    setCurrentStep(1);
-    setConfirmationId("");
-    reset();
-  };
-
-  // ============ Success ============
-  if (isSubmitted) {
-    return (
-      <div className="relative mx-auto max-w-3xl">
-        <Sparkles count={18} className="-z-0 opacity-70" />
-        <div className="relative flex flex-col items-center gap-6 rounded-[28px] border border-line bg-card-gradient p-10 text-center shadow-soft-lg sm:p-14">
-          <div className="relative grid size-20 place-items-center rounded-full bg-primary text-primary-foreground glow-accent">
-            <Check className="size-9" strokeWidth={2.5} />
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 rounded-full"
-              style={{ animation: "pulseRing 2.4s ease-out infinite", border: "2px solid var(--brand)" }}
-            />
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Booking confirmed · {confirmationId}
-            </span>
-            <h3
-              className="font-serif italic leading-tight tracking-tight text-foreground"
-              style={{ fontSize: "clamp(40px, 6vw, 72px)" }}
-            >
-              See you{" "}
-              <span className="not-italic">
-                <span className="yellow-highlight">soon</span>.
-              </span>
-            </h3>
-            <p className="max-w-md text-[15px] text-muted-foreground">
-              We&rsquo;ve emailed your confirmation. Roll in a couple of minutes early — kettle&rsquo;s on.
-            </p>
-          </div>
-
-          <div className="grid w-full grid-cols-1 gap-4 rounded-[20px] border border-dashed border-line p-5 text-left sm:grid-cols-2">
-            {selectedServiceData && (
-              <div className="flex flex-col gap-1">
-                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Service
-                </span>
-                <span className="font-serif text-2xl leading-tight">
-                  {selectedServiceData.name}
-                </span>
-              </div>
-            )}
-            <div className="flex flex-col gap-1">
-              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                When
-              </span>
-              <span className="text-[15px] text-foreground">
-                {watchedDate ? fullDateFormatter.format(new Date(watchedDate)) : "—"} · {watchedTime}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                Vehicle
-              </span>
-              <span className="text-[15px] text-foreground">
-                {watchedVehicle ? watchedVehicle.charAt(0).toUpperCase() + watchedVehicle.slice(1) : "—"}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                Total paid
-              </span>
-              <span className="font-serif text-2xl leading-tight text-primary">${total.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button asChild variant="outline">
-              <a href="#">Back to home</a>
-            </Button>
-            <Button onClick={handleBookAnother}>
-              Book another wash
-              <ArrowRight className="size-4" />
-            </Button>
-          </div>
-
-          <ul className="mt-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-            {[
-              { Icon: Clock, label: "Arrive on time", body: "Spot held 15 min past your slot." },
-              { Icon: Shield, label: "Free cancel", body: "Reschedule from your phone." },
-              { Icon: SparkleIcon, label: "Love it guarantee", body: "Not perfect? We make it right." },
-            ].map(({ Icon, label, body }) => (
-              <li
-                key={label}
-                className="flex flex-col items-start gap-1 rounded-2xl border border-line bg-card/40 p-4 text-left"
-              >
-                <Icon className="size-4 text-primary" />
-                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {label}
-                </span>
-                <span className="text-[14px] text-foreground">{body}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-  }
 
   // ============ Stepper ============
   const stepper = (
@@ -374,6 +277,20 @@ export default function BookingForm() {
             </span>
           </div>
         </div>
+
+        {selectedExtraObjs.length > 0 && (
+          <div className="flex flex-col gap-1.5 border-t border-dashed border-line px-6 py-4 font-mono text-[12px] tabular-nums">
+            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Add-ons
+            </span>
+            {selectedExtraObjs.map((e) => (
+              <div key={e.id} className="flex justify-between gap-3">
+                <span className="font-sans text-foreground">{e.name}</span>
+                <span className="text-foreground">${getExtraPrice(e, watchedVehicle).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-col gap-2 border-t border-dashed border-line px-6 py-4 font-mono text-[12px] tabular-nums">
           <div className="flex justify-between">
@@ -683,6 +600,67 @@ export default function BookingForm() {
                   {errors.time.message}
                 </p>
               )}
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-3">
+                <Label>Add extras (optional)</Label>
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Skip if you don&rsquo;t need any
+                </span>
+              </div>
+              <input type="hidden" {...register("extras")} />
+              <ul className="flex flex-col gap-2">
+                {extraServices.map((extra) => {
+                  const active = watchedExtras.includes(extra.id);
+                  const price = getExtraPrice(extra, watchedVehicle);
+                  return (
+                    <li key={extra.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = active
+                            ? watchedExtras.filter((id) => id !== extra.id)
+                            : [...watchedExtras, extra.id];
+                          setValue("extras", next, { shouldDirty: true });
+                        }}
+                        aria-pressed={active}
+                        className={cn(
+                          "lift relative grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[14px] border p-3 text-left transition-all sm:p-4",
+                          active
+                            ? "border-primary bg-primary/5 shadow-soft"
+                            : "border-line bg-card/40 hover:border-line-2",
+                        )}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "grid size-5 place-items-center rounded-md border transition-colors",
+                            active
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-line-2",
+                          )}
+                        >
+                          {active && <Check className="size-3.5" strokeWidth={3} />}
+                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[14px] font-medium leading-snug text-foreground">
+                            {extra.name}
+                          </span>
+                          {extra.description && (
+                            <span className="text-[12px] leading-snug text-muted-foreground line-clamp-1">
+                              {extra.description}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-mono text-[14px] tabular-nums text-foreground">
+                          +${price}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           </section>
         )}

@@ -4,7 +4,12 @@ import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, bookings } from "@/db";
 import { listBookings } from "@/db/queries";
-import { services } from "@/data/services";
+import {
+  services,
+  extraServices,
+  getExtraPrice,
+  type ExtraService,
+} from "@/data/services";
 import { sendBookingNotification } from "@/lib/email";
 
 const bodySchema = z.object({
@@ -18,21 +23,35 @@ const bodySchema = z.object({
   phone: z.string().min(10),
   address: z.string().min(5),
   notes: z.string().optional(),
+  extras: z.array(z.string()).default([]),
 });
 
-function priceFor(serviceId: string, vehicleType: string) {
+function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
   const svc = services.find((s) => s.id === serviceId);
   if (!svc) return null;
+
+  const extraObjs: ExtraService[] = [];
+  for (const id of extras) {
+    const found = extraServices.find((e) => e.id === id);
+    if (!found) return null;
+    extraObjs.push(found);
+  }
+
   const v = vehicleType.toLowerCase();
-  const subtotal =
+  const servicePrice =
     v.includes("suv") || v.includes("4x4")
       ? svc.pricing.suv
       : v.includes("wagon")
         ? svc.pricing.wagon
         : svc.pricing.sedan;
+  const extrasSubtotal = extraObjs.reduce(
+    (sum, e) => sum + getExtraPrice(e, vehicleType),
+    0,
+  );
+  const subtotal = servicePrice + extrasSubtotal;
   const gst = +(subtotal * 0.1).toFixed(2);
   const total = +(subtotal + gst).toFixed(2);
-  return { svc, subtotal, gst, total };
+  return { svc, extraObjs, subtotal, gst, total };
 }
 
 async function genCode() {
@@ -73,9 +92,9 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data;
-  const pricing = priceFor(data.service, data.vehicleType);
+  const pricing = priceFor(data.service, data.vehicleType, data.extras);
   if (!pricing) {
-    return NextResponse.json({ error: "Unknown service" }, { status: 400 });
+    return NextResponse.json({ error: "Unknown service or extra" }, { status: 400 });
   }
 
   const { userId } = await auth();
@@ -97,7 +116,7 @@ export async function POST(req: Request) {
       phone: data.phone,
       address: data.address,
       notes: data.notes ?? null,
-      extras: [],
+      extras: data.extras,
       subtotal: pricing.subtotal.toFixed(2),
       gst: pricing.gst.toFixed(2),
       total: pricing.total.toFixed(2),
@@ -118,6 +137,10 @@ export async function POST(req: Request) {
     phone: data.phone,
     address: data.address,
     notes: data.notes ?? null,
+    extras: pricing.extraObjs.map((e) => ({
+      name: e.name,
+      price: getExtraPrice(e, data.vehicleType),
+    })),
     subtotal: pricing.subtotal,
     gst: pricing.gst,
     total: pricing.total,

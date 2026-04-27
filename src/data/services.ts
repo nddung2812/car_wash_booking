@@ -91,6 +91,13 @@ export interface ExtraService {
   description?: string;
 }
 
+export function getExtraPrice(extra: ExtraService, vehicleType: string | undefined) {
+  const v = (vehicleType ?? "").toLowerCase();
+  if (v.includes("suv") || v.includes("4x4")) return extra.pricing.suv;
+  if (v.includes("wagon")) return extra.pricing.wagon;
+  return extra.pricing.sedan;
+}
+
 export const extraServices: ExtraService[] = [
   {
     id: "bug-tar-removal",

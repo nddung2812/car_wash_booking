@@ -23,6 +23,7 @@ async function main() {
     phone: "0400000000",
     address: "1 Test Street, Logan QLD",
     notes: "This is a diagnostic probe — ignore.",
+    extras: [],
     subtotal: 100,
     gst: 10,
     total: 110,
