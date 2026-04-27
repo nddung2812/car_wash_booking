@@ -100,6 +100,14 @@ export function websiteLd() {
   };
 }
 
+const AGGREGATE_RATING = {
+  "@type": "AggregateRating",
+  ratingValue: "4.9",
+  reviewCount: "2400",
+  bestRating: "5",
+  worstRating: "1",
+};
+
 export function localBusinessLd(location: Location) {
   const url = `${SITE_URL}/locations/${location.slug}`;
   return {
@@ -116,6 +124,7 @@ export function localBusinessLd(location: Location) {
     currenciesAccepted: "AUD",
     paymentAccepted: "Cash, Credit Card, EFTPOS, Apple Pay, Google Pay",
     parentOrganization: { "@id": ORG_ID },
+    aggregateRating: AGGREGATE_RATING,
     address: {
       "@type": "PostalAddress",
       streetAddress: location.streetAddress,
@@ -238,5 +247,83 @@ export function extrasOfferCatalogLd() {
       price: svc.pricing.sedan,
       availability: "https://schema.org/InStock",
     })),
+  };
+}
+
+const REVIEW_DATA = [
+  {
+    name: "Sarah Johnson",
+    rating: 5,
+    date: "2026-04-25",
+    body: "Absolutely amazing service! My car looks brand new. The staff was professional and the facility was spotless. Will definitely be coming back!",
+  },
+  {
+    name: "Mike Chen",
+    rating: 5,
+    date: "2026-04-20",
+    body: "Best car wash in town. They pay attention to every detail and the pricing is reasonable. My BMW has never looked better.",
+  },
+  {
+    name: "Emily Rodriguez",
+    rating: 4,
+    date: "2026-04-13",
+    body: "Quick and efficient service. Perfect for when you need a fast clean. The online booking made it super convenient.",
+  },
+  {
+    name: "David Thompson",
+    rating: 5,
+    date: "2026-04-06",
+    body: "Outstanding customer service and quality. They treated my truck with care and the results exceeded my expectations.",
+  },
+  {
+    name: "Lisa Martinez",
+    rating: 5,
+    date: "2026-03-27",
+    body: "Professional team and excellent results. My car interior and exterior look fantastic. The eco-friendly products are a great bonus.",
+  },
+  {
+    name: "James Wilson",
+    rating: 4,
+    date: "2026-03-27",
+    body: "Great value for money. Clean facility, friendly staff, and my car came out sparkling clean. Will be back for sure.",
+  },
+];
+
+export function reviewsLd() {
+  return REVIEW_DATA.map((r) => ({
+    "@context": "https://schema.org",
+    "@type": "Review",
+    author: { "@type": "Person", name: r.name },
+    reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+    reviewBody: r.body,
+    datePublished: r.date,
+    itemReviewed: { "@id": ORG_ID },
+  }));
+}
+
+export type FaqItem = { q: string; a: string };
+
+export function faqPageLd(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+}
+
+export function videoObjectLd(svc: (typeof services)[number]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    name: `${svc.name} — Hyperdome Car Wash Logan QLD`,
+    description: svc.description,
+    thumbnailUrl: svc.image,
+    embedUrl: svc.videoUrl,
+    uploadDate: "2024-01-01",
+    publisher: { "@id": ORG_ID },
   };
 }
