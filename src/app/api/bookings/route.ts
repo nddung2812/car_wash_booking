@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { db, bookings } from "@/db";
+import { db, bookings, users } from "@/db";
 import { listBookings } from "@/db/queries";
 import {
   services,
@@ -98,6 +98,29 @@ export async function POST(req: Request) {
   }
 
   const { userId } = await auth();
+
+  // If a logged-in user isn't in the users table yet (webhook missed), sync them now
+  if (userId) {
+    const clerkUser = await currentUser();
+    if (clerkUser) {
+      const primaryEmail =
+        clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
+          ?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress ?? null;
+      if (primaryEmail) {
+        await db
+          .insert(users)
+          .values({
+            id: clerkUser.id,
+            email: primaryEmail,
+            firstName: clerkUser.firstName,
+            lastName: clerkUser.lastName,
+            imageUrl: clerkUser.imageUrl,
+          })
+          .onConflictDoNothing();
+      }
+    }
+  }
+
   const code = await genCode();
 
   const [row] = await db

@@ -60,28 +60,6 @@ export default async function MyBookingsPage() {
 
   return (
     <>
-      <section className="border-b border-line py-12 lg:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Your account · Bookings
-          </p>
-          <h1
-            className="mt-3 font-serif italic leading-tight tracking-tight text-foreground"
-            style={{ fontSize: "clamp(40px, 6vw, 72px)" }}
-          >
-            My{" "}
-            <span className="not-italic">
-              <span className="yellow-highlight">bookings</span>.
-            </span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            {rows.length > 0
-              ? `${rows.length} ${rows.length === 1 ? "wash" : "washes"} on the books — newest first. Tap any one to see the full confirmation.`
-              : "Looks like you haven't booked a wash with us yet. Let's fix that."}
-          </p>
-        </div>
-      </section>
-
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {rows.length === 0 ? (

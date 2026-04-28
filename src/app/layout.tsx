@@ -129,7 +129,13 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <ClerkProvider afterSignOutUrl="/">{children}</ClerkProvider>
+        <ClerkProvider
+          afterSignOutUrl="/"
+          signInFallbackRedirectUrl="/account/bookings"
+          signUpFallbackRedirectUrl="/account/bookings"
+        >
+          {children}
+        </ClerkProvider>
 
         <JsonLd id="ld-organization" data={organizationLd()} />
         <JsonLd id="ld-website" data={websiteLd()} />
