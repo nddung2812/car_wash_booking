@@ -25,7 +25,11 @@ export default function SiteFooter() {
             </h4>
             <ul className="mt-4 flex flex-col gap-1.5 text-[14px] text-background/85">
               {services.map((service) => (
-                <li key={service.id}>{service.name}</li>
+                <li key={service.id}>
+                  <Link href={`/services#${service.id}`} className="hover:text-background">
+                    {service.name}
+                  </Link>
+                </li>
               ))}
             </ul>
           </div>
@@ -39,6 +43,7 @@ export default function SiteFooter() {
               <li><Link href="/bookings" className="hover:text-background">Book a wash</Link></li>
               <li><Link href="/reviews" className="hover:text-background">Reviews</Link></li>
               <li><Link href="/contact" className="hover:text-background">Locations</Link></li>
+              <li><Link href="/faq" className="hover:text-background">FAQ</Link></li>
             </ul>
           </div>
         </div>

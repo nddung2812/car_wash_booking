@@ -1,8 +1,27 @@
-import { desc, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db, bookings } from "./index";
 
 export async function listBookings(limit = 50) {
   return db.select().from(bookings).orderBy(desc(bookings.createdAt)).limit(limit);
+}
+
+export async function listBookingsByUser(userId: string, limit = 50) {
+  return db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.userId, userId))
+    .orderBy(desc(bookings.createdAt))
+    .limit(limit);
+}
+
+export async function getLatestBookingByUser(userId: string) {
+  const rows = await db
+    .select({ phone: bookings.phone, address: bookings.address })
+    .from(bookings)
+    .where(eq(bookings.userId, userId))
+    .orderBy(desc(bookings.createdAt))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getBookingByCode(code: string) {

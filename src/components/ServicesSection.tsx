@@ -35,6 +35,7 @@ const ServicesSection = () => {
 
           return (
             <article
+              id={service.id}
               key={service.id}
               className={cn(
                 "group relative flex flex-col overflow-hidden rounded-[20px] border bg-card-gradient shadow-none transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-glow",
@@ -129,7 +130,7 @@ const ServicesSection = () => {
                 </div>
 
                 <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-                  <Button asChild variant={tier === "featured" ? "default" : "outline"}>
+                  <Button asChild variant="outline" className="transition-all duration-300 ease-in-out group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
                     <Link href={`/bookings?service=${service.id}`}>
                       Choose this wash
                       <ArrowUpRight className="size-4" />

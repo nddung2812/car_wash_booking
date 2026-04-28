@@ -119,7 +119,7 @@ export function localBusinessLd(location: Location) {
     url,
     image: LOGO_URL,
     logo: LOGO_URL,
-    telephone: BUSINESS_PHONE,
+    telephone: location.phone,
     priceRange: BUSINESS_PRICE_RANGE,
     currenciesAccepted: "AUD",
     paymentAccepted: "Cash, Credit Card, EFTPOS, Apple Pay, Google Pay",

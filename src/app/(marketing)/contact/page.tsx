@@ -33,12 +33,25 @@ export default function ContactPage() {
           <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
             Hyperdome Car Wash operates two professional car-wash and detailing
             bays inside Hyperdome Shopping Centre, Logan QLD — one on the
-            Shailer Park side and one on the Loganholme side. Call{" "}
-            <a className="underline" href="tel:+61738060358">
+            Shailer Park side and one on the Loganholme side. Book online or
+            drive in 7 days a week.
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <a
+              href="tel:+61738011988"
+              className="inline-flex items-center gap-2 text-[15px] text-foreground hover:underline"
+            >
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground w-28">Shailer Park</span>
+              (07) 3801 1988
+            </a>
+            <a
+              href="tel:+61738060358"
+              className="inline-flex items-center gap-2 text-[15px] text-foreground hover:underline"
+            >
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground w-28">Loganholme</span>
               (07) 3806 0358
             </a>
-            , book online, or drive in seven days a week.
-          </p>
+          </div>
         </div>
       </section>
 

@@ -63,6 +63,9 @@ export interface Location {
   streetAddress: string;
   addressLocality: string;
   postalCode: string;
+  phone: string;
+  phoneDisplay: string;
+  phoneTel: string;
   geo: { latitude: number; longitude: number };
   mapUrl: string;
   mapEmbedUrl: string;
@@ -76,6 +79,9 @@ export const LOCATIONS: Location[] = [
     streetAddress: "Hyperdome Shopping Centre, Carpark Basement, Mandew St",
     addressLocality: "Shailer Park",
     postalCode: "4128",
+    phone: "+61738011988",
+    phoneDisplay: "(07) 3801 1988",
+    phoneTel: "tel:+61738011988",
     geo: { latitude: -27.6592, longitude: 153.17 },
     mapUrl:
       "https://www.google.com/maps/place/Hyperdome+Shopping+Centre/@-27.6592,153.17,17z",
@@ -90,11 +96,14 @@ export const LOCATIONS: Location[] = [
     streetAddress: "Hyperdome Shopping Centre, Carpark Basement, 2 Leda Dr",
     addressLocality: "Loganholme",
     postalCode: "4129",
+    phone: "+61738060358",
+    phoneDisplay: "(07) 3806 0358",
+    phoneTel: "tel:+61738060358",
     geo: { latitude: -27.6585, longitude: 153.1707 },
     mapUrl:
       "https://www.google.com/maps/place/Hyperdome+Shopping+Centre/@-27.6585,153.1707,17z",
     mapEmbedUrl:
-      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3533.887531633727!2d153.16938207546565!3d-27.658951176210298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b91423b28b00705%3A0x41c1806fafd6115d!2sHyperdome%20Shopping%20Centre!5e0!3m2!1sen!2sau!4v1753526071902!5m2!1sen!2sau",
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3533.879682247107!2d153.16508939678954!3d-27.659194000000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b91422509b7a6d5%3A0xd2f71d6a8d1f45b9!2sSparkles%20Car%20Wash!5e0!3m2!1sen!2sau!4v1777377424655!5m2!1sen!2sau",
     directionsUrl:
       "https://www.google.com/maps/dir/?api=1&destination=Hyperdome+Shopping+Centre+2+Leda+Dr+Loganholme+QLD+4129",
   },

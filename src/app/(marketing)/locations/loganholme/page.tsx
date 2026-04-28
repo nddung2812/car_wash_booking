@@ -5,11 +5,7 @@ import { ArrowRight, MapPin, Phone, Clock, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
-import {
-  BUSINESS_PHONE_DISPLAY,
-  LOCATION_BY_SLUG,
-  OPENING_HOURS,
-} from "@/lib/seo/business";
+import { LOCATION_BY_SLUG, OPENING_HOURS } from "@/lib/seo/business";
 import { breadcrumbLd, localBusinessLd } from "@/lib/seo/jsonld";
 
 const location = LOCATION_BY_SLUG["loganholme"];
@@ -66,9 +62,9 @@ export default function LoganholmePage() {
               </a>
             </Button>
             <Button asChild size="lg" variant="ghost">
-              <a href="tel:+61738060358">
+              <a href={location.phoneTel}>
                 <Phone className="size-4" />
-                {BUSINESS_PHONE_DISPLAY}
+                {location.phoneDisplay}
               </a>
             </Button>
           </div>
@@ -155,10 +151,10 @@ export default function LoganholmePage() {
                 Phone
               </div>
               <a
-                href="tel:+61738060358"
+                href={location.phoneTel}
                 className="mt-3 inline-block font-serif text-2xl text-foreground"
               >
-                {BUSINESS_PHONE_DISPLAY}
+                {location.phoneDisplay}
               </a>
             </article>
 

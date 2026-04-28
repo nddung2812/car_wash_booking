@@ -25,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${SITE_URL}/contact`,
       lastModified: now,
-      changeFrequency: "yearly",
+      changeFrequency: "monthly",
       priority: 0.7,
     },
     {

@@ -20,12 +20,12 @@ export default function Header() {
   ];
 
   const locations = [
-    { name: "Shailer Park", href: "/#location-shailer-park" },
-    { name: "Loganholme", href: "/#location-loganholme" },
+    { name: "Shailer Park", href: "/contact", phoneDisplay: "(07) 3801 1988", phoneTel: "tel:+61738011988" },
+    { name: "Loganholme", href: "/contact", phoneDisplay: "(07) 3806 0358", phoneTel: "tel:+61738060358" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-background/72 backdrop-blur-xl backdrop-saturate-150 shadow-[0_1px_0_rgba(255,255,255,0.4)_inset,0_10px_30px_-24px_rgba(0,0,0,0.25)]">
+    <header className="sticky top-0 z-50 border-b border-line bg-background/95 backdrop-blur-xl backdrop-saturate-150 shadow-[0_1px_0_rgba(255,255,255,0.4)_inset,0_10px_30px_-24px_rgba(0,0,0,0.25)]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-6 lg:h-[68px]">
           {/* Brand */}
@@ -59,25 +59,27 @@ export default function Header() {
 
           {/* Right cluster — sign-in + book at md+, status pill + phone only at lg+ */}
           <div className="hidden items-center gap-2 md:flex lg:gap-3">
-            <div className="hidden items-center gap-1.5 lg:flex">
+            <div className="hidden items-center gap-3 lg:flex">
               {locations.map((location) => (
-                <a
-                  key={location.name}
-                  href={location.href}
-                  className="inline-flex items-center gap-1.5 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:border-primary/40 hover:text-foreground"
-                >
-                  <MapPin className="size-3.5" />
-                  {location.name}
-                </a>
+                <div key={location.name} className="flex items-center gap-1.5">
+                  <a
+                    href={location.phoneTel}
+                    aria-label={`Call ${location.name}: ${location.phoneDisplay}`}
+                    className="inline-flex items-center justify-center rounded-full border border-line bg-card/60 p-1.5 text-foreground/60 transition-colors hover:border-primary/40 hover:text-foreground"
+                  >
+                    <Phone className="size-3.5" />
+                    <span className="sr-only">{location.phoneDisplay}</span>
+                  </a>
+                  <Link
+                    href={location.href}
+                    className="inline-flex items-center gap-1.5 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:border-primary/40 hover:text-foreground"
+                  >
+                    <MapPin className="size-3.5" />
+                    {location.name}
+                  </Link>
+                </div>
               ))}
             </div>
-            <a
-              href="tel:0738060358"
-              className="hidden items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground lg:inline-flex"
-            >
-              <Phone className="size-3.5" />
-              (07) 3806 0358
-            </a>
             <Show when="signed-out">
               <SignInButton mode="modal">
                 <Button variant="ghost" size="sm">
@@ -87,6 +89,12 @@ export default function Header() {
               </SignInButton>
             </Show>
             <Show when="signed-in">
+              <Link
+                href="/account/bookings"
+                className="font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground"
+              >
+                My bookings
+              </Link>
               <UserButton />
             </Show>
             <Button asChild size="sm">
@@ -148,17 +156,22 @@ export default function Header() {
                     <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                       Reach us
                     </span>
-                    <a
-                      href="tel:0738060358"
-                      className="flex items-center gap-2.5 text-[15px] text-foreground"
-                    >
-                      <Phone className="size-4 text-muted-foreground" />
-                      (07) 3806 0358
-                    </a>
-                    <span className="flex items-center gap-2.5 text-[15px] text-foreground">
-                      <MapPin className="size-4 text-muted-foreground" />
-                      Hyperdome Shopping Centre — 2 locations
-                    </span>
+                    {locations.map((location) => (
+                      <div key={location.name} className="flex flex-col gap-2 rounded-xl border border-line px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <MapPin className="size-4 text-muted-foreground" />
+                          <span className="text-[15px] text-foreground">{location.name}</span>
+                        </div>
+                        <a
+                          href={location.phoneTel}
+                          aria-label={`Call ${location.name}: ${location.phoneDisplay}`}
+                          className="flex items-center gap-2 font-mono text-[13px] tabular-nums text-foreground/70 transition-colors hover:text-foreground"
+                        >
+                          <Phone className="size-3.5 text-muted-foreground" />
+                          {location.phoneDisplay}
+                        </a>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="flex flex-col gap-2.5 pt-2">
@@ -176,6 +189,14 @@ export default function Header() {
                       </SignUpButton>
                     </Show>
                     <Show when="signed-in">
+                      <Button asChild variant="outline" className="w-full justify-center">
+                        <Link
+                          href="/account/bookings"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          My bookings
+                        </Link>
+                      </Button>
                       <div className="flex items-center justify-center py-1">
                         <UserButton />
                       </div>

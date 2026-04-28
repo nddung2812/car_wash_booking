@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { auth } from "@clerk/nextjs/server";
 
 import BookingForm from "@/components/BookingForm";
 import CTABand from "@/components/CTABand";
 import { SectionIntro } from "@/components/SectionIntro";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { getLatestBookingByUser } from "@/db/queries";
 
 export const metadata: Metadata = {
   title: "Book a Car Wash Online in Logan QLD",
@@ -22,7 +24,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BookingsPage() {
+export default async function BookingsPage() {
+  const { userId } = await auth();
+  const last = userId ? await getLatestBookingByUser(userId) : null;
+  const initialValues = last
+    ? { phone: last.phone, address: last.address }
+    : undefined;
+
   return (
     <>
       <section className="border-b border-line py-12 lg:py-16">
@@ -51,7 +59,7 @@ export default function BookingsPage() {
               className="mb-10"
             />
             <Suspense fallback={null}>
-              <BookingForm />
+              <BookingForm initialValues={initialValues} />
             </Suspense>
           </div>
         </div>

@@ -31,6 +31,7 @@ const ExtraServicesSection = () => {
             ];
             return (
               <li
+                id={service.id}
                 key={service.id}
                 className="flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-secondary/60 sm:grid sm:grid-cols-[1fr_repeat(3,minmax(64px,84px))] sm:items-center sm:gap-x-4 sm:gap-y-0"
               >

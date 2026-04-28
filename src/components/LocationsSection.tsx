@@ -1,22 +1,25 @@
-import { MapPin, Phone } from "lucide-react";
+import { Clock, MapPin, Phone } from "lucide-react";
 
 import { SectionIntro } from "@/components/SectionIntro";
 import { IconPill } from "@/components/ui/icon-pill";
+import { LOCATION_BY_SLUG } from "@/lib/seo/business";
 
 const locations = [
   {
+    slug: "shailer-park",
     name: "Shailer Park",
     address: "Hyperdome Shopping Centre",
     line2: "Carpark Basement — Mandew St",
     region: "Shailer Park QLD 4128",
   },
   {
+    slug: "loganholme",
     name: "Loganholme",
     address: "Hyperdome Shopping Centre",
     line2: "Carpark Basement — 2 Leda Dr",
     region: "Loganholme QLD 4129",
   },
-];
+] as const;
 
 const businessHours: Array<[string, string]> = [
   ["Monday", "8:30 AM — 5:00 PM"],
@@ -34,76 +37,79 @@ export default function LocationsSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <SectionIntro
           kicker="05 — Locations"
-          title="Two locations. Open seven days."
+          title="Two locations. Open 7 days."
           className="mb-12"
         />
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.1fr]">
-          <div className="flex flex-col gap-5">
-            {locations.map((loc) => (
-              <article
-                key={loc.name}
-                className="lift flex flex-col gap-3 rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-serif text-[28px] leading-tight tracking-tight text-foreground">
-                    {loc.name}
-                  </h3>
-                  <IconPill>
-                    <MapPin className="size-4" />
-                  </IconPill>
-                </div>
-                <p className="text-[15px] text-muted-foreground">
-                  {loc.address}
-                  <br />
-                  {loc.line2}
-                  <br />
-                  {loc.region}
-                </p>
-              </article>
-            ))}
-
-            <article className="rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {locations.map((loc) => (
+            <article
+              key={loc.slug}
+              className="lift flex flex-col gap-4 rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft"
+            >
               <div className="flex items-center justify-between">
-                <h3 className="font-serif text-[24px] leading-tight tracking-tight text-foreground">
-                  Reach us
+                <h3 className="font-serif text-[28px] leading-tight tracking-tight text-foreground">
+                  {loc.name}
                 </h3>
                 <IconPill>
-                  <Phone className="size-4" />
+                  <MapPin className="size-4" />
                 </IconPill>
               </div>
+              <p className="text-[15px] text-muted-foreground">
+                {loc.address}
+                <br />
+                {loc.line2}
+                <br />
+                {loc.region}
+              </p>
               <a
-                href="tel:0738060358"
-                className="mt-3 inline-block font-serif text-3xl text-foreground"
+                href={LOCATION_BY_SLUG[loc.slug].phoneTel}
+                className="inline-flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.12em] text-foreground transition-colors hover:text-primary"
               >
-                (07) 3806 0358
+                <Phone className="size-3.5 text-muted-foreground" />
+                {LOCATION_BY_SLUG[loc.slug].phoneDisplay}
               </a>
-              <ul className="mt-5 grid grid-cols-1 gap-1.5 border-t border-dashed border-line pt-4 text-[14px]">
-                {businessHours.map(([day, hours]) => (
-                  <li key={day} className="flex items-baseline justify-between gap-3">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                      {day}
-                    </span>
-                    <span className="font-mono text-[12px] text-foreground tabular-nums">{hours}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="relative mt-1 h-64 overflow-hidden rounded-[14px] border border-line">
+                <iframe
+                  src={LOCATION_BY_SLUG[loc.slug].mapEmbedUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map — Hyperdome Car Wash ${loc.name}`}
+                />
+              </div>
             </article>
-          </div>
-
-          <div className="relative h-72 overflow-hidden rounded-[20px] border border-line shadow-soft lg:h-full">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3533.887531633727!2d153.16938207546565!3d-27.658951176210298!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b91423b28b00705%3A0x41c1806fafd6115d!2sSparkles%20Car%20Wash!5e0!3m2!1sen!2sau!4v1753526071902!5m2!1sen!2sau"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Hyperdome locations"
-            />
-          </div>
+          ))}
         </div>
+
+        <article className="mt-6 rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft lg:p-8">
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-[24px] leading-tight tracking-tight text-foreground">
+              Open 7 days
+            </h3>
+            <IconPill>
+              <Clock className="size-4" />
+            </IconPill>
+          </div>
+          <ul className="mt-6 flex flex-col">
+            {businessHours.map(([day, hours]) => (
+              <li
+                key={day}
+                className="flex items-baseline justify-between gap-3 border-b border-dashed border-line/60 py-2.5 last:border-b-0"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  {day}
+                </span>
+                <span className="font-mono text-[13px] text-foreground tabular-nums">
+                  {hours}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </article>
       </div>
     </section>
   );

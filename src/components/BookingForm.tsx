@@ -104,7 +104,11 @@ function buildDays(): { iso: string; weekday: string; day: number; month: string
   return out;
 }
 
-export default function BookingForm() {
+type BookingFormProps = {
+  initialValues?: { phone?: string; address?: string };
+};
+
+export default function BookingForm({ initialValues }: BookingFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedService = searchParams.get("service");
@@ -125,9 +129,12 @@ export default function BookingForm() {
     formState: { errors, isSubmitting },
   } = useForm<BookingFormInput, unknown, BookingFormData>({
     resolver: zodResolver(bookingSchema),
-    defaultValues: hasValidPreselection
-      ? { service: preselectedService!, extras: [] }
-      : { extras: [] },
+    defaultValues: {
+      extras: [],
+      ...(hasValidPreselection ? { service: preselectedService! } : {}),
+      ...(initialValues?.phone ? { phone: initialValues.phone } : {}),
+      ...(initialValues?.address ? { address: initialValues.address } : {}),
+    },
   });
 
   useEffect(() => {
