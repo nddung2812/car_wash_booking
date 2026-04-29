@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 export const runtime = "nodejs";
-export const size = { width: 32, height: 32 };
+export const size = { width: 96, height: 96 };
 export const contentType = "image/png";
 
 export default function Icon() {
@@ -19,8 +19,8 @@ export default function Icon() {
           alignItems: "center",
           justifyContent: "center",
           background: "#0E0E0C",
-          borderRadius: 7,
-          padding: 3,
+          borderRadius: 20,
+          padding: 10,
         }}
       >
         <img src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
