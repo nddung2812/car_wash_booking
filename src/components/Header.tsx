@@ -115,6 +115,7 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent
                 side="right"
+                aria-describedby={undefined}
                 className="w-[300px] sm:w-[380px] px-6 pt-6 pb-8"
               >
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
@@ -135,7 +136,7 @@ export default function Header() {
                           key={item.name}
                           href={item.href}
                           onClick={() => setIsOpen(false)}
-                          className="rounded-xl px-3 py-2.5 font-serif text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
+                          className="rounded-xl px-3 py-1.5 font-sans text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
                         >
                           {item.name}
                         </a>
@@ -144,7 +145,7 @@ export default function Header() {
                           key={item.name}
                           href={item.href}
                           onClick={() => setIsOpen(false)}
-                          className="rounded-xl px-3 py-2.5 font-serif text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
+                          className="rounded-xl px-3 py-1.5 font-sans text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
                         >
                           {item.name}
                         </Link>
