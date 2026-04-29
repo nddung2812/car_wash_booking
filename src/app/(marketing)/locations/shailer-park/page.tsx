@@ -211,7 +211,7 @@ export default function ShailerParkPage() {
         id="ld-shailer-park-breadcrumb"
         data={breadcrumbLd([
           { name: "Home", url: "/" },
-          { name: "Locations", url: "/contact" },
+          { name: "Contact", url: "/contact" },
           { name: "Shailer Park", url: "/locations/shailer-park" },
         ])}
       />

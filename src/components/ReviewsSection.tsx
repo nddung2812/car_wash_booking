@@ -3,70 +3,58 @@
 import { Star, Quote } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SectionIntro } from "@/components/SectionIntro";
+import { SOCIAL_LINKS } from "@/lib/seo/business";
 
 const reviews = [
   {
     id: 1,
-    name: "Sarah Johnson",
+    name: "Sarah J.",
     rating: 5,
-    date: "2 days ago",
     service: "Premium Wash",
     review:
       "Absolutely amazing service! My car looks brand new. The staff was professional and the facility was spotless. Will definitely be coming back!",
-    verified: true,
   },
   {
     id: 2,
-    name: "Mike Chen",
+    name: "Mike C.",
     rating: 5,
-    date: "1 week ago",
     service: "Full Service Detail",
     review:
       "Best car wash in town. They pay attention to every detail and the pricing is reasonable. My BMW has never looked better.",
-    verified: true,
   },
   {
     id: 3,
-    name: "Emily Rodriguez",
+    name: "Emily R.",
     rating: 4,
-    date: "2 weeks ago",
     service: "Express Wash",
     review:
       "Quick and efficient service. Perfect for when you need a fast clean. The online booking made it super convenient.",
-    verified: true,
   },
   {
     id: 4,
-    name: "David Thompson",
+    name: "David T.",
     rating: 5,
-    date: "3 weeks ago",
     service: "Premium Wash",
     review:
       "Outstanding customer service and quality. They treated my truck with care and the results exceeded my expectations.",
-    verified: true,
   },
   {
     id: 5,
-    name: "Lisa Martinez",
+    name: "Lisa M.",
     rating: 5,
-    date: "1 month ago",
     service: "Deluxe Detail",
     review:
       "Professional team and excellent results. My car interior and exterior look fantastic. The eco-friendly products are a great bonus.",
-    verified: true,
   },
   {
     id: 6,
-    name: "James Wilson",
+    name: "James W.",
     rating: 4,
-    date: "1 month ago",
     service: "Basic Wash",
     review:
       "Great value for money. Clean facility, friendly staff, and my car came out sparkling clean. Will be back for sure.",
-    verified: true,
   },
 ];
 
@@ -160,11 +148,10 @@ export default function ReviewsSection() {
                       {review.name}
                     </span>
                     <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                      {review.service} · {review.date}
+                      {review.service}
                     </span>
                   </div>
                 </div>
-                {review.verified && <Badge variant="secondary">Verified</Badge>}
               </div>
             </article>
           ))}
@@ -172,7 +159,16 @@ export default function ReviewsSection() {
 
         <div className="mt-12 flex flex-col items-center gap-3 text-center">
           <p className="text-[15px] text-muted-foreground">
-            Ready for the kind of clean that gets compliments?
+            Customer testimonials. Read verified reviews on{" "}
+            <a
+              href={SOCIAL_LINKS.google}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Google
+            </a>
+            .
           </p>
           <Button asChild size="lg">
             <a href="#booking">Book your wash</a>

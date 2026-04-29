@@ -1,47 +1,23 @@
 import type { MetadataRoute } from "next";
 import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
 
+const LAST_MODIFIED = "2026-04-30";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   const entries: MetadataRoute.Sitemap = [
-    {
-      url: `${SITE_URL}/`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${SITE_URL}/services`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/bookings`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/contact`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/reviews`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
+    { url: `${SITE_URL}/`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/services`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/bookings`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/contact`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/reviews`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/faq`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/privacy`, lastModified: LAST_MODIFIED },
   ];
 
   for (const loc of LOCATIONS) {
     entries.push({
       url: `${SITE_URL}/locations/${loc.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.85,
+      lastModified: LAST_MODIFIED,
     });
   }
 

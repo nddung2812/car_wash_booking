@@ -8,6 +8,13 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
+      <link
+        rel="preload"
+        as="image"
+        href="/banner1.webp"
+        fetchPriority="high"
+      />
+      <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
       <Header />
       <main>{children}</main>
       <SiteFooter />

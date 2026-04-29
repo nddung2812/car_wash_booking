@@ -210,7 +210,7 @@ export default function LoganholmePage() {
         id="ld-loganholme-breadcrumb"
         data={breadcrumbLd([
           { name: "Home", url: "/" },
-          { name: "Locations", url: "/contact" },
+          { name: "Contact", url: "/contact" },
           { name: "Loganholme", url: "/locations/loganholme" },
         ])}
       />

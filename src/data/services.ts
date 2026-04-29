@@ -26,7 +26,7 @@ export const services: Service[] = [
       "Hand wash and dry. Wheels detailed. Door frames wiped. External windows cleaned. Tyres shined.",
     // Unsplash search: "car hand wash sponge"
     image: `https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2${UNSPLASH_PARAMS}`,
-    videoUrl: "http://youtu.be/6tRqXG0OUqA",
+    videoUrl: "https://www.youtube.com/embed/6tRqXG0OUqA",
   },
   {
     id: "super-sparkles",
@@ -38,7 +38,7 @@ export const services: Service[] = [
       "Sparkles Wash service plus full interior and boot vacuum. Windows cleaned inside and out. Cleaning of dash board and console. Vehicle deodorised.",
     // Unsplash search: "car interior vacuum"
     image: `https://images.unsplash.com/photo-1520340356584-f9917d1eea6f${UNSPLASH_PARAMS}`,
-    videoUrl: "http://youtu.be/6tRqXG0OUqA",
+    videoUrl: "https://www.youtube.com/embed/Hhtg8EVIT-E",
   },
   {
     id: "mini-detail",
@@ -50,7 +50,7 @@ export const services: Service[] = [
       "Super Sparkles service plus Bugs and road tar removed. Cup holders and compartments cleaned. Ash tray cleaned. All vinyl surfaces cleaned and dressed Bonus spray on wax.",
     // Unsplash search: "car polish microfiber close up"
     image: `https://images.unsplash.com/photo-1601362840469-51e4d8d58785${UNSPLASH_PARAMS}`,
-    videoUrl: "https://www.youtube.com/watch?v=Hhtg8EVIT-E",
+    videoUrl: "https://www.youtube.com/embed/CqOf_5KPRLY",
   },
   {
     id: "interior-detail",
@@ -62,7 +62,7 @@ export const services: Service[] = [
       "Full interior vacuum. Seats, carpets, floor mats & boot shampooed Doors and door frames detailed. All vinyl surfaces cleaned and dressed.",
     // Unsplash search: "leather car seats interior"
     image: `https://images.unsplash.com/photo-1583121274602-3e2820c69888${UNSPLASH_PARAMS}`,
-    videoUrl: "http://youtu.be/qR_9u-rrN9c",
+    videoUrl: "https://www.youtube.com/embed/qR_9u-rrN9c",
   },
   {
     id: "full-detail",
@@ -74,7 +74,7 @@ export const services: Service[] = [
       "Mini Detail service plus Engine-bay detailing service. Upholstery detailing service. Door frames and seals cleaned. Boot shampoo. Complete car clean inside and out. Hand polish.",
     // Unsplash search: "clean detailed car showroom"
     image: `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7${UNSPLASH_PARAMS}`,
-    videoUrl: "http://youtu.be/MbEWHzYdND0",
+    videoUrl: "https://www.youtube.com/embed/MbEWHzYdND0",
   },
 ];
 

@@ -16,7 +16,6 @@ import {
   allLocationsLd,
   breadcrumbLd,
   offerCatalogLd,
-  reviewsLd,
 } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
@@ -49,7 +48,6 @@ const tickerItems = [
 export default function Home() {
   return (
     <>
-      {/* Hero (visible <h1> lives inside BannerSlider) */}
       <BannerSlider />
 
       {/* Marquee */}
@@ -95,7 +93,6 @@ export default function Home() {
       <JsonLd id="ld-home-breadcrumb" data={breadcrumbLd([{ name: "Home", url: "/" }])} />
       <JsonLd id="ld-home-locations" data={allLocationsLd()} />
       <JsonLd id="ld-home-offers" data={offerCatalogLd()} />
-<JsonLd id="ld-home-reviews" data={reviewsLd()} />
     </>
   );
 }

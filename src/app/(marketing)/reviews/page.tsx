@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import CTABand from "@/components/CTABand";
 import ReviewsSection from "@/components/ReviewsSection";
 import JsonLd from "@/components/seo/JsonLd";
-import { breadcrumbLd, reviewsLd } from "@/lib/seo/jsonld";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
   title: "Reviews — Hyperdome Car Wash, Logan QLD",
   description:
-    "See why Logan locals book Hyperdome Car Wash. Verified customer reviews from Shailer Park and Loganholme — hand-finished detailing, eco-grade chemistry and same-day online bookings.",
+    "See why Logan locals book Hyperdome Car Wash. Customer testimonials from Shailer Park and Loganholme — hand-finished detailing, eco-grade chemistry and same-day online bookings.",
   alternates: { canonical: "/reviews" },
   openGraph: {
     url: "/reviews",
@@ -52,7 +52,6 @@ export default function ReviewsPage() {
           { name: "Reviews", url: "/reviews" },
         ])}
       />
-      <JsonLd id="ld-reviews-reviews" data={reviewsLd()} />
     </>
   );
 }

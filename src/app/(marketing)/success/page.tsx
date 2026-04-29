@@ -221,7 +221,7 @@ export default async function SuccessPage({
                 { href: "/services", label: "Services", Icon: SparkleIcon },
                 { href: "/reviews", label: "Reviews", Icon: Star },
                 { href: "/contact", label: "Contact", Icon: MessageCircle },
-                { href: "/locations", label: "Locations", Icon: MapPin },
+                { href: "/contact", label: "Locations", Icon: MapPin },
               ].map(({ href, label, Icon }) => (
                 <li key={href}>
                   <Link
