@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Phone, MapPin, User, ArrowRight } from "lucide-react";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Menu, Phone, MapPin, User, ArrowRight, LogOut } from "lucide-react";
+import { Show, SignInButton, SignUpButton, UserButton, useClerk } from "@clerk/nextjs";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { signOut } = useClerk();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut({ redirectUrl: "/" });
+    router.refresh();
+  };
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -129,14 +137,14 @@ export default function Header() {
                     <span className="font-sans text-2xl tracking-tight">Hyperdome</span>
                   </Link>
 
-                  <nav className="flex flex-col gap-1.5">
+                  <nav className="flex flex-col gap-0.5">
                     {navigation.map((item) =>
                       item.href.startsWith("#") ? (
                         <a
                           key={item.name}
                           href={item.href}
                           onClick={() => setIsOpen(false)}
-                          className="rounded-xl px-3 py-1.5 font-sans text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
+                          className="rounded-xl px-3 py-1.5 font-sans text-lg tracking-tight text-foreground transition-colors hover:bg-secondary"
                         >
                           {item.name}
                         </a>
@@ -145,7 +153,7 @@ export default function Header() {
                           key={item.name}
                           href={item.href}
                           onClick={() => setIsOpen(false)}
-                          className="rounded-xl px-3 py-1.5 font-sans text-2xl tracking-tight text-foreground transition-colors hover:bg-secondary"
+                          className="rounded-xl px-3 py-1.5 font-sans text-lg tracking-tight text-foreground transition-colors hover:bg-secondary"
                         >
                           {item.name}
                         </Link>
@@ -198,9 +206,14 @@ export default function Header() {
                           My bookings
                         </Link>
                       </Button>
-                      <div className="flex items-center justify-center py-1">
-                        <UserButton />
-                      </div>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-center"
+                        onClick={handleSignOut}
+                      >
+                        <LogOut className="size-4" />
+                        Sign out
+                      </Button>
                     </Show>
                     <Button asChild size="lg" className="w-full justify-center">
                       <Link href="/bookings" onClick={() => setIsOpen(false)}>
