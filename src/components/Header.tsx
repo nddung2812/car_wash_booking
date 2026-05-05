@@ -28,8 +28,8 @@ export default function Header() {
   ];
 
   const locations = [
-    { name: "Shailer Park", href: "/contact", phoneDisplay: "(07) 3801 1988", phoneTel: "tel:+61738011988" },
-    { name: "Loganholme", href: "/contact", phoneDisplay: "(07) 3806 0358", phoneTel: "tel:+61738060358" },
+    { name: "Shailer Park", href: "/locations/shailer-park", phoneDisplay: "(07) 3801 1988", phoneTel: "tel:+61738011988" },
+    { name: "Loganholme", href: "/locations/loganholme", phoneDisplay: "(07) 3806 0358", phoneTel: "tel:+61738060358" },
   ];
 
   return (
@@ -167,10 +167,10 @@ export default function Header() {
                     </span>
                     {locations.map((location) => (
                       <div key={location.name} className="flex flex-col gap-2 rounded-xl border border-line px-4 py-3">
-                        <div className="flex items-center gap-2.5">
+                        <Link href={location.href} className="flex items-center gap-2.5 hover:text-primary transition-colors">
                           <MapPin className="size-4 text-muted-foreground" />
                           <span className="text-[15px] text-foreground">{location.name}</span>
-                        </div>
+                        </Link>
                         <a
                           href={location.phoneTel}
                           aria-label={`Call ${location.name}: ${location.phoneDisplay}`}
