@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/contact`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/reviews`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/faq`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/why-book-online`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/privacy`, lastModified: LAST_MODIFIED },
   ];
 
