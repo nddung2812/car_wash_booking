@@ -76,6 +76,7 @@ export default function SiteFooter() {
               <li><Link href="/contact" className="hover:text-background">Locations</Link></li>
               <li><Link href="/faq" className="hover:text-background">FAQ</Link></li>
               <li><Link href="/privacy" className="hover:text-background">Privacy</Link></li>
+              <li><Link href="/data-deletion" className="hover:text-background">Data Deletion</Link></li>
             </ul>
           </div>
         </div>
