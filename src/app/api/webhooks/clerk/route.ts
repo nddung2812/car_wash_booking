@@ -4,10 +4,13 @@ import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
 
 type ClerkEmail = { id: string; email_address: string };
+type ClerkPhone = { id: string; phone_number: string };
 type ClerkUserData = {
   id: string;
   email_addresses: ClerkEmail[];
   primary_email_address_id: string | null;
+  phone_numbers: ClerkPhone[];
+  primary_phone_number_id: string | null;
   first_name: string | null;
   last_name: string | null;
   image_url: string | null;
@@ -20,6 +23,11 @@ type ClerkEvent =
 function primaryEmail(data: ClerkUserData): string | null {
   const primary = data.email_addresses.find((e) => e.id === data.primary_email_address_id);
   return primary?.email_address ?? data.email_addresses[0]?.email_address ?? null;
+}
+
+function primaryPhone(data: ClerkUserData): string | null {
+  const primary = data.phone_numbers?.find((p) => p.id === data.primary_phone_number_id);
+  return primary?.phone_number ?? data.phone_numbers?.[0]?.phone_number ?? null;
 }
 
 export async function POST(req: Request) {
@@ -57,11 +65,13 @@ export async function POST(req: Request) {
     if (!email) {
       return new Response("User has no email", { status: 400 });
     }
+    const phone = primaryPhone(data);
     await db
       .insert(users)
       .values({
         id: data.id,
         email,
+        phone,
         firstName: data.first_name,
         lastName: data.last_name,
         imageUrl: data.image_url,
@@ -70,6 +80,7 @@ export async function POST(req: Request) {
         target: users.id,
         set: {
           email,
+          phone,
           firstName: data.first_name,
           lastName: data.last_name,
           imageUrl: data.image_url,
