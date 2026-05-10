@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Phone, MapPin, User, ArrowRight, LogOut } from "lucide-react";
+import { Menu, MapPin, User, ArrowRight, LogOut } from "lucide-react";
 import { Show, SignInButton, SignUpButton, UserButton, useClerk } from "@clerk/nextjs";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 
@@ -22,14 +22,14 @@ export default function Header() {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Services", href: "/services" },
+    { name: "Shop", href: "/products" },
     { name: "Booking", href: "/bookings" },
-    { name: "Reviews", href: "/reviews" },
     { name: "Contact", href: "/contact" },
   ];
 
   const locations = [
-    { name: "Shailer Park", href: "/locations/shailer-park", phoneDisplay: "(07) 3801 1988", phoneTel: "tel:+61738011988" },
-    { name: "Loganholme", href: "/locations/loganholme", phoneDisplay: "(07) 3806 0358", phoneTel: "tel:+61738060358" },
+    { name: "Shailer Park", href: "/locations/shailer-park" },
+    { name: "Loganholme", href: "/locations/loganholme" },
   ];
 
   return (
@@ -65,27 +65,18 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Right cluster — sign-in + book at md+, status pill + phone only at lg+ */}
+          {/* Right cluster — locations + sign-in + book at md+ */}
           <div className="hidden items-center gap-2 md:flex lg:gap-3">
             <div className="hidden items-center gap-3 lg:flex">
               {locations.map((location) => (
-                <div key={location.name} className="flex items-center gap-1.5">
-                  <a
-                    href={location.phoneTel}
-                    aria-label={`Call ${location.name}: ${location.phoneDisplay}`}
-                    className="inline-flex items-center justify-center rounded-full border border-line bg-card/60 p-1.5 text-foreground/60 transition-colors hover:border-primary/40 hover:text-foreground"
-                  >
-                    <Phone className="size-3.5" />
-                    <span className="sr-only">{location.phoneDisplay}</span>
-                  </a>
-                  <Link
-                    href={location.href}
-                    className="inline-flex items-center gap-1.5 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:border-primary/40 hover:text-foreground"
-                  >
-                    <MapPin className="size-3.5" />
-                    {location.name}
-                  </Link>
-                </div>
+                <Link
+                  key={location.name}
+                  href={location.href}
+                  className="inline-flex items-center gap-1.5 rounded-pill border border-line bg-card/60 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:border-primary/40 hover:text-foreground"
+                >
+                  <MapPin className="size-3.5" />
+                  {location.name}
+                </Link>
               ))}
             </div>
             <Show when="signed-out">
@@ -166,20 +157,15 @@ export default function Header() {
                       Reach us
                     </span>
                     {locations.map((location) => (
-                      <div key={location.name} className="flex flex-col gap-2 rounded-xl border border-line px-4 py-3">
-                        <Link href={location.href} className="flex items-center gap-2.5 hover:text-primary transition-colors">
-                          <MapPin className="size-4 text-muted-foreground" />
-                          <span className="text-[15px] text-foreground">{location.name}</span>
-                        </Link>
-                        <a
-                          href={location.phoneTel}
-                          aria-label={`Call ${location.name}: ${location.phoneDisplay}`}
-                          className="flex items-center gap-2 font-mono text-[13px] tabular-nums text-foreground/70 transition-colors hover:text-foreground"
-                        >
-                          <Phone className="size-3.5 text-muted-foreground" />
-                          {location.phoneDisplay}
-                        </a>
-                      </div>
+                      <Link
+                        key={location.name}
+                        href={location.href}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl border border-line px-4 py-3 hover:text-primary transition-colors"
+                      >
+                        <MapPin className="size-4 text-muted-foreground" />
+                        <span className="text-[15px] text-foreground">{location.name}</span>
+                      </Link>
                     ))}
                   </div>
 

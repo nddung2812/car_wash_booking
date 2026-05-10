@@ -24,8 +24,8 @@ export const metadata: Metadata = {
 const QUICK_LINKS = [
   { href: "/bookings", label: "Book a wash", Icon: ArrowRight, primary: true as const },
   { href: "/services", label: "Services", Icon: SparkleIcon },
-  { href: "/contact", label: "Locations", Icon: MapPin },
-  { href: "/reviews", label: "Reviews", Icon: Star },
+  { href: "/contact#contact", label: "Locations", Icon: MapPin },
+  { href: "/contact#reviews", label: "Reviews", Icon: Star },
   { href: "/contact", label: "Contact", Icon: MessageCircle },
 ];
 

@@ -219,9 +219,9 @@ export default async function SuccessPage({
             <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { href: "/services", label: "Services", Icon: SparkleIcon },
-                { href: "/reviews", label: "Reviews", Icon: Star },
+                { href: "/contact#reviews", label: "Reviews", Icon: Star },
                 { href: "/contact", label: "Contact", Icon: MessageCircle },
-                { href: "/contact", label: "Locations", Icon: MapPin },
+                { href: "/contact#contact", label: "Locations", Icon: MapPin },
               ].map(({ href, label, Icon }) => (
                 <li key={href}>
                   <Link

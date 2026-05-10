@@ -87,7 +87,7 @@ export default function Home() {
       <CTABand />
 
       {/* Contact / locations */}
-      <LocationsSection />
+      <LocationsSection showPhones={false} />
 
       <JsonLd id="ld-home-breadcrumb" data={breadcrumbLd([{ name: "Home", url: "/" }])} />
       <JsonLd id="ld-home-locations" data={allLocationsLd()} />

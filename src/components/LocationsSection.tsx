@@ -21,6 +21,8 @@ const locations = [
   },
 ] as const;
 
+type LocationsSectionProps = { showPhones?: boolean };
+
 const businessHours: Array<[string, string]> = [
   ["Monday", "8:30 AM — 5:00 PM"],
   ["Tuesday", "9:00 AM — 5:00 PM"],
@@ -31,7 +33,7 @@ const businessHours: Array<[string, string]> = [
   ["Sunday", "9:00 AM — 5:00 PM"],
 ];
 
-export default function LocationsSection() {
+export default function LocationsSection({ showPhones = true }: LocationsSectionProps) {
   return (
     <section id="contact" className="bg-background py-20 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,13 +64,15 @@ export default function LocationsSection() {
                 <br />
                 {loc.region}
               </p>
-              <a
-                href={LOCATION_BY_SLUG[loc.slug].phoneTel}
-                className="inline-flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.12em] text-foreground transition-colors hover:text-primary"
-              >
-                <Phone className="size-3.5 text-muted-foreground" />
-                {LOCATION_BY_SLUG[loc.slug].phoneDisplay}
-              </a>
+              {showPhones && (
+                <a
+                  href={LOCATION_BY_SLUG[loc.slug].phoneTel}
+                  className="inline-flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.12em] text-foreground transition-colors hover:text-primary"
+                >
+                  <Phone className="size-3.5 text-muted-foreground" />
+                  {LOCATION_BY_SLUG[loc.slug].phoneDisplay}
+                </a>
+              )}
               <div className="relative mt-1 h-64 overflow-hidden rounded-[14px] border border-line">
                 <iframe
                   src={LOCATION_BY_SLUG[loc.slug].mapEmbedUrl}

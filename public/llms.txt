@@ -81,8 +81,7 @@ Logan City, Shailer Park, Loganholme, Beenleigh, Springwood, Daisy Hill, Rocheda
 - Home: https://logancarwash.com.au/
 - Services: https://logancarwash.com.au/services
 - Book a wash: https://logancarwash.com.au/bookings
-- Reviews: https://logancarwash.com.au/reviews
-- Contact: https://logancarwash.com.au/contact
+- Contact (locations, phone, reviews): https://logancarwash.com.au/contact
 - Shailer Park location: https://logancarwash.com.au/locations/shailer-park
 - Loganholme location: https://logancarwash.com.au/locations/loganholme
 

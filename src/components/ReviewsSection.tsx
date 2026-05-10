@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Star, Quote } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -171,7 +172,7 @@ export default function ReviewsSection() {
             .
           </p>
           <Button asChild size="lg">
-            <a href="#booking">Book your wash</a>
+            <Link href="/bookings">Book your wash</Link>
           </Button>
         </div>
       </div>

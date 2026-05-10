@@ -2,19 +2,20 @@ import type { Metadata } from "next";
 
 import CTABand from "@/components/CTABand";
 import LocationsSection from "@/components/LocationsSection";
+import ReviewsSection from "@/components/ReviewsSection";
 import JsonLd from "@/components/seo/JsonLd";
 import { allLocationsLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
-  title: "Contact — Shailer Park & Loganholme QLD",
+  title: "Contact & Reviews — Shailer Park & Loganholme QLD",
   description:
-    "Contact Hyperdome Car Wash in Logan QLD — phone (07) 3806 0358. Two locations inside Hyperdome Shopping Centre at Shailer Park and Loganholme. Open seven days a week.",
+    "Contact Hyperdome Car Wash in Logan QLD — phone (07) 3806 0358. Customer reviews, two Hyperdome Shopping Centre locations at Shailer Park and Loganholme. Open seven days a week.",
   alternates: { canonical: "/contact" },
   openGraph: {
     url: "/contact",
-    title: "Contact Hyperdome Car Wash — Logan QLD",
+    title: "Contact & Reviews — Hyperdome Car Wash, Logan QLD",
     description:
-      "Call (07) 3806 0358 or visit Hyperdome Car Wash at Shailer Park or Loganholme. Open seven days, same-day bookings available.",
+      "Call (07) 3806 0358, read customer reviews, or visit Hyperdome Car Wash at Shailer Park or Loganholme. Open seven days, same-day bookings available.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Hyperdome Car Wash — Professional car wash in Logan QLD" }],
   },
 };
@@ -53,6 +54,10 @@ export default function ContactPage() {
             </a>
           </div>
         </div>
+      </section>
+
+      <section id="reviews">
+        <ReviewsSection />
       </section>
 
       <LocationsSection />
