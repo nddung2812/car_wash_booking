@@ -42,7 +42,6 @@ const tickerItems = [
   "92% water reclaimed",
   "Eco-friendly chemistry",
   "Same-day bookings",
-  "Members save 10%",
 ];
 
 export default function Home() {
