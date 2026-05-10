@@ -1,6 +1,13 @@
 export type ProductCategory = "wash" | "interior" | "wax-polish" | "accessories";
 export type ProductBadge = "Best seller" | "New" | "Staff pick";
 
+export const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  wash: "Wash",
+  interior: "Interior",
+  "wax-polish": "Wax & Polish",
+  accessories: "Accessories",
+};
+
 export interface Product {
   id: string;
   name: string;
