@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import DashboardTabs from "@/components/dashboard/DashboardTabs";
@@ -11,6 +12,11 @@ import type { BookingRow, CustomerAnalyticsData } from "@/components/dashboard/C
 import type { CostAnalyticsData } from "@/components/dashboard/CostAnalytics";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard",
+  robots: { index: false, follow: false },
+};
 
 function adminAllowlist() {
   return (process.env.ADMIN_EMAILS ?? "")

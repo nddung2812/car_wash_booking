@@ -7,7 +7,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import { allLocationsLd, breadcrumbLd } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
-  title: "Contact & Reviews — Shailer Park & Loganholme QLD",
+  title: "Contact & Reviews",
   description:
     "Contact Hyperdome Car Wash in Logan QLD — phone (07) 3806 0358. Customer reviews, two Hyperdome Shopping Centre locations at Shailer Park and Loganholme. Open seven days a week.",
   alternates: { canonical: "/contact" },

@@ -6,7 +6,7 @@ import { SectionIntro } from "@/components/SectionIntro";
 import { breadcrumbLd, faqPageLd, type FaqItem } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
-  title: "FAQ — Hyperdome Car Wash, Logan QLD",
+  title: "FAQ",
   description:
     "Frequently asked questions about Hyperdome Car Wash — services, locations, booking, pricing, vehicle types, and opening hours at Shailer Park and Loganholme.",
   alternates: { canonical: "/faq" },

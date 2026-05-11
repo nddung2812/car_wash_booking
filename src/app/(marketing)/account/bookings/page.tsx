@@ -16,7 +16,7 @@ import { services } from "@/data/services";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "My bookings — Hyperdome Car Wash",
+  title: "My Bookings",
   description:
     "View your upcoming and past car wash bookings at Hyperdome Car Wash, Logan QLD.",
   alternates: { canonical: "/account/bookings" },

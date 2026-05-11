@@ -17,7 +17,7 @@ import { getBookingByCode } from "@/db/queries";
 import { services } from "@/data/services";
 
 export const metadata: Metadata = {
-  title: "Booking confirmed — Hyperdome Car Wash",
+  title: "Booking Confirmed",
   description:
     "Your Logan QLD car wash is locked in. We've emailed your confirmation — see you soon at Hyperdome Car Wash.",
   alternates: { canonical: "/success" },

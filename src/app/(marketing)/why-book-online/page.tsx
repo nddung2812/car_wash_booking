@@ -19,7 +19,7 @@ import { BUSINESS_PHONE, BUSINESS_PHONE_DISPLAY } from "@/lib/seo/business";
 import { breadcrumbLd, faqPageLd, type FaqItem } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
-  title: "Book Car Wash Online — Hyperdome Logan QLD | Skip the Queue",
+  title: "Why Book Online — Skip the Queue",
   description:
     "Why book your car wash online at Hyperdome Logan? Skip the queue, see fixed pricing upfront, and lock in your slot 24/7. Professional hand wash & detailing — instant confirmation, open 7 days.",
   alternates: { canonical: "/why-book-online" },
@@ -60,7 +60,7 @@ const reasons = [
     icon: MoonStar,
     kicker: "03 / 05",
     title: "Book 24/7 — even outside trading hours",
-    body: "The booking system never closes. Lock in tomorrow's wash at midnight tonight, on the train home, or while the kids are in soccer practice. Drive-in only works inside trading hours.",
+    body: "The booking system never closes. Lock in tomorrow's wash at midnight tonight, on the train home, or while the kids are at training. Drive-in only works inside trading hours.",
     linkLabel: "Book now",
     linkHref: "/bookings",
   },
