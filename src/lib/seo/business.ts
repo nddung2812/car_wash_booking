@@ -48,13 +48,13 @@ export interface OpeningHour {
 }
 
 export const OPENING_HOURS: OpeningHour[] = [
-  { day: "Monday", opens: "08:30", closes: "17:00" },
-  { day: "Tuesday", opens: "09:00", closes: "17:00" },
-  { day: "Wednesday", opens: "08:30", closes: "17:00" },
-  { day: "Thursday", opens: "08:30", closes: "17:00" },
-  { day: "Friday", opens: "08:30", closes: "17:00" },
-  { day: "Saturday", opens: "08:30", closes: "17:00" },
-  { day: "Sunday", opens: "09:00", closes: "17:00" },
+  { day: "Monday", opens: "08:30", closes: "16:00" },
+  { day: "Tuesday", opens: "09:00", closes: "16:00" },
+  { day: "Wednesday", opens: "08:30", closes: "16:00" },
+  { day: "Thursday", opens: "08:30", closes: "16:00" },
+  { day: "Friday", opens: "08:30", closes: "16:00" },
+  { day: "Saturday", opens: "08:30", closes: "16:00" },
+  { day: "Sunday", opens: "09:00", closes: "16:00" },
 ];
 
 export interface Location {

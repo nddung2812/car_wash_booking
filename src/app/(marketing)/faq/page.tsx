@@ -42,7 +42,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "What are your opening hours?",
-    a: "We are open seven days. Monday, Wednesday–Saturday 8:30 AM – 5:00 PM. Tuesday and Sunday 9:00 AM – 5:00 PM. Hours are the same at both locations.",
+    a: "We are open seven days. Monday, Wednesday–Saturday 8:30 AM – 4:00 PM. Tuesday and Sunday 9:00 AM – 4:00 PM. Hours are the same at both locations.",
   },
   {
     q: "What payment methods do you accept?",

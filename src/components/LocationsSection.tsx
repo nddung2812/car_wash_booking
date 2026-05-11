@@ -24,13 +24,13 @@ const locations = [
 type LocationsSectionProps = { showPhones?: boolean };
 
 const businessHours: Array<[string, string]> = [
-  ["Monday", "8:30 AM — 5:00 PM"],
-  ["Tuesday", "9:00 AM — 5:00 PM"],
-  ["Wednesday", "8:30 AM — 5:00 PM"],
-  ["Thursday", "8:30 AM — 5:00 PM"],
-  ["Friday", "8:30 AM — 5:00 PM"],
-  ["Saturday", "8:30 AM — 5:00 PM"],
-  ["Sunday", "9:00 AM — 5:00 PM"],
+  ["Monday", "8:30 AM — 4:00 PM"],
+  ["Tuesday", "9:00 AM — 4:00 PM"],
+  ["Wednesday", "8:30 AM — 4:00 PM"],
+  ["Thursday", "8:30 AM — 4:00 PM"],
+  ["Friday", "8:30 AM — 4:00 PM"],
+  ["Saturday", "8:30 AM — 4:00 PM"],
+  ["Sunday", "9:00 AM — 4:00 PM"],
 ];
 
 export default function LocationsSection({ showPhones = true }: LocationsSectionProps) {
