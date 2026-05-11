@@ -52,7 +52,7 @@ export const mockMonthlyCosts: MonthlyCost[] = [
 ];
 
 export const mockCostBreakdown = [
-  { category: "Labor", amount: 4200 },
+  { category: "Labour", amount: 4200 },
   { category: "Supplies & Chemicals", amount: 1800 },
   { category: "Rent", amount: 2500 },
   { category: "Utilities", amount: 650 },

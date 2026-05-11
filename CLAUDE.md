@@ -39,7 +39,7 @@ Path alias `@/*` → `src/*`.
 | PATCH | `/api/bookings/[id]` | Admin |
 | POST | `/api/webhooks/clerk` | Svix-signed |
 
-Admin authorization is email-based: Clerk user email must appear in the `ADMIN_EMAILS` env var (comma-separated).
+Admin authorisation is email-based: Clerk user email must appear in the `ADMIN_EMAILS` env var (comma-separated).
 
 ### Database (`src/db/`)
 
@@ -70,7 +70,7 @@ Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout
 - Server components fetch data directly from DB and pass it as props
 - Client components (`"use client"`) handle interactivity and call API routes via `fetch()`
 - Shared UI primitives from Radix UI live in `src/components/ui/`
-- Static catalog data (services, vehicle types, time slots, extras) lives in `src/data/services.ts`
+- Static catalogue data (services, vehicle types, time slots, extras) lives in `src/data/services.ts`
 
 ### Environment Variables
 

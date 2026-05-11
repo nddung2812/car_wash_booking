@@ -51,7 +51,7 @@ src/
     BookingForm.tsx          Public booking form
     Header.tsx               Site header and auth controls
   data/
-    services.ts              Service catalog, vehicle types, time slots
+    services.ts              Service catalogue, vehicle types, time slots
     mock-dashboard.ts        Seed and mock analytics data
   db/
     index.ts                 Lazy Neon/Drizzle database client
@@ -111,7 +111,7 @@ Main files:
 
 Clerk wraps the app in `src/app/layout.tsx` through `ClerkProvider`.
 
-Route protection is handled in `src/proxy.ts`. The `/dashboard` route requires a signed-in Clerk user. Admin authorization is checked separately by comparing the signed-in user's primary email address against the comma-separated `ADMIN_EMAILS` environment variable.
+Route protection is handled in `src/proxy.ts`. The `/dashboard` route requires a signed-in Clerk user. Admin authorisation is checked separately by comparing the signed-in user's primary email address against the comma-separated `ADMIN_EMAILS` environment variable.
 
 Admin checks currently exist in:
 
