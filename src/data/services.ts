@@ -10,6 +10,11 @@ export interface Service {
   };
   bestValue?: boolean;
   savings?: number;
+  promo?: {
+    line1: string;
+    line2: string;
+    ariaLabel?: string;
+  };
   duration: string;
   tagline: string;
   description: string;
@@ -104,6 +109,11 @@ export const services: Service[] = [
       "Engine Bay Detailing (upon request, no liability)",
     ],
     pricing: { sedan: 320, wagon: 350, suv: 390 },
+    promo: {
+      line1: "First 2 bookings",
+      line2: "Get $80 off",
+      ariaLabel: "First 2 bookings get $80 off",
+    },
     duration: "4-5 hours",
     tagline: "Inside, outside, bugs, hand polish and engine bay.",
     description:
