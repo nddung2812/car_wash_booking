@@ -41,12 +41,12 @@ const ServicesSection = () => {
                 </span>
               )}
 
-              <header className="flex items-baseline justify-between gap-3 border-b border-ink/10 bg-yellow px-5 py-3">
-                <h3 className="font-serif text-xl uppercase leading-tight tracking-tight text-ink sm:text-2xl">
+              <header className="flex items-baseline justify-between gap-3 border-b border-primary-foreground/15 bg-primary px-5 py-3">
+                <h3 className="font-serif text-xl uppercase leading-tight tracking-tight text-primary-foreground sm:text-2xl">
                   {service.name}
                 </h3>
                 {service.subtitle && (
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink/70">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary-foreground/70">
                     {service.subtitle}
                   </span>
                 )}
@@ -85,7 +85,10 @@ const ServicesSection = () => {
               </div>
 
               <div className="border-t border-line p-4">
-                <Button asChild className="w-full">
+                <Button
+                  asChild
+                  className="w-full bg-yellow text-yellow-ink hover:bg-yellow-2"
+                >
                   <Link href={`/bookings?service=${service.id}`}>
                     Book this wash
                     <ArrowUpRight className="size-4" />
