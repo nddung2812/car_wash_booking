@@ -1,10 +1,49 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Star } from "lucide-react";
 
-import { extraServices } from "@/data/services";
+import { extraServices, type ExtraService } from "@/data/services";
 import { SectionIntro } from "@/components/SectionIntro";
 
+const CERAMIC_ID = "ceramic-paint-protection";
+
+function PriceTag({ extra }: { extra: ExtraService }) {
+  const { pricing, priceNote = "flat" } = extra;
+  if (priceNote === "quote") {
+    return (
+      <span className="inline-flex items-center rounded-pill border border-line bg-card px-2 py-0.5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+        Quote
+      </span>
+    );
+  }
+  if (priceNote === "from") {
+    return (
+      <span className="whitespace-nowrap font-mono text-[13px] tabular-nums text-foreground">
+        <span className="text-muted-foreground">from </span>${pricing.sedan}
+      </span>
+    );
+  }
+  if (priceNote === "tiered") {
+    return (
+      <span className="whitespace-nowrap font-mono text-[12px] tabular-nums text-foreground sm:text-[13px]">
+        <span className="text-foreground">${pricing.sedan}</span>
+        <span className="px-0.5 text-muted-foreground">/</span>
+        <span className="text-foreground">${pricing.wagon}</span>
+        <span className="px-0.5 text-muted-foreground">/</span>
+        <span className="text-foreground">${pricing.suv}</span>
+      </span>
+    );
+  }
+  return (
+    <span className="whitespace-nowrap font-mono text-[13px] tabular-nums text-foreground">
+      ${pricing.sedan}
+    </span>
+  );
+}
+
 const ExtraServicesSection = () => {
+  const ceramic = extraServices.find((e) => e.id === CERAMIC_ID);
+  const items = extraServices.filter((e) => e.id !== CERAMIC_ID);
+
   return (
     <div className="flex h-full flex-col">
       <SectionIntro
@@ -14,65 +53,62 @@ const ExtraServicesSection = () => {
         className="mb-10"
       />
 
-      <div className="rounded-[20px] border border-line bg-card-gradient p-2 shadow-soft">
-        <div className="hidden grid-cols-[1fr_repeat(3,minmax(64px,84px))] items-center gap-x-4 border-b border-dashed border-line px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:grid">
-          <span>Service</span>
-          <span className="text-right">Sedan</span>
-          <span className="text-right">Wagon</span>
-          <span className="text-right">4×4</span>
-        </div>
+      <div className="overflow-hidden rounded-[20px] border border-line bg-card-gradient shadow-soft">
+        <header className="flex items-baseline justify-between gap-3 border-b border-ink/10 bg-yellow px-5 py-3">
+          <h3 className="font-serif text-xl uppercase leading-tight tracking-tight text-ink sm:text-2xl">
+            Extra Services
+          </h3>
+          <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] text-ink/70 sm:inline">
+            Sedan · Wagon · SUV/4×4
+          </span>
+        </header>
 
-        <ul className="flex flex-col divide-y divide-line/60 sm:divide-y-0">
-          {extraServices.map((service) => {
-            const prices: Array<[string, number]> = [
-              ["Sedan", service.pricing.sedan],
-              ["Wagon", service.pricing.wagon],
-              ["4×4", service.pricing.suv],
-            ];
-            return (
-              <li
-                id={service.id}
-                key={service.id}
-                className="flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-secondary/60 sm:grid sm:grid-cols-[1fr_repeat(3,minmax(64px,84px))] sm:items-center sm:gap-x-4 sm:gap-y-0"
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-pill border border-line bg-card text-primary"
-                  >
-                    <Plus className="size-3" />
+        <ul className="grid grid-cols-1 divide-y divide-line sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(odd)]:sm:border-r sm:[&>li:nth-child(odd)]:sm:border-line sm:[&>li:not(:nth-last-child(-n+2))]:border-b sm:[&>li]:sm:border-line">
+          {items.map((extra) => (
+            <li
+              key={extra.id}
+              id={extra.id}
+              className="flex items-start justify-between gap-4 px-4 py-3"
+            >
+              <div className="flex min-w-0 items-start gap-2">
+                <Star
+                  className="mt-1 size-3 shrink-0 fill-yellow text-yellow-ink"
+                  strokeWidth={1.5}
+                />
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-[14px] leading-snug text-foreground">
+                    {extra.name}
                   </span>
-                  <div className="flex flex-col">
-                    <span className="text-[15px] font-medium text-foreground">
-                      {service.name}
+                  {extra.description && (
+                    <span className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                      {extra.description}
                     </span>
-                    {service.description && (
-                      <span className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                        {service.description}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
-
-                <div className="grid grid-cols-3 gap-2 sm:contents">
-                  {prices.map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="flex items-baseline justify-between gap-1.5 rounded-lg border border-line bg-card/40 px-2 py-1.5 sm:block sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:text-right"
-                    >
-                      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground sm:hidden">
-                        {label}
-                      </span>
-                      <span className="font-mono text-[14px] tabular-nums text-foreground">
-                        ${value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </li>
-            );
-          })}
+              </div>
+              <div className="shrink-0 pt-0.5">
+                <PriceTag extra={extra} />
+              </div>
+            </li>
+          ))}
         </ul>
+
+        {ceramic && (
+          <div className="flex flex-col items-center gap-1 border-t border-ink/10 bg-yellow px-5 py-4 text-center sm:flex-row sm:justify-center sm:gap-3">
+            <span className="font-serif text-lg uppercase tracking-tight text-ink sm:text-xl">
+              Ceramic Paint Protection
+            </span>
+            <span aria-hidden className="hidden text-ink/40 sm:inline">
+              ·
+            </span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink/70">
+              from{" "}
+              <span className="font-serif text-2xl normal-case tracking-normal text-destructive sm:text-3xl">
+                ${ceramic.pricing.sedan}
+              </span>
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex flex-col gap-1 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">

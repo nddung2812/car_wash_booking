@@ -371,7 +371,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
             <ul className="flex flex-col gap-3">
               {services.map((service) => {
                 const active = watchedService === service.id;
-                const featured = service.id === "super-sparkles";
+                const featured = service.bestValue === true;
                 return (
                   <li key={service.id}>
                     <button
@@ -400,7 +400,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                           </span>
                           {featured && (
                             <span className="rounded-pill bg-brand-soft px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
-                              Most booked
+                              Best value
                             </span>
                           )}
                         </div>
@@ -618,9 +618,13 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               </div>
               <input type="hidden" {...register("extras")} />
               <ul className="flex flex-col gap-2">
-                {extraServices.map((extra) => {
+                {extraServices
+                  .filter((extra) => extra.priceNote !== "quote")
+                  .map((extra) => {
                   const active = watchedExtras.includes(extra.id);
                   const price = getExtraPrice(extra, watchedVehicle);
+                  const priceLabel =
+                    extra.priceNote === "from" ? `+from $${price}` : `+$${price}`;
                   return (
                     <li key={extra.id}>
                       <button
@@ -661,7 +665,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                           )}
                         </div>
                         <span className="font-mono text-[14px] tabular-nums text-foreground">
-                          +${price}
+                          {priceLabel}
                         </span>
                       </button>
                     </li>
