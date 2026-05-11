@@ -20,8 +20,7 @@ import {
 
 export const metadata: Metadata = {
   title: {
-    absolute:
-      "Hyperdome Car Wash Logan QLD — Hand-Finished Detailing & Same-Day Bookings",
+    absolute: "Hyperdome Car Wash — Hand-Finished Detailing in Logan QLD",
   },
   description:
     "Professional car wash in Logan QLD. Hyperdome Car Wash offers hand-finished detailing, eco-grade chemistry and same-day bookings at two locations inside Hyperdome Shopping Centre.",

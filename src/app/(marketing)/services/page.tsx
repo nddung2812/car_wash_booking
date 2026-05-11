@@ -14,7 +14,7 @@ import {
 } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
-  title: "Car Wash & Detailing Services — Logan QLD",
+  title: "Car Wash & Detailing Services",
   description:
     "Compare Hyperdome Car Wash packages in Logan QLD — hand wash from $40, interior detail, full detail with hand polish, plus add-ons like ceramic protection, leather treatment and engine bay detailing.",
   alternates: { canonical: "/services" },

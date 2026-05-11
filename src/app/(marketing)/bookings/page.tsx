@@ -10,7 +10,7 @@ import { breadcrumbLd } from "@/lib/seo/jsonld";
 import { getLatestBookingByUser } from "@/db/queries";
 
 export const metadata: Metadata = {
-  title: "Book a Car Wash Online in Logan QLD",
+  title: "Book a Car Wash Online",
   description:
     "Book a car wash online in Logan QLD at Hyperdome Car Wash. Same-day slots at Shailer Park & Loganholme — pick your package, vehicle type and time in under a minute.",
   alternates: { canonical: "/bookings" },

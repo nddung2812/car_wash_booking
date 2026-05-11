@@ -11,7 +11,7 @@ import { breadcrumbLd, localBusinessLd } from "@/lib/seo/jsonld";
 const location = LOCATION_BY_SLUG["loganholme"];
 
 export const metadata: Metadata = {
-  title: "Car Wash Loganholme — Hyperdome Shopping Centre QLD 4129",
+  title: "Car Wash Loganholme QLD 4129",
   description:
     "Hyperdome Car Wash on 2 Leda Dr, Loganholme QLD 4129 — full-service hand car wash and detailing inside the Loganholme side of Hyperdome Shopping Centre. Higher clearance for 4×4s. Same-day bookings, open 7 days.",
   alternates: { canonical: "/locations/loganholme" },

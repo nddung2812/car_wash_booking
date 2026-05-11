@@ -11,7 +11,7 @@ import { breadcrumbLd, localBusinessLd } from "@/lib/seo/jsonld";
 const location = LOCATION_BY_SLUG["shailer-park"];
 
 export const metadata: Metadata = {
-  title: "Car Wash Shailer Park — Hyperdome Shopping Centre QLD 4128",
+  title: "Car Wash Shailer Park QLD 4128",
   description:
     "Hyperdome Car Wash on Mandew St, Shailer Park QLD 4128 — hand-finished car wash and detailing inside Hyperdome Shopping Centre's basement carpark. Same-day bookings, sedans to 4×4s, open 7 days.",
   alternates: { canonical: "/locations/shailer-park" },

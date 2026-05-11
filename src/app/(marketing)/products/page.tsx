@@ -4,15 +4,15 @@ import CTABand from "@/components/CTABand";
 import ProductsSection from "@/components/ProductsSection";
 
 export const metadata: Metadata = {
-  title: "Car Care Products | Hyperdome Car Wash",
+  title: "Car Care Products",
   description:
-    "Shop the car care products we use in the bay every day — shampoos, microfiber towels, spray wax, interior cleaners and ceramic coating kits.",
+    "Shop the car care products we use in the bay every day — shampoos, microfibre towels, spray wax, interior cleaners and ceramic coating kits.",
   alternates: { canonical: "/products" },
   openGraph: {
     url: "/products",
     title: "Car Care Products | Hyperdome Car Wash",
     description:
-      "Shop the car care products we use in the bay every day — shampoos, microfiber towels, spray wax, interior cleaners and ceramic coating kits.",
+      "Shop the car care products we use in the bay every day — shampoos, microfibre towels, spray wax, interior cleaners and ceramic coating kits.",
   },
 };
 

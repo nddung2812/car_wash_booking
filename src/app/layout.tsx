@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: `${BUSINESS_NAME} — Professional Car Wash in Logan QLD`,
-    template: `%s | ${BUSINESS_NAME} Logan QLD`,
+    template: `%s | ${BUSINESS_NAME}`,
   },
   description: BUSINESS_DESCRIPTION,
   applicationName: BUSINESS_NAME,
