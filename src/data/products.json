@@ -1,0 +1,92 @@
+[
+  {
+    "id": "air-care-can",
+    "name": "Air Care Vehicle Air Treatment",
+    "brand": "Cargroomers / Slipstream",
+    "sku": "SSAIR",
+    "tagline": "Cabin air treatment that eliminates odours at the source.",
+    "price": 22.08,
+    "category": "interior",
+    "description": "The ideal complement to your car cleaning routine. Place it in the passenger side footwell, set the air conditioning to maximum, and let this treatment can work its magic. It coats the heating/cooling system to eliminate odours caused by mould, mildew, smoke, algae and bacteria while leaving the cabin fresh.",
+    "features": [
+      "Eliminates mould, mildew, smoke & bacteria odours",
+      "Treats the full HVAC system in one cycle",
+      "Single-use treatment can"
+    ],
+    "image": "https://res.cloudinary.com/dnoztpnvo/image/upload/air-care-leather_gyzgps.jpg",
+    "inStock": true,
+    "sourceUrl": "https://www.mcqagencies.com.au/product/746-cargroomers-air-care-vehicle-air-treatment-can"
+  },
+  {
+    "id": "slip-stream-60",
+    "name": "Slip Stream 60 Vehicle Polish (370g)",
+    "brand": "Cargroomers / Slipstream",
+    "sku": "SS60CAN",
+    "tagline": "60-day spray-on paint sealant with deep gloss.",
+    "price": 23.74,
+    "category": "wax-polish",
+    "description": "Enhanced version of Slip Stream 30 with Slip Stream Light Shine technology. Multiple molecular properties electrostatically bond to paint and provide maximum protection, sealing the paint with a coating that delivers a deep, long-lasting shine. Protects up to 60 days. Spray on, wipe off — works on paint, glass, plastic trim and tyres.",
+    "features": [
+      "Up to 60 days of paint protection",
+      "Spray on, wipe off — no buffing required",
+      "Safe on paint, glass, plastic trim & tyres"
+    ],
+    "image": "https://res.cloudinary.com/dnoztpnvo/image/upload/slipstream-60_mh6krw.jpg",
+    "inStock": true,
+    "sourceUrl": "https://www.mcqagencies.com.au/product/850-cargroomers-slip-stream-60-vehicle-polish-370g-can"
+  },
+  {
+    "id": "trc-waffle-towel-blue-5pk",
+    "name": "TRC Dry Me A River Waffle-Weave Towel (5 Pack)",
+    "brand": "The Rag Company",
+    "tagline": "Pro-detailer-grade microfibre drying towels — pack of 5.",
+    "price": 52,
+    "category": "accessories",
+    "description": "TRC's highest quality microfibre waffle-weave drying and detailing towel — the number-one selling choice of automobile manufacturers, restorers and professional detailers since 1999. Lint-free, non-abrasive Korean split microfibre that absorbs up to 10× its weight in moisture. Scratch-free and swirl-free finish through hundreds of uses.",
+    "features": [
+      "40 × 40 cm — pack of 5",
+      "Absorbs up to 10× its weight in water",
+      "Lint-free, scratch-free Korean split microfibre"
+    ],
+    "image": "https://res.cloudinary.com/dnoztpnvo/image/upload/waffle-towel-blue_iadfyc.jpg",
+    "inStock": true,
+    "sourceUrl": "https://reviveautocollective.com.au/products/trc-dry-me-a-river-waffle-weave-towel-40cm-x-40cm-light-blue-5-pack"
+  },
+  {
+    "id": "oates-enkafill-pva",
+    "name": "Oates Enkafill PVA Cloth",
+    "brand": "Oates",
+    "sku": "PV-EF-01",
+    "tagline": "Streak-free PVA chamois for glass and mirrors.",
+    "price": 25.34,
+    "category": "accessories",
+    "description": "Highly resilient and absorbent polyvinyl alcohol (PVA) synthetic chamois that leaves windows and mirrors squeaky clean and streak-free. Resistant to bacterial breakdown, super absorbent, and ideal for automotive, boat and bathroom cleaning.",
+    "features": [
+      "37 × 43 cm synthetic chamois",
+      "Resistant to bacterial breakdown",
+      "Streak-free on glass, paint & chrome"
+    ],
+    "image": "https://res.cloudinary.com/dnoztpnvo/image/upload/oates-enkafill_n1ymoe.jpg",
+    "inStock": true,
+    "sourceUrl": "https://www.easterncleaningsupplies.com.au/products/oates-pv-ef-01-enkafill-car-cloth-37x43cm"
+  },
+  {
+    "id": "ta-black-waffle-cloth",
+    "name": "Black Waffle Microfibre Cloth (40 × 40 cm)",
+    "brand": "That's Awesome",
+    "sku": "TA-SMLWCLTH-BK",
+    "tagline": "Streak-free multi-purpose detailing cloth.",
+    "price": 6.95,
+    "category": "accessories",
+    "description": "Black waffle microfibre cloth perfect for cleaning, drying and polishing glass and hard surfaces with a streak-free, lint-free finish. 80% polyester / 20% polyamide blend. Absorbs 7× its weight; ideal for exterior detailing, windows, interiors and multi-purpose use. Machine washable.",
+    "features": [
+      "40 × 40 cm — 350 gsm",
+      "80% polyester / 20% polyamide",
+      "Absorbs up to 7× its weight",
+      "Machine washable"
+    ],
+    "image": "https://res.cloudinary.com/dnoztpnvo/image/upload/black-microfibre_hjybzn.jpg",
+    "inStock": true,
+    "sourceUrl": "https://www.thatsawesome.com.au/black-waffle-microfibre-cloth-40x40"
+  }
+]
