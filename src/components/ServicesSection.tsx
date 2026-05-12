@@ -105,7 +105,7 @@ const ServicesSection = () => {
                   asChild
                   className="w-full bg-yellow text-yellow-ink hover:bg-yellow-2"
                 >
-                  <Link href={`/bookings?service=${service.id}`}>
+                  <Link href={`/book-car-wash-online?service=${service.id}`}>
                     Book this wash
                     <ArrowUpRight className="size-4" />
                   </Link>

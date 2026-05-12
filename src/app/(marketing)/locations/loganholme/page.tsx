@@ -51,7 +51,7 @@ export default function LoganholmePage() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
-              <Link href="/bookings">
+              <Link href="/book-car-wash-online">
                 Book this location
                 <ArrowRight className="size-4" />
               </Link>
@@ -111,7 +111,7 @@ export default function LoganholmePage() {
               tents, dual-cab utes with tonneau covers, vans up to 2.4m
               tall, and seven-seat SUVs. Pricing reflects vehicle size — see
               the live quote on the{" "}
-              <Link href="/bookings" className="underline">
+              <Link href="/book-car-wash-online" className="underline">
                 booking form
               </Link>
               .

@@ -7,7 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/services`, lastModified: LAST_MODIFIED },
-    { url: `${SITE_URL}/bookings`, lastModified: LAST_MODIFIED },
+    { url: `${SITE_URL}/book-car-wash-online`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/contact`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/faq`, lastModified: LAST_MODIFIED },
     { url: `${SITE_URL}/why-book-online`, lastModified: LAST_MODIFIED },

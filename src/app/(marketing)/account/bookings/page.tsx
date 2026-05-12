@@ -165,7 +165,7 @@ export default async function MyBookingsPage() {
 
               <li className="mt-2 flex justify-center">
                 <Button asChild size="lg">
-                  <Link href="/bookings">
+                  <Link href="/book-car-wash-online">
                     Book another wash
                     <ArrowRight className="size-4" />
                   </Link>
@@ -208,7 +208,7 @@ function EmptyState() {
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg">
-            <Link href="/bookings">
+            <Link href="/book-car-wash-online">
               Make your first booking
               <ArrowRight className="size-4" />
             </Link>

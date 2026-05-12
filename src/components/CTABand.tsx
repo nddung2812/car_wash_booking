@@ -42,7 +42,7 @@ export default function CTABand() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link href="/bookings">
+              <Link href="/book-car-wash-online">
                 Start booking
                 <ArrowRight className="size-4" />
               </Link>

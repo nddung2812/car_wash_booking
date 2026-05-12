@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const QUICK_LINKS = [
-  { href: "/bookings", label: "Book a wash", Icon: ArrowRight, primary: true as const },
+  { href: "/book-car-wash-online", label: "Book a wash", Icon: ArrowRight, primary: true as const },
   { href: "/services", label: "Services", Icon: SparkleIcon },
   { href: "/contact#contact", label: "Locations", Icon: MapPin },
   { href: "/contact#reviews", label: "Reviews", Icon: Star },
@@ -70,7 +70,7 @@ export default function NotFound() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
-                  <Link href="/bookings">
+                  <Link href="/book-car-wash-online">
                     Book a wash
                     <ArrowRight className="size-4" />
                   </Link>

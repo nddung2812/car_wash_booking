@@ -46,7 +46,7 @@ const reasons = [
     title: "Skip the queue at Hyperdome",
     body: "Saturday mornings in the Hyperdome basement carpark fill fast. Online slots are reserved the moment you submit — no idling behind three other cars hoping the bay opens up. Walk in, hand over the keys, walk out.",
     linkLabel: "See available times",
-    linkHref: "/bookings",
+    linkHref: "/book-car-wash-online",
   },
   {
     icon: Receipt,
@@ -62,7 +62,7 @@ const reasons = [
     title: "Book 24/7 — even outside trading hours",
     body: "The booking system never closes. Lock in tomorrow's wash at midnight tonight, on the train home, or while the kids are at training. Drive-in only works inside trading hours.",
     linkLabel: "Book now",
-    linkHref: "/bookings",
+    linkHref: "/book-car-wash-online",
   },
   {
     icon: MailCheck,
@@ -141,7 +141,7 @@ export default function WhyBookOnlinePage() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
-              <Link href="/bookings">
+              <Link href="/book-car-wash-online">
                 Book a wash
                 <ArrowRight className="size-4" />
               </Link>

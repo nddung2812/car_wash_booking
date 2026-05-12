@@ -172,7 +172,7 @@ export default function ReviewsSection() {
             .
           </p>
           <Button asChild size="lg">
-            <Link href="/bookings">Book your wash</Link>
+            <Link href="/book-car-wash-online">Book your wash</Link>
           </Button>
         </div>
       </div>

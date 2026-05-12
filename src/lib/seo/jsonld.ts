@@ -119,7 +119,7 @@ export function localBusinessLd(location: Location) {
     parentOrganization: { "@id": ORG_ID },
     potentialAction: {
       "@type": "ReserveAction",
-      target: `${SITE_URL}/bookings`,
+      target: `${SITE_URL}/book-car-wash-online`,
     },
     address: {
       "@type": "PostalAddress",
@@ -194,7 +194,7 @@ export function serviceLd(svc: (typeof services)[number]) {
       offerCount: 3,
       priceSpecification: priceSpec(svc.pricing.sedan, svc.pricing.suv),
       availability: "https://schema.org/InStock",
-      url: `${SITE_URL}/bookings`,
+      url: `${SITE_URL}/book-car-wash-online`,
     },
   };
 }
@@ -219,7 +219,7 @@ export function offerCatalogLd() {
       price: svc.pricing.sedan,
       priceSpecification: priceSpec(svc.pricing.sedan, svc.pricing.suv),
       availability: "https://schema.org/InStock",
-      url: `${SITE_URL}/bookings`,
+      url: `${SITE_URL}/book-car-wash-online`,
     })),
   };
 }

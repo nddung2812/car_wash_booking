@@ -61,6 +61,31 @@ const STEP_FIELDS: Record<1 | 2 | 3, (keyof BookingFormData)[]> = {
 
 const STEP_LABELS = ["Service", "Vehicle & time", "Contact"] as const;
 
+const FIELD_LABELS: Record<string, string> = {
+  service: "Service",
+  location: "Location",
+  vehicleType: "Vehicle size",
+  date: "Date",
+  time: "Time",
+  firstName: "First name",
+  lastName: "Last name",
+  email: "Email",
+  phone: "Phone",
+  address: "Address",
+};
+
+function scrollToField(name: string) {
+  if (typeof window === "undefined") return;
+  const el =
+    document.getElementById(name) ||
+    document.getElementById(`field-${name}`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    setTimeout(() => el.focus({ preventScroll: true }), 250);
+  }
+}
+
 const VEHICLE_DETAILS: Record<string, { icon: typeof Car; subtitle: string }> = {
   Sedan: { icon: Car, subtitle: "Sedan / coupe" },
   Wagon: { icon: Car, subtitle: "Station wagon / hatch" },
@@ -195,9 +220,56 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
   };
 
   const goNext = async () => {
-    const ok = await trigger(STEP_FIELDS[currentStep]);
-    if (ok && currentStep < 3) setCurrentStep((s) => (s + 1) as 1 | 2 | 3);
+    const fields = STEP_FIELDS[currentStep];
+    const results = await Promise.all(fields.map((f) => trigger(f)));
+    const allOk = results.every(Boolean);
+    if (allOk && currentStep < 3) {
+      setCurrentStep((s) => (s + 1) as 1 | 2 | 3);
+      return;
+    }
+    if (!allOk) {
+      const firstInvalid = fields[results.findIndex((r) => !r)];
+      if (firstInvalid) scrollToField(firstInvalid);
+    }
   };
+
+  const onInvalid = (errs: typeof errors) => {
+    const firstInvalid = STEP_FIELDS[currentStep].find(
+      (f) => errs[f as keyof typeof errs],
+    );
+    if (firstInvalid) scrollToField(firstInvalid);
+  };
+
+  const missingFields = STEP_FIELDS[currentStep].filter(
+    (f) => errors[f as keyof typeof errors],
+  );
+  const missingBanner = missingFields.length > 0 ? (
+    <div
+      role="alert"
+      aria-live="polite"
+      className="flex flex-col gap-2 rounded-[14px] border border-destructive/40 bg-destructive/5 p-3 sm:p-4"
+    >
+      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
+        {missingFields.length === 1
+          ? "1 field needs your attention"
+          : `${missingFields.length} fields need your attention`}
+      </p>
+      <ul className="flex flex-wrap gap-2">
+        {missingFields.map((f) => (
+          <li key={f}>
+            <button
+              type="button"
+              onClick={() => scrollToField(f)}
+              className="inline-flex items-center gap-1.5 rounded-pill border border-destructive/40 bg-card px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-destructive transition-colors hover:bg-destructive/10"
+            >
+              {FIELD_LABELS[f] ?? f}
+              <ArrowRight className="size-3" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ) : null;
   const goBack = () => {
     if (currentStep > 1) setCurrentStep((s) => (s - 1) as 1 | 2 | 3);
   };
@@ -334,6 +406,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
 
       {currentStep === 3 && (
         <div className="mt-5 flex flex-col gap-3 lg:hidden">
+          {missingBanner}
           {submitError && (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 font-mono text-[12px] text-destructive">
               {submitError}
@@ -356,11 +429,11 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (currentStep === 3) void handleSubmit(onSubmit)(e);
+        if (currentStep === 3) void handleSubmit(onSubmit, onInvalid)(e);
       }}
-      className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_360px] lg:gap-12"
+      className="grid grid-cols-1 gap-6 sm:gap-10 lg:grid-cols-[1fr_360px] lg:gap-12"
     >
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-6 sm:gap-10">
         {stepper}
 
         {/* ============ Step 1 ============ */}
@@ -468,7 +541,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
 
         {/* ============ Step 2 ============ */}
         {currentStep === 2 && (
-          <section className="flex flex-col gap-10">
+          <section className="flex flex-col gap-6 sm:gap-10">
             <header className="flex flex-col gap-2">
               <h3
                 className="font-serif italic leading-tight tracking-tight text-foreground"
@@ -481,7 +554,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               </p>
             </header>
 
-            <div className="flex flex-col gap-4">
+            <div id="field-location" className="flex flex-col gap-4 scroll-mt-24">
               <Label>Location</Label>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {LOCATIONS.map((loc) => {
@@ -529,7 +602,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               )}
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div id="field-vehicleType" className="flex flex-col gap-4 scroll-mt-24">
               <Label>Vehicle size</Label>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {vehicleTypes.map((type) => {
@@ -578,7 +651,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               )}
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div id="field-date" className="flex flex-col gap-4 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
                 <Label>Pick a day</Label>
                 <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -638,7 +711,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               )}
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div id="field-time" className="flex flex-col gap-4 scroll-mt-24">
               <Label>Pick a time</Label>
               <input type="hidden" {...register("time")} />
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
@@ -738,7 +811,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
 
         {/* ============ Step 3 ============ */}
         {currentStep === 3 && (
-          <section className="flex flex-col gap-8">
+          <section className="flex flex-col gap-5 sm:gap-8">
             <header className="flex flex-col gap-2">
               <h3
                 className="font-serif italic leading-tight tracking-tight text-foreground"
@@ -848,6 +921,12 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
           <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 font-mono text-[12px] text-destructive">
             {submitError}
           </p>
+        )}
+
+        {currentStep > 1 && missingBanner && (
+          <div className={cn(currentStep === 3 && "hidden lg:block")}>
+            {missingBanner}
+          </div>
         )}
 
         {currentStep > 1 && (

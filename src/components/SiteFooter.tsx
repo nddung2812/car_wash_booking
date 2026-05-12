@@ -53,7 +53,7 @@ export default function SiteFooter() {
             </h4>
             <ul className="mt-4 flex flex-col gap-1.5 text-[14px] text-background/85">
               <li><Link href="/services" className="hover:text-background">Services</Link></li>
-              <li><Link href="/bookings" className="hover:text-background">Book a wash</Link></li>
+              <li><Link href="/book-car-wash-online" className="hover:text-background">Book a wash</Link></li>
               <li><Link href="/contact#reviews" className="hover:text-background">Reviews</Link></li>
               <li><Link href="/contact" className="hover:text-background">Locations</Link></li>
               <li><Link href="/faq" className="hover:text-background">FAQ</Link></li>

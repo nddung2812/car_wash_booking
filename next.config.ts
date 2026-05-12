@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
     loader: "custom",
     loaderFile: "./src/lib/cloudinary-loader.ts",
   },
+  async redirects() {
+    return [
+      {
+        source: "/bookings",
+        destination: "/book-car-wash-online",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

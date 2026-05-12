@@ -203,7 +203,7 @@ export default async function SuccessPage({
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button asChild size="lg">
-                <Link href="/bookings">
+                <Link href="/book-car-wash-online">
                   Book another wash
                   <ArrowRight className="size-4" />
                 </Link>

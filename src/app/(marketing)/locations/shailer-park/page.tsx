@@ -51,7 +51,7 @@ export default function ShailerParkPage() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
-              <Link href="/bookings">
+              <Link href="/book-car-wash-online">
                 Book this location
                 <ArrowRight className="size-4" />
               </Link>

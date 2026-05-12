@@ -23,7 +23,7 @@ export default function Header() {
     { name: "Home", href: "/" },
     { name: "Services", href: "/services" },
     { name: "Shop", href: "/products" },
-    { name: "Booking", href: "/bookings" },
+    { name: "Booking", href: "/book-car-wash-online" },
     { name: "Contact", href: "/contact" },
   ];
 
@@ -99,7 +99,7 @@ export default function Header() {
               <UserButton />
             </Show>
             <Button asChild size="sm">
-              <Link href="/bookings">
+              <Link href="/book-car-wash-online">
                 Book a wash
                 <ArrowRight className="size-4" />
               </Link>
@@ -206,7 +206,7 @@ export default function Header() {
                       </Button>
                     </Show>
                     <Button asChild size="lg" className="w-full justify-center">
-                      <Link href="/bookings" onClick={() => setIsOpen(false)}>
+                      <Link href="/book-car-wash-online" onClick={() => setIsOpen(false)}>
                         Book a wash
                         <ArrowRight className="size-4" />
                       </Link>
