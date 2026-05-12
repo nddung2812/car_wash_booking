@@ -10,6 +10,7 @@ import {
   getExtraPrice,
   type ExtraService,
 } from "@/data/services";
+import { LOCATIONS } from "@/lib/seo/business";
 import { sendBookingNotification } from "@/lib/email";
 
 const bodySchema = z.object({
@@ -149,12 +150,16 @@ export async function POST(req: Request) {
     })
     .returning();
 
+  const locationName =
+    LOCATIONS.find((l) => l.slug === data.location)?.addressLocality ??
+    data.location;
+
   void sendBookingNotification({
     confirmationCode: code,
     serviceId: data.service,
     serviceName: pricing.svc.name,
     vehicleType: data.vehicleType,
-    location: data.location,
+    location: locationName,
     date: data.date,
     time: data.time,
     firstName: data.firstName,
