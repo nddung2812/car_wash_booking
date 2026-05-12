@@ -14,6 +14,7 @@ import { sendBookingNotification } from "@/lib/email";
 
 const bodySchema = z.object({
   service: z.string().min(1),
+  location: z.string().min(1),
   vehicleType: z.string().min(1),
   date: z.string().min(1),
   time: z.string().min(1),
@@ -48,9 +49,9 @@ function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
     (sum, e) => sum + getExtraPrice(e, vehicleType),
     0,
   );
-  const subtotal = servicePrice + extrasSubtotal;
-  const gst = +(subtotal * 0.1).toFixed(2);
-  const total = +(subtotal + gst).toFixed(2);
+  const total = +(servicePrice + extrasSubtotal).toFixed(2);
+  const gst = +(total / 11).toFixed(2);
+  const subtotal = +(total - gst).toFixed(2);
   return { svc, extraObjs, subtotal, gst, total };
 }
 
@@ -131,6 +132,7 @@ export async function POST(req: Request) {
       serviceId: data.service,
       serviceName: pricing.svc.name,
       vehicleType: data.vehicleType,
+      location: data.location,
       date: data.date,
       time: data.time,
       firstName: data.firstName,
@@ -152,6 +154,7 @@ export async function POST(req: Request) {
     serviceId: data.service,
     serviceName: pricing.svc.name,
     vehicleType: data.vehicleType,
+    location: data.location,
     date: data.date,
     time: data.time,
     firstName: data.firstName,

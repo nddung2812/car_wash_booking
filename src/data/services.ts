@@ -123,7 +123,7 @@ export const services: Service[] = [
   },
 ];
 
-export const vehicleTypes = ["Sedan", "Wagon", "SUV", "4x4"];
+export const vehicleTypes = ["Sedan", "Wagon", "SUV / 4×4"];
 
 export type PriceNote = "flat" | "from" | "quote" | "tiered";
 

@@ -37,9 +37,11 @@ export default function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-6 lg:h-[68px]">
           {/* Brand */}
-          <Link href="/" className="group flex items-center gap-2.5">
-            <ChromeBrand size={36} />
-            <span className="font-sans text-[22px] leading-none tracking-tight">Hyperdome</span>
+          <Link href="/" className="group flex min-w-0 items-center gap-2 sm:gap-2.5">
+            <ChromeBrand className="shrink-0" size={36} />
+            <span className="font-sans text-[13px] leading-none tracking-tight whitespace-nowrap text-foreground sm:text-[16px] md:text-[22px]">
+              Hyperdome Car Wash
+            </span>
           </Link>
 
           {/* Desktop nav */}
@@ -125,7 +127,9 @@ export default function Header() {
                     className="flex items-center gap-2.5"
                   >
                     <ChromeBrand size={40} />
-                    <span className="font-sans text-2xl tracking-tight">Hyperdome</span>
+                    <span className="font-sans text-lg tracking-tight whitespace-nowrap text-foreground sm:text-xl">
+                      Hyperdome Car wash
+                    </span>
                   </Link>
 
                   <nav className="flex flex-col gap-0.5">

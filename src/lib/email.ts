@@ -5,6 +5,7 @@ type BookingEmailParams = {
   serviceId: string;
   serviceName: string;
   vehicleType: string;
+  location: string;
   date: string;
   time: string;
   firstName: string;
@@ -56,6 +57,7 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     service_id: params.serviceId,
     service_name: params.serviceName,
     vehicle_type: params.vehicleType,
+    location: params.location,
     booking_date: params.date,
     booking_time: params.time,
     first_name: params.firstName,

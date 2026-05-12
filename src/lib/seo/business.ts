@@ -15,7 +15,7 @@ export const BUSINESS_PRICE_RANGE = "$$";
 
 export const SOCIAL_LINKS = {
   google: "https://www.google.com/maps?cid=4738094889088025437",
-  facebook: "https://www.facebook.com/hyperdomecarwash",
+  facebook: "https://www.facebook.com/handcarwashhyperdome",
   instagram: "https://www.instagram.com/hyperdomecarwash",
 } as const;
 

@@ -10,7 +10,7 @@ function PriceTag({ extra }: { extra: ExtraService }) {
   const { pricing, priceNote = "flat" } = extra;
   if (priceNote === "quote") {
     return (
-      <span className="inline-flex items-center rounded-pill border border-line bg-card px-2 py-0.5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+      <span className="inline-flex items-center rounded-pill bg-secondary px-2 py-0.5 font-mono text-[11px] uppercase tracking-[0.12em] text-primary">
         Quote
       </span>
     );
@@ -54,16 +54,16 @@ const ExtraServicesSection = () => {
       />
 
       <div className="overflow-hidden rounded-[20px] border border-line bg-card-gradient shadow-soft">
-        <header className="flex items-baseline justify-between gap-3 border-b border-ink/10 bg-yellow px-5 py-3">
-          <h3 className="font-serif text-xl uppercase leading-tight tracking-tight text-ink sm:text-2xl">
+        <header className="flex items-baseline justify-between gap-3 border-b border-primary-foreground/15 bg-primary px-5 py-3">
+          <h3 className="font-serif text-xl uppercase leading-tight tracking-tight text-primary-foreground sm:text-2xl">
             Extra Services
           </h3>
-          <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] text-ink/70 sm:inline">
+          <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] text-primary-foreground/70 sm:inline">
             Sedan · Wagon · SUV/4×4
           </span>
         </header>
 
-        <ul className="grid grid-cols-1 divide-y divide-line sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(odd)]:sm:border-r sm:[&>li:nth-child(odd)]:sm:border-line sm:[&>li:not(:nth-last-child(-n+2))]:border-b sm:[&>li]:sm:border-line">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 sm:[&>li:nth-child(odd)]:border-r sm:[&>li:nth-child(odd)]:border-line">
           {items.map((extra) => (
             <li
               key={extra.id}

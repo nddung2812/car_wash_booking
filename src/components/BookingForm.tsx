@@ -31,11 +31,13 @@ import {
   extraServices,
   getExtraPrice,
 } from "@/data/services";
+import { LOCATIONS } from "@/lib/seo/business";
 import { cn } from "@/lib/utils";
 import { trackGenerateLead } from "@/lib/analytics";
 
 const bookingSchema = z.object({
   service: z.string().min(1, "Please select a service"),
+  location: z.string().min(1, "Please select a location"),
   vehicleType: z.string().min(1, "Please select vehicle type"),
   date: z.string().min(1, "Please select a date"),
   time: z.string().min(1, "Please select a time"),
@@ -53,17 +55,16 @@ type BookingFormData = z.output<typeof bookingSchema>;
 
 const STEP_FIELDS: Record<1 | 2 | 3, (keyof BookingFormData)[]> = {
   1: ["service"],
-  2: ["vehicleType", "date", "time"],
+  2: ["location", "vehicleType", "date", "time"],
   3: ["firstName", "lastName", "email", "phone", "address"],
 };
 
 const STEP_LABELS = ["Service", "Vehicle & time", "Contact"] as const;
 
-const VEHICLE_DETAILS: Record<string, { icon: typeof Car; subtitle: string; modifier: string }> = {
-  Sedan: { icon: Car, subtitle: "Up to 4.9m", modifier: "×1.0" },
-  Wagon: { icon: Car, subtitle: "Wagon / hatch", modifier: "×1.05" },
-  SUV: { icon: Car, subtitle: "4.6 — 5.1m", modifier: "×1.15" },
-  "4x4": { icon: Car, subtitle: "Larger / 4×4", modifier: "×1.3" },
+const VEHICLE_DETAILS: Record<string, { icon: typeof Car; subtitle: string }> = {
+  Sedan: { icon: Car, subtitle: "Sedan / coupe" },
+  Wagon: { icon: Car, subtitle: "Station wagon / hatch" },
+  "SUV / 4×4": { icon: Car, subtitle: "SUV or 4×4" },
 };
 
 function getServicePrice(
@@ -146,6 +147,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
   }, [isUserLoaded, user, setValue]);
 
   const watchedService = watch("service");
+  const watchedLocation = watch("location");
   const watchedVehicle = watch("vehicleType");
   const watchedDate = watch("date");
   const watchedTime = watch("time");
@@ -159,9 +161,9 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
     (sum, e) => sum + getExtraPrice(e, watchedVehicle),
     0,
   );
-  const subtotal = getServicePrice(selectedServiceData, watchedVehicle) + extrasSubtotal;
-  const gst = +(subtotal * 0.1).toFixed(2);
-  const total = +(subtotal + gst).toFixed(2);
+  const total = +(getServicePrice(selectedServiceData, watchedVehicle) + extrasSubtotal).toFixed(2);
+  const gst = +(total / 11).toFixed(2);
+  const subtotal = +(total - gst).toFixed(2);
 
   const onSubmit = async (data: BookingFormData) => {
     setSubmitError(null);
@@ -260,6 +262,14 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
           </div>
           <div className="flex items-baseline justify-between gap-3">
             <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Location
+            </span>
+            <span className="text-right text-[14px] text-foreground">
+              {LOCATIONS.find((l) => l.slug === watchedLocation)?.addressLocality ?? "—"}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
               Vehicle
             </span>
             <span className="text-right text-[14px] text-foreground">
@@ -301,11 +311,11 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
 
         <div className="flex flex-col gap-2 border-t border-dashed border-line px-6 py-4 font-mono text-[12px] tabular-nums">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-muted-foreground">Subtotal (ex GST)</span>
             <span className="text-foreground">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">GST (10%)</span>
+            <span className="text-muted-foreground">GST (incl.)</span>
             <span className="text-foreground">${gst.toFixed(2)}</span>
           </div>
         </div>
@@ -472,8 +482,56 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
             </header>
 
             <div className="flex flex-col gap-4">
+              <Label>Location</Label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {LOCATIONS.map((loc) => {
+                  const active = watchedLocation === loc.slug;
+                  return (
+                    <button
+                      key={loc.slug}
+                      type="button"
+                      onClick={() => setValue("location", loc.slug, { shouldValidate: true })}
+                      aria-pressed={active}
+                      className={cn(
+                        "lift flex flex-col gap-2 rounded-[18px] border p-4 text-left transition-all",
+                        active
+                          ? "border-primary bg-primary text-primary-foreground shadow-glow"
+                          : "border-line bg-card-gradient hover:border-line-2 shadow-soft",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "grid size-9 place-items-center rounded-pill",
+                          active ? "bg-primary-foreground text-primary" : "bg-secondary text-foreground/70",
+                        )}
+                      >
+                        <MapPin className="size-4" />
+                      </span>
+                      <span className="font-serif text-xl leading-tight tracking-tight">
+                        {loc.addressLocality}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-mono text-[11px] uppercase tracking-[0.14em]",
+                          active ? "text-primary-foreground/80" : "text-muted-foreground",
+                        )}
+                      >
+                        {loc.streetAddress}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.location && (
+                <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-destructive">
+                  {errors.location.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-4">
               <Label>Vehicle size</Label>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {vehicleTypes.map((type) => {
                   const lowered = type.toLowerCase();
                   const active = watchedVehicle === lowered;
@@ -486,26 +544,28 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                       onClick={() => setValue("vehicleType", lowered, { shouldValidate: true })}
                       aria-pressed={active}
                       className={cn(
-                        "lift flex flex-col gap-2 rounded-[18px] border bg-card-gradient p-4 text-left transition-all",
+                        "lift flex flex-col gap-2 rounded-[18px] border p-4 text-left transition-all",
                         active
-                          ? "border-primary shadow-glow"
-                          : "border-line hover:border-line-2 shadow-soft",
+                          ? "border-primary bg-primary text-primary-foreground shadow-glow"
+                          : "border-line bg-card-gradient hover:border-line-2 shadow-soft",
                       )}
                     >
                       <span
                         className={cn(
                           "grid size-9 place-items-center rounded-pill",
-                          active ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground/70",
+                          active ? "bg-primary-foreground text-primary" : "bg-secondary text-foreground/70",
                         )}
                       >
                         <Icon className="size-4" />
                       </span>
                       <span className="font-serif text-xl leading-tight tracking-tight">{type}</span>
-                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      <span
+                        className={cn(
+                          "font-mono text-[11px] uppercase tracking-[0.14em]",
+                          active ? "text-primary-foreground/80" : "text-muted-foreground",
+                        )}
+                      >
                         {detail.subtitle}
-                      </span>
-                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                        {detail.modifier}
                       </span>
                     </button>
                   );

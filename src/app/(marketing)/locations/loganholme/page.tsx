@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, MapPin, Phone, Clock, Car } from "lucide-react";
+import { ArrowRight, MapPin, Clock, Car } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import CTABand from "@/components/CTABand";
@@ -61,12 +61,6 @@ export default function LoganholmePage() {
                 Get directions
               </a>
             </Button>
-            <Button asChild size="lg" variant="ghost">
-              <a href={location.phoneTel}>
-                <Phone className="size-4" />
-                {location.phoneDisplay}
-              </a>
-            </Button>
           </div>
         </div>
       </section>
@@ -119,8 +113,8 @@ export default function LoganholmePage() {
               the live quote on the{" "}
               <Link href="/bookings" className="underline">
                 booking form
-              </Link>{" "}
-              or call us directly.
+              </Link>
+              .
             </p>
             <p>
               For a quick freshen-up only, our{" "}
@@ -143,19 +137,6 @@ export default function LoganholmePage() {
                 <br />
                 {location.addressLocality} QLD {location.postalCode}
               </p>
-            </article>
-
-            <article className="rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft">
-              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                <Phone className="size-3.5" />
-                Phone
-              </div>
-              <a
-                href={location.phoneTel}
-                className="mt-3 inline-block font-serif text-2xl text-foreground"
-              >
-                {location.phoneDisplay}
-              </a>
             </article>
 
             <article className="rounded-[20px] border border-line bg-card-gradient p-6 shadow-soft">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Instagram, MapPin } from "lucide-react";
+import { Facebook } from "lucide-react";
 
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 import { services } from "@/data/services";
@@ -28,24 +28,6 @@ export default function SiteFooter() {
                 className="grid size-9 place-items-center rounded-full border border-background/15 text-background/75 transition-colors hover:border-background/40 hover:text-background"
               >
                 <Facebook className="size-4" />
-              </a>
-              <a
-                href={SOCIAL_LINKS.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Hyperdome Car Wash on Instagram"
-                className="grid size-9 place-items-center rounded-full border border-background/15 text-background/75 transition-colors hover:border-background/40 hover:text-background"
-              >
-                <Instagram className="size-4" />
-              </a>
-              <a
-                href={SOCIAL_LINKS.google}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Hyperdome Car Wash on Google Maps"
-                className="grid size-9 place-items-center rounded-full border border-background/15 text-background/75 transition-colors hover:border-background/40 hover:text-background"
-              >
-                <MapPin className="size-4" />
               </a>
             </div>
           </div>

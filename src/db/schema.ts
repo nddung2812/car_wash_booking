@@ -38,6 +38,7 @@ export const bookings = pgTable(
     serviceId: text("service_id").notNull(),
     serviceName: text("service_name").notNull(),
     vehicleType: text("vehicle_type").notNull(),
+    location: text("location").notNull().default("loganholme"),
     date: text("date").notNull(),
     time: text("time").notNull(),
     firstName: text("first_name").notNull(),
