@@ -15,6 +15,7 @@ async function main() {
     serviceId: "premium-detail",
     serviceName: "Premium Detail (probe)",
     vehicleType: "SUV",
+    location: "loganholme",
     date: "2026-04-30",
     time: "10:00",
     firstName: "Probe",
