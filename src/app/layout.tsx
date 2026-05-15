@@ -4,6 +4,9 @@ import Script from "next/script";
 import { ClerkProvider } from "@clerk/nextjs";
 
 import JsonLd from "@/components/seo/JsonLd";
+import { CartProvider } from "@/components/cart/CartProvider";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { FloatingCart } from "@/components/cart/FloatingCart";
 import {
   BUSINESS_DESCRIPTION,
   BUSINESS_NAME,
@@ -134,7 +137,11 @@ export default function RootLayout({
           signInFallbackRedirectUrl="/account/bookings"
           signUpFallbackRedirectUrl="/account/bookings"
         >
-          {children}
+          <CartProvider>
+            {children}
+            <FloatingCart />
+            <CartDrawer />
+          </CartProvider>
         </ClerkProvider>
 
         <JsonLd id="ld-organization" data={organizationLd()} />
