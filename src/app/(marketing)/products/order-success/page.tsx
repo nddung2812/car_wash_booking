@@ -9,6 +9,7 @@ import {
   deliverOrderConfirmation,
   formatShippingAddress,
   getShippingAmount,
+  shortRef,
 } from "@/lib/order-confirmation";
 import { ClearCartOnMount } from "@/components/cart/ClearCartOnMount";
 
@@ -36,39 +37,33 @@ async function loadOrder(sessionId: string | undefined): Promise<OrderSummary | 
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret || !sessionId) return null;
 
-  try {
-    const stripe = new Stripe(secret);
+  // Fire the idempotent confirmation email and reuse the session it already
+  // retrieved — avoids a second sessions.retrieve round-trip per page load.
+  const { session } = await deliverOrderConfirmation(
+    new Stripe(secret),
+    sessionId
+  );
+  if (!session) return null;
 
-    // Fire the customer confirmation email (idempotent — only sends once,
-    // even across page refreshes, and only when payment actually succeeded).
-    await deliverOrderConfirmation(stripe, sessionId);
+  const lines: OrderLine[] =
+    session.line_items?.data.map((li) => ({
+      name: li.description ?? "Item",
+      qty: li.quantity ?? 1,
+      amount: (li.amount_total ?? 0) / 100,
+    })) ?? [];
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["line_items"],
-    });
+  const shippingAddr = formatShippingAddress(session);
 
-    const lines: OrderLine[] =
-      session.line_items?.data.map((li) => ({
-        name: li.description ?? "Item",
-        qty: li.quantity ?? 1,
-        amount: (li.amount_total ?? 0) / 100,
-      })) ?? [];
-
-    const shippingAddr = formatShippingAddress(session);
-
-    return {
-      reference: session.id.replace(/^cs_(test_|live_)?/, "").slice(0, 12).toUpperCase(),
-      email: session.customer_details?.email ?? null,
-      total: session.amount_total != null ? session.amount_total / 100 : null,
-      shipping: getShippingAmount(session),
-      shippingName: shippingAddr?.name ?? null,
-      shippingAddress: shippingAddr?.text ?? null,
-      paid: session.payment_status === "paid",
-      lines,
-    };
-  } catch {
-    return null;
-  }
+  return {
+    reference: shortRef(session.id),
+    email: session.customer_details?.email ?? null,
+    total: session.amount_total != null ? session.amount_total / 100 : null,
+    shipping: getShippingAmount(session),
+    shippingName: shippingAddr?.name ?? null,
+    shippingAddress: shippingAddr?.text ?? null,
+    paid: session.payment_status === "paid",
+    lines,
+  };
 }
 
 export default async function OrderSuccessPage({

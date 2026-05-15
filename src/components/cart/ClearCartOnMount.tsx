@@ -1,22 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
 
 /**
- * Empties the cart once a Stripe order completes. Runs only after the
- * provider has hydrated so it doesn't race the localStorage read.
+ * Empties the cart once a Stripe order completes. Waits for hydration so it
+ * doesn't race the localStorage read; `clear()` is idempotent.
  */
 export function ClearCartOnMount() {
   const { clear, hydrated } = useCart();
-  const done = useRef(false);
 
   useEffect(() => {
-    if (hydrated && !done.current) {
-      done.current = true;
-      clear();
-    }
+    if (hydrated) clear();
   }, [hydrated, clear]);
 
   return null;

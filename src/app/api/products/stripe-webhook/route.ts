@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     event.type === "checkout.session.async_payment_succeeded"
   ) {
     const session = event.data.object as Stripe.Checkout.Session;
-    const result = await deliverOrderConfirmation(stripe, session.id);
+    const { result } = await deliverOrderConfirmation(stripe, session.id);
     return NextResponse.json({ received: true, result });
   }
 

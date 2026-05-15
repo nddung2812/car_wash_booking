@@ -88,13 +88,29 @@ function ensureInitialized() {
   if (initialized || typeof window === "undefined") return;
   items = readStorage();
   initialized = true;
+  // The store is a module singleton, so a single cross-tab listener (not one
+  // per subscriber) is enough and lives for the app's lifetime.
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) {
+      items = readStorage();
+      emit();
+    }
+  });
 }
 
 function emit() {
   for (const listener of listeners) listener();
 }
 
+function sameItems(a: CartItem[], b: CartItem[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((it, i) => it.id === b[i].id && it.qty === b[i].qty)
+  );
+}
+
 function commit(next: CartItem[]) {
+  if (sameItems(items, next)) return;
   items = next;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -107,18 +123,8 @@ function commit(next: CartItem[]) {
 function subscribe(listener: () => void): () => void {
   ensureInitialized();
   listeners.add(listener);
-
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY) {
-      items = readStorage();
-      emit();
-    }
-  };
-  window.addEventListener("storage", onStorage);
-
   return () => {
     listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
   };
 }
 
@@ -154,7 +160,7 @@ function mutateRemove(id: string) {
 }
 
 function mutateClear() {
-  if (items.length > 0) commit(EMPTY);
+  commit(EMPTY);
 }
 
 /* -------------------------------------------------------------------------- */

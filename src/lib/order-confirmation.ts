@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 
 import { sendOrderConfirmation } from "@/lib/email";
+import { gstComponent } from "@/lib/products";
 
 const SENT_FLAG = "order_confirmation_sent";
 
@@ -11,7 +12,15 @@ export type DeliveryResult =
   | "email-failed"
   | "error";
 
-function shortRef(sessionId: string): string {
+export type DeliveryOutcome = {
+  result: DeliveryResult;
+  /** The expanded session, so callers can render it without re-fetching. */
+  session: Stripe.Checkout.Session | null;
+};
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+export function shortRef(sessionId: string): string {
   return sessionId.replace(/^cs_(test_|live_)?/, "").slice(0, 12).toUpperCase();
 }
 
@@ -27,11 +36,6 @@ type ShippingDetailsLike = {
   } | null;
 } | null;
 
-/**
- * Reads the shipping address from a Checkout Session, tolerating both the
- * newer `collected_information.shipping_details` and the legacy
- * `shipping_details` shapes across Stripe API versions.
- */
 export function getShippingAmount(session: Stripe.Checkout.Session): number {
   const cents =
     session.shipping_cost?.amount_total ??
@@ -40,6 +44,10 @@ export function getShippingAmount(session: Stripe.Checkout.Session): number {
   return cents / 100;
 }
 
+/**
+ * Tolerates both the newer `collected_information.shipping_details` and the
+ * legacy `shipping_details` shapes across Stripe API versions.
+ */
 export function formatShippingAddress(
   session: Stripe.Checkout.Session
 ): { name: string | null; text: string } | null {
@@ -72,25 +80,29 @@ export function formatShippingAddress(
  * Checkout session. Idempotency is tracked on the PaymentIntent's metadata,
  * so refreshing the success page or a duplicate webhook never re-sends.
  *
- * Safe to call from both the success page render and a Stripe webhook.
+ * Returns the expanded session so the caller (success page) can render the
+ * summary without a second `sessions.retrieve` round-trip.
  */
 export async function deliverOrderConfirmation(
   stripe: Stripe,
   sessionId: string
-): Promise<DeliveryResult> {
+): Promise<DeliveryOutcome> {
+  let session: Stripe.Checkout.Session | null = null;
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items", "payment_intent"],
     });
 
-    if (session.payment_status !== "paid") return "unpaid";
+    if (session.payment_status !== "paid") return { result: "unpaid", session };
 
     const pi = session.payment_intent;
     const paymentIntentId = typeof pi === "string" ? pi : pi?.id;
     const existingMeta =
       pi && typeof pi !== "string" ? pi.metadata ?? {} : {};
 
-    if (existingMeta[SENT_FLAG] === "true") return "already-sent";
+    if (existingMeta[SENT_FLAG] === "true") {
+      return { result: "already-sent", session };
+    }
 
     const items =
       session.line_items?.data.map((li) => ({
@@ -101,11 +113,10 @@ export async function deliverOrderConfirmation(
 
     const total =
       session.amount_total != null ? session.amount_total / 100 : 0;
-    // Prices are GST-inclusive (mirrors the booking maths: gst = total / 11).
-    const gst = Math.round((total / 11) * 100) / 100;
-    const subtotal = Math.round((total - gst) * 100) / 100;
+    // Prices are GST-inclusive.
+    const gst = round2(gstComponent(total));
+    const subtotal = round2(total - gst);
 
-    const shipping = getShippingAmount(session);
     const shippingAddress = formatShippingAddress(session);
 
     // Prefer the Clerk profile name passed at checkout, then the name the
@@ -116,7 +127,7 @@ export async function deliverOrderConfirmation(
       session.customer_details?.name?.trim() ||
       null;
 
-    const result = await sendOrderConfirmation({
+    const emailed = await sendOrderConfirmation({
       orderReference: shortRef(session.id),
       customerName: fullName,
       customerEmail:
@@ -124,12 +135,12 @@ export async function deliverOrderConfirmation(
       items,
       subtotal,
       gst,
-      shipping,
+      shipping: getShippingAmount(session),
       shippingAddress: shippingAddress?.text ?? null,
       total,
     });
 
-    if (!result.ok) return "email-failed";
+    if (!emailed.ok) return { result: "email-failed", session };
 
     if (paymentIntentId) {
       await stripe.paymentIntents.update(paymentIntentId, {
@@ -137,9 +148,9 @@ export async function deliverOrderConfirmation(
       });
     }
 
-    return "sent";
+    return { result: "sent", session };
   } catch (err) {
     console.error("[order-confirmation] delivery failed", err);
-    return "error";
+    return { result: "error", session };
   }
 }

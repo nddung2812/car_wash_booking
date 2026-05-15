@@ -101,7 +101,6 @@ function CheckoutContent() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-            {/* Items */}
             <ul className="divide-y divide-line rounded-[20px] border border-line bg-card-gradient px-4 sm:px-6">
               {lines.map(({ product, qty, lineTotal }) => (
                 <li key={product.id} className="flex gap-4 py-5 sm:gap-5 sm:py-6">
@@ -156,7 +155,6 @@ function CheckoutContent() {
               ))}
             </ul>
 
-            {/* Summary */}
             <aside className="flex flex-col gap-5 rounded-[20px] border border-line bg-card-gradient p-6 lg:sticky lg:top-24 lg:self-start">
               <h2 className="font-serif text-[24px] leading-tight tracking-tight text-foreground">
                 Order summary

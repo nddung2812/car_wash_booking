@@ -119,13 +119,7 @@ export async function sendOrderConfirmation(params: OrderEmailParams) {
     return { ok: false as const, reason: "missing-config" };
   }
 
-  const storeReplyTo =
-    process.env.BOOKING_NOTIFICATION_EMAIL?.trim() ||
-    (process.env.ADMIN_EMAILS ?? "")
-      .split(",")
-      .map((e) => e.trim())
-      .filter(Boolean)[0] ||
-    params.customerEmail;
+  const storeReplyTo = resolveRecipient() ?? params.customerEmail;
 
   const orderedAt = new Date().toLocaleString("en-AU", {
     timeZone: "Australia/Brisbane",

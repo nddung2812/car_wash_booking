@@ -108,7 +108,6 @@ export default async function ProductDetailPage({
 
       <section className="py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
           <nav
             aria-label="Breadcrumb"
             className="mb-8 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground"
@@ -123,7 +122,6 @@ export default async function ProductDetailPage({
           </nav>
 
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
-            {/* Gallery */}
             <div className="lg:sticky lg:top-24 lg:self-start">
               <div className="relative aspect-square w-full overflow-hidden rounded-[24px] border border-line bg-secondary">
                 <Image
@@ -156,7 +154,6 @@ export default async function ProductDetailPage({
               </div>
             </div>
 
-            {/* Info */}
             <div className="flex flex-col gap-7">
               <div className="flex flex-col gap-3">
                 {product.brand && (
@@ -235,7 +232,6 @@ export default async function ProductDetailPage({
             </div>
           </div>
 
-          {/* Related */}
           {related.length > 0 && (
             <div className="mt-20 border-t border-line pt-12">
               <div className="mb-8 flex items-end justify-between gap-4">
