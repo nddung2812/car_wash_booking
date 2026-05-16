@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import BannerSlider from "@/components/BannerSlider";
+import BeforeAfterSection from "@/components/BeforeAfterSection";
 import BookingForm from "@/components/BookingForm";
 import CTABand from "@/components/CTABand";
 import ExtraServicesSection from "@/components/ExtraServicesSection";
@@ -58,6 +59,9 @@ export default function Home() {
           <ExtraServicesSection />
         </div>
       </section>
+
+      {/* Full Detail before & after */}
+      <BeforeAfterSection />
 
       {/* How it works */}
       <HowItWorksSection />

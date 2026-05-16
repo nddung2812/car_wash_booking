@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import BeforeAfterSection from "@/components/BeforeAfterSection";
 import CTABand from "@/components/CTABand";
 import ExtraServicesSection from "@/components/ExtraServicesSection";
 import ServicesSection from "@/components/ServicesSection";
@@ -53,6 +54,9 @@ export default function ServicesPage() {
           <ExtraServicesSection />
         </div>
       </section>
+
+      <BeforeAfterSection />
+
       <CTABand />
 
       <JsonLd
