@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "@clerk/nextjs";
 import * as z from "zod";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Calendar as CalendarIcon,
@@ -36,16 +37,31 @@ import { cn } from "@/lib/utils";
 import { trackGenerateLead } from "@/lib/analytics";
 
 const bookingSchema = z.object({
-  service: z.string().min(1, "Please select a service"),
-  location: z.string().min(1, "Please select a location"),
-  vehicleType: z.string().min(1, "Please select vehicle type"),
-  date: z.string().min(1, "Please select a date"),
-  time: z.string().min(1, "Please select a time"),
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  address: z.string().min(5, "Address must be at least 5 characters"),
+  service: z.string().min(1, "Choose a wash package to continue"),
+  location: z.string().min(1, "Choose which location you'd like"),
+  vehicleType: z.string().min(1, "Choose your vehicle size so we can price it"),
+  date: z.string().min(1, "Pick a day for your wash"),
+  time: z.string().min(1, "Pick a time slot for your wash"),
+  firstName: z
+    .string()
+    .min(1, "Enter your first name")
+    .min(2, "First name must be at least 2 characters"),
+  lastName: z
+    .string()
+    .min(1, "Enter your last name")
+    .min(2, "Last name must be at least 2 characters"),
+  email: z
+    .string()
+    .min(1, "Enter your email so we can send your confirmation")
+    .email("That doesn't look like a valid email address"),
+  phone: z
+    .string()
+    .min(1, "Enter a contact phone number")
+    .min(10, "Phone number must be at least 10 digits"),
+  address: z
+    .string()
+    .min(1, "Enter your address so we know where to come")
+    .min(5, "Address must be at least 5 characters"),
   notes: z.string().optional(),
   extras: z.array(z.string()).default([]),
 });
@@ -73,6 +89,26 @@ const FIELD_LABELS: Record<string, string> = {
   phone: "Phone",
   address: "Address",
 };
+
+// Higher-contrast, slightly larger field labels (overrides the muted default)
+const LABEL_CLASS = "text-foreground text-[12px] tracking-[0.1em]";
+
+// Obvious red highlight wrapper for a group of choice buttons when invalid
+const INVALID_GROUP_CLASS =
+  "rounded-2xl p-2.5 ring-1 ring-destructive bg-destructive/[0.04]";
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p
+      role="alert"
+      className="flex items-center gap-1.5 text-[13px] font-medium text-destructive"
+    >
+      <AlertCircle className="size-3.5 shrink-0" />
+      {message}
+    </p>
+  );
+}
 
 function scrollToField(name: string) {
   if (typeof window === "undefined") return;
@@ -247,26 +283,35 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
     <div
       role="alert"
       aria-live="polite"
-      className="flex flex-col gap-2 rounded-[14px] border border-destructive/40 bg-destructive/5 p-3 sm:p-4"
+      className="flex flex-col gap-2.5 rounded-[14px] border border-destructive/40 bg-destructive/5 p-3 sm:p-4"
     >
-      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
+      <p className="flex items-center gap-2 text-[13px] font-semibold text-destructive">
+        <AlertCircle className="size-4 shrink-0" />
         {missingFields.length === 1
-          ? "1 field needs your attention"
-          : `${missingFields.length} fields need your attention`}
+          ? "Please fix this before continuing:"
+          : `Please fix these ${missingFields.length} fields before continuing:`}
       </p>
-      <ul className="flex flex-wrap gap-2">
-        {missingFields.map((f) => (
-          <li key={f}>
-            <button
-              type="button"
-              onClick={() => scrollToField(f)}
-              className="inline-flex items-center gap-1.5 rounded-pill border border-destructive/40 bg-card px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-destructive transition-colors hover:bg-destructive/10"
-            >
-              {FIELD_LABELS[f] ?? f}
-              <ArrowRight className="size-3" />
-            </button>
-          </li>
-        ))}
+      <ul className="flex flex-col gap-1">
+        {missingFields.map((f) => {
+          const message = errors[f as keyof typeof errors]?.message as
+            | string
+            | undefined;
+          return (
+            <li key={f}>
+              <button
+                type="button"
+                onClick={() => scrollToField(f)}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <ArrowRight className="size-3.5 shrink-0" />
+                <span>
+                  <span className="font-semibold">{FIELD_LABELS[f] ?? f}:</span>{" "}
+                  {message ?? "This field is required"}
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   ) : null;
@@ -451,7 +496,13 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               </p>
             </header>
 
-            <ul className="flex flex-col gap-3">
+            <ul
+              id="field-service"
+              className={cn(
+                "flex flex-col gap-3 scroll-mt-24",
+                errors.service && INVALID_GROUP_CLASS,
+              )}
+            >
               {services.map((service) => {
                 const active = watchedService === service.id;
                 const featured = service.bestValue === true;
@@ -531,11 +582,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                 );
               })}
             </ul>
-            {errors.service && (
-              <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-destructive">
-                {errors.service.message}
-              </p>
-            )}
+            <FieldError message={errors.service?.message} />
           </section>
         )}
 
@@ -555,8 +602,13 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
             </header>
 
             <div id="field-location" className="flex flex-col gap-4 scroll-mt-24">
-              <Label>Location</Label>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Label className={LABEL_CLASS}>Location</Label>
+              <div
+                className={cn(
+                  "grid grid-cols-1 gap-3 sm:grid-cols-2",
+                  errors.location && INVALID_GROUP_CLASS,
+                )}
+              >
                 {LOCATIONS.map((loc) => {
                   const active = watchedLocation === loc.slug;
                   return (
@@ -595,16 +647,17 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                   );
                 })}
               </div>
-              {errors.location && (
-                <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-destructive">
-                  {errors.location.message}
-                </p>
-              )}
+              <FieldError message={errors.location?.message} />
             </div>
 
             <div id="field-vehicleType" className="flex flex-col gap-4 scroll-mt-24">
-              <Label>Vehicle size</Label>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Label className={LABEL_CLASS}>Vehicle size</Label>
+              <div
+                className={cn(
+                  "grid grid-cols-1 gap-3 sm:grid-cols-3",
+                  errors.vehicleType && INVALID_GROUP_CLASS,
+                )}
+              >
                 {vehicleTypes.map((type) => {
                   const lowered = type.toLowerCase();
                   const active = watchedVehicle === lowered;
@@ -644,23 +697,24 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                   );
                 })}
               </div>
-              {errors.vehicleType && (
-                <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-destructive">
-                  {errors.vehicleType.message}
-                </p>
-              )}
+              <FieldError message={errors.vehicleType?.message} />
             </div>
 
             <div id="field-date" className="flex flex-col gap-4 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
-                <Label>Pick a day</Label>
+                <Label className={LABEL_CLASS}>Pick a day</Label>
                 <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                   <CalendarIcon className="size-3" />
                   Next 14 days
                 </span>
               </div>
               <input type="hidden" {...register("date")} />
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
+              <div
+                className={cn(
+                  "grid grid-cols-4 gap-2 sm:grid-cols-7",
+                  errors.date && INVALID_GROUP_CLASS,
+                )}
+              >
                 {days.map((d) => {
                   const active = watchedDate === d.iso;
                   return (
@@ -670,7 +724,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                       onClick={() => setValue("date", d.iso, { shouldValidate: true })}
                       aria-pressed={active}
                       className={cn(
-                        "flex flex-col items-center justify-center gap-1 rounded-xl border py-3 text-center transition-all",
+                        "flex flex-col items-center justify-center gap-0.5 rounded-lg border py-2 text-center transition-all",
                         active
                           ? "border-primary bg-primary text-primary-foreground shadow-glow"
                           : "border-line bg-card/40 text-foreground hover:border-line-2",
@@ -678,7 +732,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                     >
                       <span
                         className={cn(
-                          "font-mono text-[10px] uppercase tracking-[0.14em]",
+                          "font-mono text-[9px] uppercase tracking-[0.12em]",
                           active ? "text-primary-foreground/80" : "text-muted-foreground",
                         )}
                       >
@@ -686,15 +740,15 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                       </span>
                       <span
                         className={cn(
-                          "font-serif text-3xl font-light leading-none",
-                          active ? "text-primary-foreground" : "text-foreground/70",
+                          "font-serif text-xl font-light leading-none",
+                          active ? "text-primary-foreground" : "text-foreground/80",
                         )}
                       >
                         {d.day}
                       </span>
                       <span
                         className={cn(
-                          "font-mono text-[10px] uppercase tracking-[0.14em]",
+                          "font-mono text-[9px] uppercase tracking-[0.12em]",
                           active ? "text-primary-foreground/80" : "text-muted-foreground",
                         )}
                       >
@@ -704,17 +758,18 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                   );
                 })}
               </div>
-              {errors.date && (
-                <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-destructive">
-                  {errors.date.message}
-                </p>
-              )}
+              <FieldError message={errors.date?.message} />
             </div>
 
             <div id="field-time" className="flex flex-col gap-4 scroll-mt-24">
-              <Label>Pick a time</Label>
+              <Label className={LABEL_CLASS}>Pick a time</Label>
               <input type="hidden" {...register("time")} />
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
+              <div
+                className={cn(
+                  "grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-5",
+                  errors.time && INVALID_GROUP_CLASS,
+                )}
+              >
                 {timeSlots.map((time) => {
                   const active = watchedTime === time;
                   return (
@@ -724,7 +779,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                       onClick={() => setValue("time", time, { shouldValidate: true })}
                       aria-pressed={active}
                       className={cn(
-                        "rounded-xl border px-3 py-3 font-mono text-[12px] tracking-tight transition-all",
+                        "rounded-xl border px-3 py-3.5 font-mono text-[14px] font-medium tracking-tight transition-all",
                         active
                           ? "border-primary bg-primary text-primary-foreground shadow-glow"
                           : "border-line bg-card/40 text-foreground hover:border-line-2",
@@ -735,16 +790,12 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                   );
                 })}
               </div>
-              {errors.time && (
-                <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-destructive">
-                  {errors.time.message}
-                </p>
-              )}
+              <FieldError message={errors.time?.message} />
             </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
-                <Label>Add extras (optional)</Label>
+                <Label className={LABEL_CLASS}>Add extras (optional)</Label>
                 <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                   Skip if you don&rsquo;t need any
                 </span>
@@ -826,31 +877,34 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="firstName">First name</Label>
+                <Label htmlFor="firstName" className={LABEL_CLASS}>First name</Label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="firstName" placeholder="John" className="pl-10" {...register("firstName")} />
+                  <Input
+                    id="firstName"
+                    placeholder="John"
+                    className="pl-10"
+                    aria-invalid={errors.firstName ? true : undefined}
+                    {...register("firstName")}
+                  />
                 </div>
-                {errors.firstName && (
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
-                    {errors.firstName.message}
-                  </p>
-                )}
+                <FieldError message={errors.firstName?.message} />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" placeholder="Doe" {...register("lastName")} />
-                {errors.lastName && (
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
-                    {errors.lastName.message}
-                  </p>
-                )}
+                <Label htmlFor="lastName" className={LABEL_CLASS}>Last name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Doe"
+                  aria-invalid={errors.lastName ? true : undefined}
+                  {...register("lastName")}
+                />
+                <FieldError message={errors.lastName?.message} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className={LABEL_CLASS}>Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -858,17 +912,14 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                     type="email"
                     placeholder="john.smith@example.com.au"
                     className="pl-10"
+                    aria-invalid={errors.email ? true : undefined}
                     {...register("email")}
                   />
                 </div>
-                {errors.email && (
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
-                    {errors.email.message}
-                  </p>
-                )}
+                <FieldError message={errors.email?.message} />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone" className={LABEL_CLASS}>Phone</Label>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -876,37 +927,31 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                     type="tel"
                     placeholder="0412 345 678"
                     className="pl-10"
+                    aria-invalid={errors.phone ? true : undefined}
                     {...register("phone")}
                   />
                 </div>
-                {errors.phone && (
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
-                    {errors.phone.message}
-                  </p>
-                )}
+                <FieldError message={errors.phone?.message} />
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address" className={LABEL_CLASS}>Address</Label>
               <div className="relative">
                 <MapPin className="absolute left-3.5 top-3.5 size-4 text-muted-foreground" />
                 <Input
                   id="address"
                   placeholder="123 Queen Street, Brisbane QLD 4000"
                   className="pl-10"
+                  aria-invalid={errors.address ? true : undefined}
                   {...register("address")}
                 />
               </div>
-              {errors.address && (
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-destructive">
-                  {errors.address.message}
-                </p>
-              )}
+              <FieldError message={errors.address?.message} />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="notes">Anything we should know?</Label>
+              <Label htmlFor="notes" className={LABEL_CLASS}>Anything we should know?</Label>
               <Textarea
                 id="notes"
                 placeholder="Pet hair, sticky drinks, kids' seats — anything we should plan for."
