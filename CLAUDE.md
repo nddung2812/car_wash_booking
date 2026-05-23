@@ -25,7 +25,7 @@ No test suite is configured.
 
 All public pages live under `src/app/(marketing)/` (route group, no URL effect). Remaining top-level routes are `dashboard/` (admin), `sign-in/`, and `sign-up/`.
 
-Dynamic segments: `/locations/[city]` — only `loganholme` and `shailer-park` are valid values.
+Dynamic segments: `/locations/[city]` — only `loganholme` and `shailer-park` are valid values. `/account/orders/[id]` — order UUID, auth-gated to the buyer.
 
 Path alias `@/*` → `src/*`.
 
@@ -38,6 +38,8 @@ Path alias `@/*` → `src/*`.
 | GET | `/api/bookings/[id]` | Public (UUID) |
 | PATCH | `/api/bookings/[id]` | Admin |
 | POST | `/api/webhooks/clerk` | Svix-signed |
+| POST | `/api/products/checkout` | Public |
+| POST | `/api/products/stripe-webhook` | Stripe-signed |
 
 Admin authorisation is email-based: Clerk user email must appear in the `ADMIN_EMAILS` env var (comma-separated).
 
@@ -45,19 +47,28 @@ Admin authorisation is email-based: Clerk user email must appear in the `ADMIN_E
 
 Drizzle ORM over Neon serverless HTTP driver (`@neondatabase/serverless`). Client is lazily initialized via Proxy in `src/db/index.ts` to avoid connection errors in serverless cold starts.
 
-Two tables: **users** (synced from Clerk via webhook) and **bookings**. Confirmation codes are server-generated as `LCW-DD/MM/YYYY-###`. Pricing (subtotal, 10% GST, total) is always calculated server-side in the POST route, never trusted from the client.
+Three tables:
 
-Query helpers for dashboard aggregations live in `src/db/queries.ts`. Mock cost/profit data comes from `src/data/mock-dashboard.ts` (live revenue data is real; cost data is static mock).
+- **users** — synced from Clerk via webhook. Carries `stripe_customer_id` (set on first products checkout) so future Stripe sessions reuse the same Customer and auto-prefill name/email/phone/shipping. FKs on bookings/orders use `ON UPDATE CASCADE` so `ensureUserRow` can safely re-key a stale user id without orphaning historical rows.
+- **bookings** — confirmation codes are server-generated as `LCW-DD/MM/YYYY-###`. Pricing (subtotal, 10% GST, total) is always calculated server-side in the POST route, never trusted from the client. Includes `payment_method` (`pay_now` / `pay_on_collection`), `payment_status` (`unpaid` / `pending_payment` / `paid`), and `stripe_session_id` for pay-now bookings.
+- **orders** — every paid products-store checkout, unique on `stripe_session_id` (idempotent insert via `ON CONFLICT DO NOTHING`). Items stored as JSONB (`{ name, qty, amount, productId }[]`). Records `email`, `full_name`, `phone`, `shipping_address`, totals breakdown, `stripe_payment_intent_id`.
+
+Query helpers for dashboard aggregations live in `src/db/queries.ts` (also `listOrdersByUser`, `getOrderById`). Mock cost/profit data comes from `src/data/mock-dashboard.ts` (live revenue data is real; cost data is static mock).
+
+`src/lib/users.ts → ensureUserRow()` is the canonical helper for guaranteeing a `users` row exists before FK-linking. Handles three cases: already linked / fresh insert / email collision with a stale Clerk id → re-key (cascades to children). Used by `/api/bookings` POST and `recordOrderFromSession`.
 
 ### Auth (`src/proxy.ts`)
 
-Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout redirects after sign-in/sign-up to `/account/bookings`. Webhook at `/api/webhooks/clerk` keeps the local `users` table in sync.
+Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout redirects after sign-in/sign-up to `/account`. Webhook at `/api/webhooks/clerk` keeps the local `users` table in sync.
 
 ### Booking Flow
 
-1. `BookingForm.tsx` (client) — multi-step form using React Hook Form + Zod, steps: service → add-ons → schedule → customer details
-2. `POST /api/bookings` — validates, calculates price, generates confirmation code, saves to DB, fires EmailJS notification
-3. Redirect to `/success?code=LCW-…`
+1. `BookingForm.tsx` (client) — multi-step form using React Hook Form + Zod, steps: service → schedule + add-ons → customer details + **payment method** (pay now / pay at collection)
+2. `POST /api/bookings` — validates, calculates price, generates confirmation code, saves booking with chosen payment method
+   - **Pay at collection** → fires EmailJS immediately with `{{payment_status}} = "Pay later - At collection"`, returns `redirectUrl: /success?code=…`
+   - **Pay now** → saves booking as `pending_payment`, creates a Stripe Checkout Session (one line item for service + one per extra, customer_email prefilled), returns `checkoutUrl`. Email is **not** sent yet.
+3. Stripe redirects pay-now customers to `/success?code=…&session_id=…`. `reconcileBookingPayment()` (`src/lib/booking-confirmation.ts`) verifies the session, marks the booking `paid`/`confirmed`, fires EmailJS with `{{payment_status}} = "PAID - Online"`. Idempotent via a `booking_email_sent` flag on the PaymentIntent metadata (same pattern as products `deliverOrderConfirmation`).
+4. Constants for the two payment-status strings live in `src/lib/booking-payment.ts` (`PAY_AT_COLLECTION_STATUS`, `PAY_NOW_PAID_STATUS`). Both flows share `sendBookingNotification()` in `src/lib/email.ts`; the EmailJS booking template must include the `{{payment_status}}` variable.
 
 ### External Services
 
@@ -76,15 +87,21 @@ Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout
 
 Required: `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, `ADMIN_EMAILS`
 
-Optional: `DATABASE_URL_UNPOOLED` (migrations), `EMAILJS_*` (notifications), `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `BOOKING_NOTIFICATION_EMAIL`, `STRIPE_SECRET_KEY` (products store card checkout — without it `/products/checkout` degrades gracefully with a "payments not configured" message), `EMAILJS_ORDER_TEMPLATE_ID` (order-confirmation template, defaults to `template_zq9r66g`), `STRIPE_WEBHOOK_SECRET` (enables the `/api/products/stripe-webhook` fallback for closed-tab orders)
+Optional: `DATABASE_URL_UNPOOLED` (migrations), `EMAILJS_*` (notifications — EmailJS booking template must include `{{payment_status}}` for online / at-collection labeling), `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `BOOKING_NOTIFICATION_EMAIL`, `STRIPE_SECRET_KEY` (powers **both** products-store card checkout **and** the booking "pay now" option — without it the booking form's pay-now branch returns a 503 and `/products/checkout` shows a "payments not configured" message), `EMAILJS_ORDER_TEMPLATE_ID` (products order-confirmation template, defaults to `template_zq9r66g`), `STRIPE_WEBHOOK_SECRET` (enables the `/api/products/stripe-webhook` fallback for closed-tab orders — bookings rely on the `/success` page reconciliation, no separate webhook yet)
 
 ### Products Store (`/products`)
 
-Separate from the booking flow. Catalogue is static in `src/data/products.json`. Cart is client-side: `CartProvider` (localStorage-backed via `useSyncExternalStore`, mounted in the **root** layout so `useCart` is safe everywhere `Header` renders, incl. the 404 page) → `useCart()`. The cart is surfaced via a fixed bottom-right `FloatingCart` (hidden when empty, drawer open, or on the checkout pages), not the header. Routes: `/products` (listing, filters collapse on mobile), `/products/[slug]` (SSG detail pages, slug = product `id`), `/products/checkout` (review + pay), `/products/order-success` (Stripe session confirmation, clears cart). `POST /api/products/checkout` re-prices every line server-side from the catalogue (never trusts the client) and creates a Stripe Checkout Session.
+Separate from the booking flow. Catalogue is static in `src/data/products.json`. Cart is client-side: `CartProvider` (localStorage-backed via `useSyncExternalStore`, mounted in the **root** layout so `useCart` is safe everywhere `Header` renders, incl. the 404 page) → `useCart()`. The cart is surfaced via a fixed bottom-right `FloatingCart` (hidden when empty, drawer open, or on the checkout pages), not the header. Routes: `/products` (listing, filters collapse on mobile), `/products/[slug]` (SSG detail pages, slug = product `id`), `/products/checkout` (review + pay), `/products/order-success` (Stripe session confirmation, clears cart). `POST /api/products/checkout` re-prices every line server-side from the catalogue (never trusts the client) and creates a Stripe Checkout Session. Signed-in buyers get a persistent Stripe Customer via `getOrCreateStripeCustomer()` (`src/lib/stripe-customer.ts`) — Stripe Checkout then auto-prefills name/email/phone/shipping from prior orders. Guests still check out with just `customer_email`.
+
+**Order persistence:** every paid session is written to the `orders` table via `recordOrderFromSession()` (`src/lib/orders.ts`), called from inside `deliverOrderConfirmation()` so both the success page and webhook paths trigger it. Unique index on `stripe_session_id` keeps it idempotent. The Clerk userId comes from `session.metadata.clerk_user_id`; `ensureUserRow()` backfills the `users` row first so the FK holds even if the Clerk webhook missed the user or the account was recreated.
 
 **Shipping:** flat-rate, Australia-only. Constants live in `src/lib/shipping.ts` (`SHIPPING_FEE` = 14.95) and are shared by the server checkout API and the client review page/cart so totals stay in lock-step. The checkout session sets `shipping_address_collection` (AU) + a single `shipping_rate_data` flat option; Stripe collects the delivery address on its hosted page. The success page and confirmation email show the shipping address and fee.
 
 **Order confirmation email:** on confirmed payment, `sendOrderConfirmation()` in `src/lib/email.ts` (a *separate* function — the booking email is untouched) sends the customer EmailJS template `template_zq9r66g`. `deliverOrderConfirmation()` (`src/lib/order-confirmation.ts`) is the idempotent orchestrator: it only sends when `payment_status === "paid"` and records a `order_confirmation_sent` flag on the Stripe PaymentIntent metadata so refreshes / duplicate webhooks never re-send. Triggered from the `/products/order-success` render (works with just `STRIPE_SECRET_KEY`) and, if configured, the `/api/products/stripe-webhook` endpoint (covers buyers who close the tab).
+
+### Account Dashboard (`/account`)
+
+Customer-facing dashboard for signed-in users. Single page (`src/app/(marketing)/account/page.tsx`) with a Shopify-style tabbed compact list — **Bookings** (brand blue) and **Orders** (amber). Tab state is URL-driven via `?tab=bookings|orders` so it's shareable and survives reloads. Each row is one click-line: date · summary · ref · status pills · total · chevron. Bookings link to `/success?code=…` (existing detail). Orders link to `/account/orders/[id]` — auth-gated detail page that 404s if `order.userId !== currentUser.id`. Old `/account/bookings` redirects to `/account`. Clerk's `signInFallbackRedirectUrl` / `signUpFallbackRedirectUrl` point at `/account`.
 
 ### Before/After Gallery (Full Detail)
 

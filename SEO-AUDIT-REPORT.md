@@ -55,7 +55,7 @@ The other top quick win is a one-line fix: **add `/faq` to the sitemap**. The FA
 - `X-Powered-By` removed
 - Self-referencing canonical tags on every page
 - `lang="en-AU"` on `<html>` element
-- Correct `robots: { index: false }` on `/success` and `/account/bookings`
+- Correct `robots: { index: false }` on `/success`, `/account`, and `/account/orders/[id]`
 - URL structure: lowercase, hyphenated, semantic slugs throughout
 
 ### 🔴 Critical

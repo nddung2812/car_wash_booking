@@ -58,7 +58,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "How do I cancel or reschedule a booking?",
-    a: "Log in to your account and manage bookings from the 'My bookings' page, or call the relevant location directly — Shailer Park on (07) 3801 1988 or Loganholme on (07) 3806 0358.",
+    a: "Log in to your account and review your bookings on the 'My account' page (or call the relevant location directly — Shailer Park on (07) 3801 1988 or Loganholme on (07) 3806 0358) to cancel or reschedule.",
   },
 ];
 
