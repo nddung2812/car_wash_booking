@@ -28,6 +28,7 @@ async function main() {
     subtotal: 100,
     gst: 10,
     total: 110,
+    paymentStatus: "Pay later - At collection",
   });
 
   console.log("[probe] result:", result);

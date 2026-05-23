@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { sql } from "drizzle-orm";
+import Stripe from "stripe";
 import { z } from "zod";
-import { db, bookings, users } from "@/db";
+import { db, bookings } from "@/db";
+import { ensureUserRow } from "@/lib/users";
 import { listBookings } from "@/db/queries";
 import {
   services,
@@ -10,8 +12,12 @@ import {
   getExtraPrice,
   type ExtraService,
 } from "@/data/services";
-import { LOCATIONS } from "@/lib/seo/business";
+import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
 import { sendBookingNotification } from "@/lib/email";
+import {
+  PAY_AT_COLLECTION_STATUS,
+  PAY_NOW_PENDING_STATUS,
+} from "@/lib/booking-payment";
 
 const bodySchema = z.object({
   service: z.string().min(1),
@@ -26,6 +32,7 @@ const bodySchema = z.object({
   address: z.string().min(5),
   notes: z.string().optional(),
   extras: z.array(z.string()).default([]),
+  paymentMethod: z.enum(["pay_now", "pay_on_collection"]),
 });
 
 function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
@@ -101,35 +108,35 @@ export async function POST(req: Request) {
 
   const { userId } = await auth();
 
-  // If a logged-in user isn't in the users table yet (webhook missed), sync them now
+  // If a logged-in user isn't in the users table yet (webhook missed, or
+  // Clerk re-issued the id for an existing email), sync/re-key them now so
+  // the FK below holds.
+  let linkedUserId: string | null = null;
   if (userId) {
     const clerkUser = await currentUser();
     if (clerkUser) {
       const primaryEmail =
         clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
           ?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress ?? null;
-      if (primaryEmail) {
-        await db
-          .insert(users)
-          .values({
-            id: clerkUser.id,
-            email: primaryEmail,
-            firstName: clerkUser.firstName,
-            lastName: clerkUser.lastName,
-            imageUrl: clerkUser.imageUrl,
-          })
-          .onConflictDoNothing();
-      }
+      const ok = await ensureUserRow({
+        clerkUserId: clerkUser.id,
+        email: primaryEmail,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        imageUrl: clerkUser.imageUrl,
+      });
+      if (ok) linkedUserId = clerkUser.id;
     }
   }
 
   const code = await genCode();
+  const isPayNow = data.paymentMethod === "pay_now";
 
   const [row] = await db
     .insert(bookings)
     .values({
       confirmationCode: code,
-      userId: userId ?? null,
+      userId: linkedUserId,
       serviceId: data.service,
       serviceName: pricing.svc.name,
       vehicleType: data.vehicleType,
@@ -147,6 +154,8 @@ export async function POST(req: Request) {
       gst: pricing.gst.toFixed(2),
       total: pricing.total.toFixed(2),
       status: "pending",
+      paymentMethod: data.paymentMethod,
+      paymentStatus: isPayNow ? PAY_NOW_PENDING_STATUS : "unpaid",
     })
     .returning();
 
@@ -154,30 +163,135 @@ export async function POST(req: Request) {
     LOCATIONS.find((l) => l.slug === data.location)?.addressLocality ??
     data.location;
 
-  void sendBookingNotification({
-    confirmationCode: code,
-    serviceId: data.service,
-    serviceName: pricing.svc.name,
-    vehicleType: data.vehicleType,
-    location: locationName,
-    date: data.date,
-    time: data.time,
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-    phone: data.phone,
-    address: data.address,
-    notes: data.notes ?? null,
-    extras: pricing.extraObjs.map((e) => ({
-      name: e.name,
-      price: getExtraPrice(e, data.vehicleType),
-    })),
-    subtotal: pricing.subtotal,
-    gst: pricing.gst,
-    total: pricing.total,
-  });
+  // Pay-at-collection: confirm immediately and email now.
+  if (!isPayNow) {
+    void sendBookingNotification({
+      confirmationCode: code,
+      serviceId: data.service,
+      serviceName: pricing.svc.name,
+      vehicleType: data.vehicleType,
+      location: locationName,
+      date: data.date,
+      time: data.time,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      notes: data.notes ?? null,
+      extras: pricing.extraObjs.map((e) => ({
+        name: e.name,
+        price: getExtraPrice(e, data.vehicleType),
+      })),
+      subtotal: pricing.subtotal,
+      gst: pricing.gst,
+      total: pricing.total,
+      paymentStatus: PAY_AT_COLLECTION_STATUS,
+    });
 
-  return NextResponse.json({ booking: row }, { status: 201 });
+    return NextResponse.json(
+      { booking: row, redirectUrl: `/success?code=${encodeURIComponent(code)}` },
+      { status: 201 }
+    );
+  }
+
+  // Pay-now: create a Stripe Checkout Session. Email is deferred until the
+  // success page reconciles the payment.
+  const stripeSecret = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecret) {
+    return NextResponse.json(
+      {
+        error:
+          "Online payment isn't configured yet. Please choose pay at collection.",
+      },
+      { status: 503 }
+    );
+  }
+
+  const origin =
+    req.headers.get("origin")?.replace(/\/$/, "") ??
+    (req.headers.get("host")
+      ? `${req.headers.get("host")!.startsWith("localhost") ? "http" : "https"}://${req.headers.get("host")}`
+      : SITE_URL);
+
+  const stripe = new Stripe(stripeSecret);
+
+  const extrasLineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
+    pricing.extraObjs.map((e) => ({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: Math.round(getExtraPrice(e, data.vehicleType) * 100),
+        product_data: {
+          name: `Extra: ${e.name}`,
+        },
+      },
+    }));
+
+  const serviceBasePrice = +(pricing.total - pricing.extraObjs.reduce(
+    (s, e) => s + getExtraPrice(e, data.vehicleType),
+    0,
+  )).toFixed(2);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${origin}/success?code=${encodeURIComponent(code)}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/book-car-wash-online?canceled=1&code=${encodeURIComponent(code)}`,
+      customer_email: data.email,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "aud",
+            unit_amount: Math.round(serviceBasePrice * 100),
+            product_data: {
+              name: `${pricing.svc.name} — ${data.vehicleType}`,
+              description: `Booking ${code} · ${data.date} ${data.time} · ${locationName}`,
+            },
+          },
+        },
+        ...extrasLineItems,
+      ],
+      submit_type: "pay",
+      metadata: {
+        source: "car_wash_booking",
+        booking_code: code,
+        booking_id: row.id,
+        full_name: `${data.firstName} ${data.lastName}`.trim(),
+      },
+      payment_intent_data: {
+        metadata: {
+          source: "car_wash_booking",
+          booking_code: code,
+          booking_id: row.id,
+        },
+      },
+    });
+
+    if (!session.url) {
+      return NextResponse.json(
+        { error: "Could not start checkout. Please try again." },
+        { status: 502 }
+      );
+    }
+
+    await db
+      .update(bookings)
+      .set({ stripeSessionId: session.id })
+      .where(sql`${bookings.id} = ${row.id}`);
+
+    return NextResponse.json(
+      { booking: row, checkoutUrl: session.url },
+      { status: 201 }
+    );
+  } catch (err) {
+    console.error("[bookings] Stripe error:", err);
+    return NextResponse.json(
+      { error: "Payment provider error. Please try again in a moment." },
+      { status: 502 }
+    );
+  }
 }
 
 export async function GET() {

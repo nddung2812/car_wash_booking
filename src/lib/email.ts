@@ -18,6 +18,7 @@ type BookingEmailParams = {
   subtotal: number;
   gst: number;
   total: number;
+  paymentStatus: string;
 };
 
 function resolveRecipient(): string | null {
@@ -75,6 +76,7 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     total: params.total.toFixed(2),
     currency: "AUD",
     submitted_at: submittedAt,
+    payment_status: params.paymentStatus,
   };
 
   try {

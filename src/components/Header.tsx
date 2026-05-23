@@ -91,10 +91,10 @@ export default function Header() {
             </Show>
             <Show when="signed-in">
               <Link
-                href="/account/bookings"
+                href="/account"
                 className="font-mono text-[12px] uppercase tracking-[0.12em] text-foreground/70 transition-colors hover:text-foreground"
               >
-                My bookings
+                My account
               </Link>
               <UserButton />
             </Show>
@@ -190,10 +190,10 @@ export default function Header() {
                     <Show when="signed-in">
                       <Button asChild variant="outline" className="w-full justify-center">
                         <Link
-                          href="/account/bookings"
+                          href="/account"
                           onClick={() => setIsOpen(false)}
                         >
-                          My bookings
+                          My account
                         </Link>
                       </Button>
                       <Button

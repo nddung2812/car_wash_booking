@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getBookingByCode } from "@/db/queries";
 import { services } from "@/data/services";
+import { reconcileBookingPayment } from "@/lib/booking-confirmation";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed",
@@ -46,9 +47,12 @@ function titleCaseVehicle(v: string | null | undefined) {
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{ code?: string; session_id?: string }>;
 }) {
-  const { code } = await searchParams;
+  const { code, session_id: sessionId } = await searchParams;
+  if (code && sessionId) {
+    await reconcileBookingPayment(code, sessionId);
+  }
   const booking = code ? await getBookingByCode(code) : null;
 
   const serviceName =

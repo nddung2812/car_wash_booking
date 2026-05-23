@@ -64,6 +64,9 @@ const bookingSchema = z.object({
     .min(5, "Address must be at least 5 characters"),
   notes: z.string().optional(),
   extras: z.array(z.string()).default([]),
+  paymentMethod: z.enum(["pay_now", "pay_on_collection"], {
+    message: "Choose how you'd like to pay",
+  }),
 });
 
 type BookingFormInput = z.input<typeof bookingSchema>;
@@ -72,7 +75,7 @@ type BookingFormData = z.output<typeof bookingSchema>;
 const STEP_FIELDS: Record<1 | 2 | 3, (keyof BookingFormData)[]> = {
   1: ["service"],
   2: ["location", "vehicleType", "date", "time"],
-  3: ["firstName", "lastName", "email", "phone", "address"],
+  3: ["firstName", "lastName", "email", "phone", "address", "paymentMethod"],
 };
 
 const STEP_LABELS = ["Service", "Vehicle & time", "Contact"] as const;
@@ -88,6 +91,7 @@ const FIELD_LABELS: Record<string, string> = {
   email: "Email",
   phone: "Phone",
   address: "Address",
+  paymentMethod: "Payment",
 };
 
 // Higher-contrast, slightly larger field labels (overrides the muted default)
@@ -213,6 +217,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
   const watchedDate = watch("date");
   const watchedTime = watch("time");
   const watchedExtras = watch("extras") ?? [];
+  const watchedPaymentMethod = watch("paymentMethod");
   const selectedServiceData = services.find((s) => s.id === watchedService);
   const selectedExtraObjs = extraServices.filter((e) => watchedExtras.includes(e.id));
 
@@ -238,7 +243,7 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "Could not create booking");
       }
-      const { booking } = await res.json();
+      const { booking, checkoutUrl, redirectUrl } = await res.json();
 
       trackGenerateLead({
         value: total,
@@ -249,7 +254,13 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
         confirmationCode: booking.confirmationCode,
       });
 
-      router.push(`/success?code=${encodeURIComponent(booking.confirmationCode)}`);
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+        return;
+      }
+      router.push(
+        redirectUrl ?? `/success?code=${encodeURIComponent(booking.confirmationCode)}`
+      );
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong");
     }
@@ -458,7 +469,13 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
             </p>
           )}
           <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Booking…" : "Confirm & book"}
+            {isSubmitting
+              ? watchedPaymentMethod === "pay_now"
+                ? "Redirecting…"
+                : "Booking…"
+              : watchedPaymentMethod === "pay_now"
+                ? `Pay $${total.toFixed(2)} & book`
+                : "Confirm & book"}
             <ArrowRight className="size-4" />
           </Button>
           <Button type="button" variant="ghost" onClick={goBack} className="w-full">
@@ -959,6 +976,66 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
                 {...register("notes")}
               />
             </div>
+
+            <div
+              id="field-paymentMethod"
+              className="flex flex-col gap-4 scroll-mt-24"
+            >
+              <Label className={LABEL_CLASS}>How would you like to pay?</Label>
+              <input type="hidden" {...register("paymentMethod")} />
+              <div
+                className={cn(
+                  "grid grid-cols-1 gap-3 sm:grid-cols-2",
+                  errors.paymentMethod && INVALID_GROUP_CLASS,
+                )}
+              >
+                {[
+                  {
+                    value: "pay_now" as const,
+                    title: "Pay now (card)",
+                    subtitle: "Secure card checkout via Stripe",
+                  },
+                  {
+                    value: "pay_on_collection" as const,
+                    title: "Pay at collection",
+                    subtitle: "Settle when we hand the keys back",
+                  },
+                ].map((opt) => {
+                  const active = watchedPaymentMethod === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() =>
+                        setValue("paymentMethod", opt.value, {
+                          shouldValidate: true,
+                        })
+                      }
+                      aria-pressed={active}
+                      className={cn(
+                        "lift flex flex-col gap-1.5 rounded-[18px] border p-4 text-left transition-all",
+                        active
+                          ? "border-primary bg-primary text-primary-foreground shadow-glow"
+                          : "border-line bg-card-gradient hover:border-line-2 shadow-soft",
+                      )}
+                    >
+                      <span className="font-serif text-xl leading-tight tracking-tight">
+                        {opt.title}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-mono text-[11px] uppercase tracking-[0.14em]",
+                          active ? "text-primary-foreground/80" : "text-muted-foreground",
+                        )}
+                      >
+                        {opt.subtitle}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <FieldError message={errors.paymentMethod?.message} />
+            </div>
           </section>
         )}
 
@@ -993,7 +1070,13 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
               </Button>
             ) : (
               <Button type="submit" size="lg" disabled={isSubmitting} className="sm:w-auto">
-                {isSubmitting ? "Booking…" : "Confirm & book"}
+                {isSubmitting
+                  ? watchedPaymentMethod === "pay_now"
+                    ? "Redirecting…"
+                    : "Booking…"
+                  : watchedPaymentMethod === "pay_now"
+                    ? `Pay $${total.toFixed(2)} & book`
+                    : "Confirm & book"}
                 <ArrowRight className="size-4" />
               </Button>
             )}

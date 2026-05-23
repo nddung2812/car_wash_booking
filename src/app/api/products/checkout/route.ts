@@ -11,6 +11,7 @@ import {
   SHIPPING_FEE_CENTS,
   SHIPPING_LABEL,
 } from "@/lib/shipping";
+import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
 
 const bodySchema = z.object({
   items: z
@@ -112,6 +113,15 @@ export async function POST(req: Request) {
         .trim() || clerkUser.fullName?.trim() || null
     : null;
 
+  // Signed-in: reuse a persistent Stripe Customer so Checkout prefills
+  // saved name/email/phone/shipping addresses across orders.
+  const stripeCustomerId = clerkUser
+    ? await getOrCreateStripeCustomer(stripe, clerkUser).catch((err) => {
+        console.error("[checkout] stripe customer error:", err);
+        return null;
+      })
+    : null;
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -138,9 +148,16 @@ export async function POST(req: Request) {
       ],
       automatic_tax: { enabled: false },
       submit_type: "pay",
-      // Prefill the email for signed-in customers (Stripe still collects it
-      // from guests on the hosted page).
-      ...(clerkEmail ? { customer_email: clerkEmail } : {}),
+      // Customer takes precedence over customer_email — Stripe rejects both
+      // being set on the same session.
+      ...(stripeCustomerId
+        ? {
+            customer: stripeCustomerId,
+            customer_update: { name: "auto", address: "auto", shipping: "auto" },
+          }
+        : clerkEmail
+          ? { customer_email: clerkEmail }
+          : {}),
       metadata: {
         source: "products_store",
         item_count: String(

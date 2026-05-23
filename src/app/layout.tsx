@@ -134,8 +134,8 @@ export default function RootLayout({
       >
         <ClerkProvider
           afterSignOutUrl="/"
-          signInFallbackRedirectUrl="/account/bookings"
-          signUpFallbackRedirectUrl="/account/bookings"
+          signInFallbackRedirectUrl="/account"
+          signUpFallbackRedirectUrl="/account"
         >
           <CartProvider>
             {children}
