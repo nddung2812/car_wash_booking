@@ -105,16 +105,14 @@ export function ProductForm({ mode, initial }: Props) {
     if (!confirm("Remove this image? It will also be deleted from Cloudinary.")) {
       return;
     }
-    if (img.publicId) {
-      try {
-        await fetch("/api/admin/cloudinary/destroy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ publicId: img.publicId }),
-        });
-      } catch {
-        /* ignore — we still drop the reference locally */
-      }
+    try {
+      await fetch("/api/admin/cloudinary/destroy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicId: img.publicId, url: img.url }),
+      });
+    } catch {
+      /* ignore — we still drop the reference locally */
     }
     setValues((v) => ({
       ...v,

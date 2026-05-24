@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, products, type ProductImage } from "@/db";
 import { isCurrentUserAdmin } from "@/lib/auth";
-import { destroyAsset } from "@/lib/cloudinary-admin";
+import { destroyAsset, publicIdFromUrl } from "@/lib/cloudinary-admin";
 
 const CATEGORY = z.enum(["wash", "interior", "wax-polish", "accessories"]);
 const BADGE = z.enum(["Best seller", "New", "Staff pick"]);
@@ -87,14 +87,17 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Best-effort cleanup of associated Cloudinary assets. Failure here
-  // shouldn't block the DB delete that already succeeded.
+  // shouldn't block the DB delete that already succeeded. For legacy/seeded
+  // records that only stored a URL (no publicId), derive it from the URL.
   const images = (row.images ?? []) as ProductImage[];
   for (const img of images) {
-    if (!img.publicId) continue;
+    const publicId = img.publicId ?? publicIdFromUrl(img.url);
+    if (!publicId) continue;
     try {
-      await destroyAsset(img.publicId);
+      await destroyAsset(publicId);
+      console.log("[admin/products DELETE] destroyed asset:", publicId);
     } catch (err) {
-      console.warn("[admin/products DELETE] cloudinary destroy:", img.publicId, err);
+      console.warn("[admin/products DELETE] cloudinary destroy failed:", publicId, err);
     }
   }
   revalidatePath("/products");
