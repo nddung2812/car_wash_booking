@@ -163,7 +163,15 @@ export function ProductForm({ mode, initial }: Props) {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Save failed");
+        const details = body.details?.fieldErrors as
+          | Record<string, string[]>
+          | undefined;
+        const fieldMsg = details
+          ? Object.entries(details)
+              .map(([k, v]) => `${k}: ${v.join(", ")}`)
+              .join(" · ")
+          : null;
+        throw new Error(fieldMsg ?? body.error ?? "Save failed");
       }
       router.push("/hyperdome-dashboard/products");
       router.refresh();
@@ -186,10 +194,18 @@ export function ProductForm({ mode, initial }: Props) {
           <input
             className={inputCls}
             value={values.id}
-            onChange={(e) => set("id", e.target.value)}
+            onChange={(e) =>
+              set(
+                "id",
+                e.target.value
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")
+                  .replace(/[^a-z0-9-]/g, ""),
+              )
+            }
             disabled={mode === "edit"}
             required
-            pattern="[a-z0-9-]+"
+            minLength={2}
             title="lowercase letters, numbers and hyphens only"
           />
         </div>
