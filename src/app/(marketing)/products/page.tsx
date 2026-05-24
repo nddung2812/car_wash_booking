@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import CTABand from "@/components/CTABand";
 import ProductsSection from "@/components/ProductsSection";
+import { listProducts } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Car Care Products",
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const products = await listProducts();
   return (
     <>
       <section className="py-20 lg:py-24">
@@ -34,7 +36,7 @@ export default function ProductsPage() {
               Shipped Australia-wide for a flat rate.
             </p>
           </header>
-          <ProductsSection />
+          <ProductsSection products={products} />
         </div>
       </section>
 

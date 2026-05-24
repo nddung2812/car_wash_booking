@@ -6,12 +6,8 @@ import { z } from "zod";
 import { db, bookings } from "@/db";
 import { ensureUserRow } from "@/lib/users";
 import { listBookings } from "@/db/queries";
-import {
-  services,
-  extraServices,
-  getExtraPrice,
-  type ExtraService,
-} from "@/data/services";
+import { getExtraPrice, type ExtraService } from "@/data/services";
+import { getMergedPricing } from "@/lib/pricing";
 import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
 import { sendBookingNotification } from "@/lib/email";
 import {
@@ -20,6 +16,7 @@ import {
 } from "@/lib/booking-payment";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { isValidAuPhone } from "@/lib/phone";
+import { isAdminEmail } from "@/lib/auth";
 
 const bodySchema = z.object({
   service: z.string().min(1),
@@ -54,13 +51,14 @@ function getCheckoutOrigin(req: Request): string {
   return SITE_URL;
 }
 
-function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
+async function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
+  const { services, extras: extrasCatalogue } = await getMergedPricing();
   const svc = services.find((s) => s.id === serviceId);
   if (!svc) return null;
 
   const extraObjs: ExtraService[] = [];
   for (const id of extras) {
-    const found = extraServices.find((e) => e.id === id);
+    const found = extrasCatalogue.find((e) => e.id === id);
     if (!found) return null;
     extraObjs.push(found);
   }
@@ -103,15 +101,6 @@ async function genCode() {
   return `${prefix}${String(next).padStart(3, "0")}`;
 }
 
-function isAdmin(email: string | null | undefined) {
-  if (!email) return false;
-  const list = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  return list.includes(email.toLowerCase());
-}
-
 export async function POST(req: Request) {
   const ip = clientIp(req);
   const limit = rateLimit(`bookings:${ip}`, 5, 60_000);
@@ -132,7 +121,7 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data;
-  const pricing = priceFor(data.service, data.vehicleType, data.extras);
+  const pricing = await priceFor(data.service, data.vehicleType, data.extras);
   if (!pricing) {
     return NextResponse.json({ error: "Unknown service or extra" }, { status: 400 });
   }
@@ -324,7 +313,7 @@ export async function POST(req: Request) {
 export async function GET() {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress;
-  if (!isAdmin(email)) {
+  if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const rows = await listBookings(200);

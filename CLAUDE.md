@@ -99,6 +99,28 @@ Separate from the booking flow. Catalogue is static in `src/data/products.json`.
 
 **Order confirmation email:** on confirmed payment, `sendOrderConfirmation()` in `src/lib/email.ts` (a *separate* function — the booking email is untouched) sends the customer EmailJS template `template_zq9r66g`. `deliverOrderConfirmation()` (`src/lib/order-confirmation.ts`) is the idempotent orchestrator: it only sends when `payment_status === "paid"` and records a `order_confirmation_sent` flag on the Stripe PaymentIntent metadata so refreshes / duplicate webhooks never re-send. Triggered from the `/products/order-success` render (works with just `STRIPE_SECRET_KEY`) and, if configured, the `/api/products/stripe-webhook` endpoint (covers buyers who close the tab).
 
+### Admin Surface (`/hyperdome-dashboard`)
+
+Single secured admin surface (replaces the old `/dashboard`, which now 307s here). Gated by `requireAdmin()` in `src/lib/auth.ts` (email must appear in `ADMIN_EMAILS`). `proxy.ts` requires sign-in for `/hyperdome-dashboard(.*)` and `/api/admin/(.*)` and stamps every response with `X-Robots-Tag: noindex, nofollow, noarchive`. The route is also added to `robots.ts` disallow and the layout sets `metadata.robots = { index: false, follow: false }`.
+
+Pages:
+- `/hyperdome-dashboard` — analytics (moved verbatim from old `/dashboard`).
+- `/hyperdome-dashboard/products` — list + create + edit + delete.
+- `/hyperdome-dashboard/products/new` and `/[id]` — `ProductForm` (client) handles uploads via signed Cloudinary upload (browser → Cloudinary direct).
+- `/hyperdome-dashboard/prices` — bulk editor for service + extra price *overrides*.
+
+APIs (admin-gated via `isCurrentUserAdmin()`):
+- `GET/POST /api/admin/products`, `PATCH/DELETE /api/admin/products/[id]` (delete cascades to Cloudinary destroy by `publicId`).
+- `POST /api/admin/cloudinary/signature` → returns a Cloudinary upload signature so the browser uploads bytes directly (no file ever traverses Vercel).
+- `POST /api/admin/cloudinary/destroy` → admin-only Cloudinary destroy.
+- `GET/PUT /api/admin/prices` → bulk-upsert price overrides; `price: null` clears the override.
+
+Storage migration: products + service/extra prices moved to Postgres. Products live in the new `products` table (DB-backed via `src/lib/products.ts`; falls back to `src/data/products.json` only if the DB is unreachable). Service/extra *definitions* still live in `src/data/services.ts` (names, bullets, JSON-LD copy) — only **prices** are DB-overridable via `service_price_overrides` and `extra_price_overrides` tables. `src/lib/pricing.ts → getMergedPricing()` merges the overrides over the static defaults and is `React.cache`-deduped per request.
+
+Admin user bootstrap: run `npm run admin:create` (or `node scripts/create-admin-user.mjs`) with `CLERK_SECRET_KEY`, `ADMIN_BOOTSTRAP_EMAIL`, `ADMIN_BOOTSTRAP_PASSWORD` env vars. Script is idempotent. After creation, add the email to the `ADMIN_EMAILS` env var on Vercel.
+
+Seed: `npm run db:seed:products` upserts the static `products.json` into the DB. Re-running preserves admin-uploaded `images` (only updates name/price/etc).
+
 ### Account Dashboard (`/account`)
 
 Customer-facing dashboard for signed-in users. Single page (`src/app/(marketing)/account/page.tsx`) with a Shopify-style tabbed compact list — **Bookings** (brand blue) and **Orders** (amber). Tab state is URL-driven via `?tab=bookings|orders` so it's shareable and survives reloads. Each row is one click-line: date · summary · ref · status pills · total · chevron. Bookings link to `/success?code=…` (existing detail). Orders link to `/account/orders/[id]` — auth-gated detail page that 404s if `order.userId !== currentUser.id`. Old `/account/bookings` redirects to `/account`. Clerk's `signInFallbackRedirectUrl` / `signUpFallbackRedirectUrl` point at `/account`.

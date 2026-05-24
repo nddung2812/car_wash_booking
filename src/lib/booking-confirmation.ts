@@ -5,8 +5,8 @@ import { db, bookings } from "@/db";
 import { getBookingByCode } from "@/db/queries";
 import { sendBookingNotification } from "@/lib/email";
 import { LOCATIONS } from "@/lib/seo/business";
+import { getMergedExtras } from "@/lib/pricing";
 import {
-  extraServices,
   getExtraPrice,
   services,
 } from "@/data/services";
@@ -77,8 +77,9 @@ export async function reconcileBookingPayment(
     }
 
     const svc = services.find((s) => s.id === booking.serviceId);
+    const extraCatalogue = await getMergedExtras();
     const extras = (booking.extras ?? [])
-      .map((id) => extraServices.find((e) => e.id === id))
+      .map((id) => extraCatalogue.find((e) => e.id === id))
       .filter((e): e is NonNullable<typeof e> => Boolean(e))
       .map((e) => ({
         name: e.name,

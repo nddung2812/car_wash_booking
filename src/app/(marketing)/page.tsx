@@ -18,6 +18,7 @@ import {
   breadcrumbLd,
   offerCatalogLd,
 } from "@/lib/seo/jsonld";
+import { getMergedPricing } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: {
@@ -44,7 +45,8 @@ const tickerItems = [
   "Same-day bookings",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const pricing = await getMergedPricing();
   return (
     <>
       <BannerSlider />
@@ -76,7 +78,10 @@ export default function Home() {
             className="mb-10"
           />
           <Suspense fallback={null}>
-            <BookingForm />
+            <BookingForm
+              services={pricing.services}
+              extraServices={pricing.extras}
+            />
           </Suspense>
         </div>
       </section>

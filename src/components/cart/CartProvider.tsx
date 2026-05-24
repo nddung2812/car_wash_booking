@@ -10,10 +10,20 @@ import {
 } from "react";
 
 import type { Product } from "@/data/products";
-import { getProductById, gstComponent } from "@/lib/products";
+import { gstComponent } from "@/lib/products";
 
 const STORAGE_KEY = "hcw-cart-v1";
 const MAX_QTY_PER_LINE = 20;
+
+/** Module-level catalogue lookup — populated from CartProvider props before
+ *  any cart interactions can occur (provider is mounted in root layout). */
+let catalogueIndex: Map<string, Product> = new Map();
+function setCatalogue(products: Product[]) {
+  catalogueIndex = new Map(products.map((p) => [p.id, p]));
+}
+function lookupProduct(id: string): Product | undefined {
+  return catalogueIndex.get(id);
+}
 
 export type CartItem = { id: string; qty: number };
 
@@ -76,7 +86,7 @@ function readStorage(): CartItem[] {
           typeof (it as CartItem).id === "string"
       )
       // Drop ids that are no longer in the catalogue.
-      .filter((it) => Boolean(getProductById(it.id)))
+      .filter((it) => Boolean(lookupProduct(it.id)))
       .map((it) => ({ id: it.id, qty: clampQty(it.qty) }));
     return next.length > 0 ? next : EMPTY;
   } catch {
@@ -134,7 +144,7 @@ const getHydratedSnapshot = () => initialized;
 const getHydratedServerSnapshot = () => false;
 
 function mutateAdd(id: string, qty: number) {
-  if (!getProductById(id)) return;
+  if (!lookupProduct(id)) return;
   const existing = items.find((it) => it.id === id);
   commit(
     existing
@@ -165,7 +175,17 @@ function mutateClear() {
 
 /* -------------------------------------------------------------------------- */
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  children,
+  products,
+}: {
+  children: React.ReactNode;
+  products: Product[];
+}) {
+  // Populate the catalogue index before any user interactions. Safe to run on
+  // every render — `setCatalogue` rebuilds a Map from the provided array.
+  setCatalogue(products);
+
   const currentItems = useSyncExternalStore(
     subscribe,
     getItemsSnapshot,
@@ -193,7 +213,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const lines = useMemo<CartLine[]>(() => {
     return currentItems.flatMap((it) => {
-      const product = getProductById(it.id);
+      const product = lookupProduct(it.id);
       if (!product) return [];
       return [
         {

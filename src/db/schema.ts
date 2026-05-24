@@ -7,6 +7,9 @@ import {
   jsonb,
   pgEnum,
   index,
+  integer,
+  boolean,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -118,6 +121,64 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
 export const ordersRelations = relations(orders, ({ one }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
 }));
+
+export type ProductImage = { url: string; publicId?: string | null };
+
+export const products = pgTable(
+  "products",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    tagline: text("tagline").notNull(),
+    description: text("description").notNull(),
+    price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    category: text("category").notNull(),
+    features: jsonb("features").$type<string[]>().notNull().default([]),
+    images: jsonb("images").$type<ProductImage[]>().notNull().default([]),
+    badge: text("badge"),
+    brand: text("brand"),
+    sku: text("sku"),
+    sourceUrl: text("source_url"),
+    inStock: boolean("in_stock").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    sortIdx: index("products_sort_idx").on(table.sortOrder),
+  }),
+);
+
+export const servicePriceOverrides = pgTable(
+  "service_price_overrides",
+  {
+    serviceId: text("service_id").notNull(),
+    vehicleType: text("vehicle_type").notNull(),
+    price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.serviceId, table.vehicleType] }),
+  }),
+);
+
+export const extraPriceOverrides = pgTable(
+  "extra_price_overrides",
+  {
+    extraId: text("extra_id").notNull(),
+    vehicleType: text("vehicle_type").notNull(),
+    price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.extraId, table.vehicleType] }),
+  }),
+);
+
+export type ProductRow = typeof products.$inferSelect;
+export type NewProductRow = typeof products.$inferInsert;
+export type ServicePriceOverride = typeof servicePriceOverrides.$inferSelect;
+export type ExtraPriceOverride = typeof extraPriceOverrides.$inferSelect;
 
 export const insertBookingSchema = createInsertSchema(bookings);
 export const selectBookingSchema = createSelectSchema(bookings);

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Truck } from "lucide-react";
 
-import { products, CATEGORY_LABELS } from "@/data/products";
+import { CATEGORY_LABELS } from "@/data/products";
 import {
   AUD,
   getProductBySlug,
   getRelatedProducts,
   gstComponent,
+  listProducts,
 } from "@/lib/products";
 import { SITE_URL, BUSINESS_NAME, AGGREGATE_RATING } from "@/lib/seo/business";
 import { SHIPPING_FEE } from "@/lib/shipping";
@@ -18,7 +19,8 @@ import JsonLd from "@/components/seo/JsonLd";
 import CTABand from "@/components/CTABand";
 import { ProductBuyBox } from "@/components/cart/ProductBuyBox";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const products = await listProducts();
   return products.map((p) => ({ slug: p.id }));
 }
 
@@ -28,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     return { title: "Product not found", robots: { index: false } };
@@ -57,11 +59,11 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) notFound();
 
-  const related = getRelatedProducts(product);
+  const related = await getRelatedProducts(product);
   const gst = gstComponent(product.price);
 
   const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)

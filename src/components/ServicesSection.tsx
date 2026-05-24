@@ -2,12 +2,13 @@ import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, Star } from "lucide-react";
 
-import { services } from "@/data/services";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SectionIntro } from "@/components/SectionIntro";
+import { getMergedServices } from "@/lib/pricing";
 
-const ServicesSection = () => {
+const ServicesSection = async () => {
+  const services = await getMergedServices();
   return (
     <div className="flex h-full flex-col">
       <SectionIntro

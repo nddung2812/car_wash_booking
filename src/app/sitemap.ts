@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
-import { products } from "@/data/products";
+import { listProducts } from "@/lib/products";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
 
   const entries: MetadataRoute.Sitemap = [
@@ -26,6 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   }
 
+  const products = await listProducts();
   for (const product of products) {
     entries.push({
       url: `${SITE_URL}/products/${product.id}`,

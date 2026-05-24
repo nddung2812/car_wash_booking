@@ -13,6 +13,7 @@ import {
   SITE_URL,
 } from "@/lib/seo/business";
 import { organizationLd, websiteLd } from "@/lib/seo/jsonld";
+import { listProducts } from "@/lib/products";
 
 import "./globals.css";
 
@@ -122,11 +123,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const products = await listProducts();
   return (
     <html lang="en-AU">
       <body
@@ -137,7 +139,7 @@ export default function RootLayout({
           signInFallbackRedirectUrl="/account"
           signUpFallbackRedirectUrl="/account"
         >
-          <CartProvider>
+          <CartProvider products={products}>
             {children}
             <FloatingCart />
             <CartDrawer />

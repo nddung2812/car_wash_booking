@@ -7,7 +7,6 @@ import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from "lucide-re
 
 import {
   CATEGORY_LABELS,
-  products,
   type Product,
   type ProductCategory,
 } from "@/data/products";
@@ -59,7 +58,9 @@ const FilterChip = ({ active, label, onClick }: FilterChipProps) => (
   </button>
 );
 
-const ProductsSection = () => {
+type ProductsSectionProps = { products: Product[] };
+
+const ProductsSection = ({ products }: ProductsSectionProps) => {
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<Set<ProductCategory>>(new Set());
   const [priceRange, setPriceRange] = useState<PriceRangeId>("all");
@@ -78,7 +79,7 @@ const ProductsSection = () => {
       }
       return true;
     });
-  }, [search, selectedCategories, priceRange]);
+  }, [search, selectedCategories, priceRange, products]);
 
   const toggleCategory = (cat: ProductCategory) => {
     setSelectedCategories((prev) => {

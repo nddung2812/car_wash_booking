@@ -8,6 +8,7 @@ import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbLd } from "@/lib/seo/jsonld";
 import { getLatestBookingByUser } from "@/db/queries";
+import { getMergedPricing } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "Book a Car Wash Online",
@@ -26,7 +27,10 @@ export const metadata: Metadata = {
 
 export default async function BookCarWashOnlinePage() {
   const { userId } = await auth();
-  const last = userId ? await getLatestBookingByUser(userId) : null;
+  const [last, pricing] = await Promise.all([
+    userId ? getLatestBookingByUser(userId) : Promise.resolve(null),
+    getMergedPricing(),
+  ]);
   const initialValues = last
     ? { phone: last.phone, address: last.address }
     : undefined;
@@ -55,7 +59,11 @@ export default async function BookCarWashOnlinePage() {
             <BookingCancelBanner />
           </Suspense>
           <Suspense fallback={null}>
-            <BookingForm initialValues={initialValues} />
+            <BookingForm
+              initialValues={initialValues}
+              services={pricing.services}
+              extraServices={pricing.extras}
+            />
           </Suspense>
         </div>
       </section>

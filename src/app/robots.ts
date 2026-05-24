@@ -10,6 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/api/",
           "/dashboard",
+          "/hyperdome-dashboard",
           "/sign-in",
           "/sign-up",
           "/account",

@@ -26,11 +26,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 import {
-  services,
+  services as defaultServices,
   vehicleTypes,
   timeSlots,
-  extraServices,
+  extraServices as defaultExtraServices,
   getExtraPrice,
+  type Service,
+  type ExtraService,
 } from "@/data/services";
 import { LOCATIONS } from "@/lib/seo/business";
 import { cn } from "@/lib/utils";
@@ -137,7 +139,7 @@ const VEHICLE_DETAILS: Record<string, { icon: typeof Car; subtitle: string }> = 
 };
 
 function getServicePrice(
-  service: (typeof services)[0] | undefined,
+  service: Service | undefined,
   vehicleType: string | undefined,
 ) {
   if (!service) return 0;
@@ -176,6 +178,8 @@ function buildDays(): { iso: string; weekday: string; day: number; month: string
 
 type BookingFormProps = {
   initialValues?: { phone?: string; address?: string };
+  services?: Service[];
+  extraServices?: ExtraService[];
 };
 
 const DRAFT_KEY = "hyperdome:booking-draft:v1";
@@ -229,7 +233,11 @@ function clearDraft() {
   }
 }
 
-export default function BookingForm({ initialValues }: BookingFormProps = {}) {
+export default function BookingForm({
+  initialValues,
+  services = defaultServices,
+  extraServices = defaultExtraServices,
+}: BookingFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedService = searchParams.get("service");

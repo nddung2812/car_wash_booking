@@ -3,19 +3,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, bookings } from "@/db";
+import { isAdminEmail } from "@/lib/auth";
 
 const patchSchema = z.object({
   status: z.enum(["pending", "confirmed", "completed", "cancelled"]),
 });
-
-function isAdmin(email: string | null | undefined) {
-  if (!email) return false;
-  const list = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  return list.includes(email.toLowerCase());
-}
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
@@ -30,7 +22,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
   const email = user.primaryEmailAddress?.emailAddress;
   const owner = row.userId && row.userId === user.id;
-  if (!owner && !isAdmin(email)) {
+  if (!owner && !isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -40,7 +32,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress;
-  if (!isAdmin(email)) {
+  if (!isAdminEmail(email)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

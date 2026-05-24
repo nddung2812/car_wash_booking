@@ -1,8 +1,9 @@
 import React from "react";
 import { Star } from "lucide-react";
 
-import { extraServices, type ExtraService } from "@/data/services";
+import { type ExtraService } from "@/data/services";
 import { SectionIntro } from "@/components/SectionIntro";
+import { getMergedExtras } from "@/lib/pricing";
 
 const CERAMIC_ID = "ceramic-paint-protection";
 
@@ -40,7 +41,8 @@ function PriceTag({ extra }: { extra: ExtraService }) {
   );
 }
 
-const ExtraServicesSection = () => {
+const ExtraServicesSection = async () => {
+  const extraServices = await getMergedExtras();
   const ceramic = extraServices.find((e) => e.id === CERAMIC_ID);
   const items = extraServices.filter((e) => e.id !== CERAMIC_ID);
 

@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   let expectedItemsCents = 0;
   for (const item of parsed.data.items) {
-    const product = getProductById(item.id);
+    const product = await getProductById(item.id);
     if (!product) {
       return NextResponse.json(
         { error: "One of the items is no longer available." },
