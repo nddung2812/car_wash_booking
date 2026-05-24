@@ -11,7 +11,7 @@
 - **Bay 2 — Loganholme:** 2 Leda Dr, Hyperdome Shopping Centre, Loganholme QLD 4129 · Coordinates: -27.6585, 153.1707
 - **Phone:** (07) 3806 0358 / +61 7 3806 0358
 - **Website:** https://logancarwash.com.au
-- **Online booking:** https://logancarwash.com.au/bookings
+- **Online booking:** https://logancarwash.com.au/book-car-wash-online
 - **Hours:** Mon, Wed–Sat 8:30 AM – 4:00 PM · Tue & Sun 9:00 AM – 4:00 PM (open every day)
 - **Currency:** AUD
 - **Payment:** Cash, credit card, EFTPOS, Apple Pay, Google Pay
@@ -60,7 +60,7 @@ Yes. 92% of process water is reclaimed and recycled on site through a closed-loo
 Yes. Both locations accept 4×4s. The Loganholme bay (Leda Dr, QLD 4129) has higher clearance and handles 4×4s with roof racks, bull bars and canopies.
 
 **Can I book online same day?**
-Yes — same-day slots are available at https://logancarwash.com.au/bookings. Live pricing and availability updates based on vehicle type.
+Yes — same-day slots are available at https://logancarwash.com.au/book-car-wash-online. Live pricing and availability updates based on vehicle type.
 
 ## Differentiators
 
@@ -80,7 +80,7 @@ Logan City, Shailer Park, Loganholme, Beenleigh, Springwood, Daisy Hill, Rocheda
 
 - Home: https://logancarwash.com.au/
 - Services: https://logancarwash.com.au/services
-- Book a wash: https://logancarwash.com.au/bookings
+- Book a wash: https://logancarwash.com.au/book-car-wash-online
 - Contact (locations, phone, reviews): https://logancarwash.com.au/contact
 - Shailer Park location: https://logancarwash.com.au/locations/shailer-park
 - Loganholme location: https://logancarwash.com.au/locations/loganholme

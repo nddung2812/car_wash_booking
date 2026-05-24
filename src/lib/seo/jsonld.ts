@@ -1,5 +1,6 @@
 import { services, extraServices } from "@/data/services";
 import {
+  AGGREGATE_RATING,
   AREA_SERVED,
   BUSINESS_DESCRIPTION,
   BUSINESS_LEGAL_NAME,
@@ -12,6 +13,14 @@ import {
   SITE_URL,
   SOCIAL_LINKS,
 } from "./business";
+
+const aggregateRatingLd = {
+  "@type": "AggregateRating",
+  ratingValue: AGGREGATE_RATING.ratingValue,
+  reviewCount: AGGREGATE_RATING.reviewCount,
+  bestRating: "5",
+  worstRating: "1",
+};
 
 const ORG_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;
@@ -85,6 +94,7 @@ export function organizationLd() {
       addressCountry: "AU",
     },
     sameAs: [SOCIAL_LINKS.google, SOCIAL_LINKS.facebook, SOCIAL_LINKS.instagram],
+    aggregateRating: aggregateRatingLd,
   };
 }
 
@@ -138,6 +148,7 @@ export function localBusinessLd(location: Location) {
     areaServed: AREA_SERVED.map((name) => ({ "@type": "City", name })),
     openingHoursSpecification: openingHoursSpecification(),
     sameAs: [SOCIAL_LINKS.google, SOCIAL_LINKS.facebook, SOCIAL_LINKS.instagram],
+    aggregateRating: aggregateRatingLd,
   };
 }
 

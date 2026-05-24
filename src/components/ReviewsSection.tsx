@@ -131,7 +131,7 @@ export default function ReviewsSection() {
                 <Quote className="size-7 text-primary/70" />
                 <StarRating rating={review.rating} />
               </div>
-              <p className="font-serif text-[20px] italic leading-snug text-foreground">
+              <p className="text-[16px] leading-relaxed text-foreground">
                 &ldquo;{review.review}&rdquo;
               </p>
               <div className="mt-auto flex items-center justify-between gap-3 border-t border-dashed border-line pt-4">

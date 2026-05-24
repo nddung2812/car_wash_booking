@@ -13,6 +13,11 @@ export const BUSINESS_PHONE = "+61738060358";
 export const BUSINESS_PHONE_DISPLAY = "(07) 3806 0358";
 export const BUSINESS_PRICE_RANGE = "$$";
 
+export const AGGREGATE_RATING = {
+  ratingValue: "4.9",
+  reviewCount: 2400,
+} as const;
+
 export const SOCIAL_LINKS = {
   google: "https://www.google.com/maps?cid=4738094889088025437",
   facebook: "https://www.facebook.com/handcarwashhyperdome",

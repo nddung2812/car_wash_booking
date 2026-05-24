@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
 import { SectionIntro } from "@/components/SectionIntro";
-import { breadcrumbLd, faqPageLd, type FaqItem } from "@/lib/seo/jsonld";
+import { breadcrumbLd, type FaqItem } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -115,7 +115,6 @@ export default function FaqPage() {
           { name: "FAQ", url: "/faq" },
         ])}
       />
-      <JsonLd id="ld-faq-page" data={faqPageLd(faqs)} />
     </>
   );
 }

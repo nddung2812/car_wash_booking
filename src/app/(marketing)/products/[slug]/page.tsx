@@ -11,7 +11,7 @@ import {
   getRelatedProducts,
   gstComponent,
 } from "@/lib/products";
-import { SITE_URL, BUSINESS_NAME } from "@/lib/seo/business";
+import { SITE_URL, BUSINESS_NAME, AGGREGATE_RATING } from "@/lib/seo/business";
 import { SHIPPING_FEE } from "@/lib/shipping";
 import { Badge } from "@/components/ui/badge";
 import JsonLd from "@/components/seo/JsonLd";
@@ -64,26 +64,76 @@ export default async function ProductDetailPage({
   const related = getRelatedProducts(product);
   const gst = gstComponent(product.price);
 
+  const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
   const productLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: product.image,
+    image: [product.image],
     sku: product.sku ?? product.id,
+    mpn: product.sku ?? product.id,
     ...(product.brand
       ? { brand: { "@type": "Brand", name: product.brand } }
       : {}),
     category: CATEGORY_LABELS[product.category],
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: AGGREGATE_RATING.ratingValue,
+      reviewCount: AGGREGATE_RATING.reviewCount,
+      bestRating: "5",
+      worstRating: "1",
+    },
     offers: {
       "@type": "Offer",
       url: `${SITE_URL}/products/${product.id}`,
       priceCurrency: "AUD",
       price: product.price.toFixed(2),
+      priceValidUntil,
       availability: product.inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
       seller: { "@type": "Organization", name: BUSINESS_NAME },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: SHIPPING_FEE.toFixed(2),
+          currency: "AUD",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "AU",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: 0,
+            maxValue: 1,
+            unitCode: "DAY",
+          },
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: 2,
+            maxValue: 7,
+            unitCode: "DAY",
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "AU",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 30,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
+      },
     },
   };
 
