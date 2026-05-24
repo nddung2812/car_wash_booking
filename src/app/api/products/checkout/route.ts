@@ -12,6 +12,7 @@ import {
   SHIPPING_LABEL,
 } from "@/lib/shipping";
 import { getOrCreateStripeCustomer } from "@/lib/stripe-customer";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   items: z
@@ -25,7 +26,10 @@ const bodySchema = z.object({
     .max(50),
 });
 
+// Lock checkout redirect URLs to the configured site URL in production so
+// a spoofed Host/Origin header can't redirect a paying customer elsewhere.
 function resolveOrigin(req: Request): string {
+  if (process.env.NODE_ENV === "production") return SITE_URL;
   const origin = req.headers.get("origin");
   if (origin) return origin.replace(/\/$/, "");
   const host = req.headers.get("host");
@@ -37,6 +41,18 @@ function resolveOrigin(req: Request): string {
 }
 
 export async function POST(req: Request) {
+  const ip = clientIp(req);
+  const limit = rateLimit(`products-checkout:${ip}`, 10, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment and try again." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      }
+    );
+  }
+
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) {
     return NextResponse.json(
@@ -65,6 +81,7 @@ export async function POST(req: Request) {
 
   // Never trust client pricing — resolve every line against the catalogue.
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+  let expectedItemsCents = 0;
   for (const item of parsed.data.items) {
     const product = getProductById(item.id);
     if (!product) {
@@ -79,6 +96,7 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
+    expectedItemsCents += Math.round(product.price * 100) * item.qty;
     lineItems.push({
       quantity: item.qty,
       price_data: {
@@ -163,6 +181,7 @@ export async function POST(req: Request) {
         item_count: String(
           parsed.data.items.reduce((sum, i) => sum + i.qty, 0)
         ),
+        expected_total_cents: String(expectedItemsCents + SHIPPING_FEE_CENTS),
         ...(clerkFullName ? { full_name: clerkFullName } : {}),
         ...(clerkUser ? { clerk_user_id: clerkUser.id } : {}),
       },

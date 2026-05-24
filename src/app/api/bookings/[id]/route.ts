@@ -18,10 +18,23 @@ function isAdmin(email: string | null | undefined) {
 }
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await ctx.params;
   const rows = await db.select().from(bookings).where(eq(bookings.id, id));
-  if (!rows[0]) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ booking: rows[0] });
+  const row = rows[0];
+  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const email = user.primaryEmailAddress?.emailAddress;
+  const owner = row.userId && row.userId === user.id;
+  if (!owner && !isAdmin(email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  return NextResponse.json({ booking: row });
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {

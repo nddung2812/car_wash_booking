@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import CopyCode from "@/components/CopyCode";
 import { listBookingsByUser, listOrdersByUser } from "@/db/queries";
 import { services } from "@/data/services";
 import { cn } from "@/lib/utils";
@@ -177,8 +178,11 @@ export default async function AccountPage({
                             {titleCaseVehicle(row.vehicleType)}
                           </span>
                         </span>
-                        <span className="font-mono text-[11px] tabular-nums text-muted-foreground sm:text-[12px]">
-                          {row.confirmationCode}
+                        <span className="inline-flex items-center">
+                          <CopyCode
+                            value={row.confirmationCode}
+                            label={`Copy confirmation code ${row.confirmationCode}`}
+                          />
                         </span>
                         <Pill className={pay.className}>{pay.label}</Pill>
                         <Pill

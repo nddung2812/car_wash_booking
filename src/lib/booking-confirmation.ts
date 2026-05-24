@@ -18,6 +18,7 @@ export type ReconcileResult =
   | "sent"
   | "already-sent"
   | "unpaid"
+  | "amount-mismatch"
   | "email-failed"
   | "not-found"
   | "not-configured"
@@ -49,6 +50,18 @@ export async function reconcileBookingPayment(
     });
 
     if (session.payment_status !== "paid") return "unpaid";
+
+    // Defence-in-depth: ensure what Stripe charged matches the price we
+    // calculated server-side at booking time. A mismatch means either a
+    // catalogue change mid-flight or session tampering — refuse to confirm.
+    const expectedCents = Math.round(Number(booking.total) * 100);
+    const actualCents = session.amount_total ?? 0;
+    if (expectedCents !== actualCents) {
+      console.error(
+        `[booking-confirmation] amount mismatch for ${booking.confirmationCode}: expected ${expectedCents}, got ${actualCents}`,
+      );
+      return "amount-mismatch";
+    }
 
     const pi = session.payment_intent;
     const piId = typeof pi === "string" ? pi : pi?.id;

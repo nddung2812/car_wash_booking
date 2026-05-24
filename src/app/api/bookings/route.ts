@@ -18,6 +18,8 @@ import {
   PAY_AT_COLLECTION_STATUS,
   PAY_NOW_PENDING_STATUS,
 } from "@/lib/booking-payment";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { isValidAuPhone } from "@/lib/phone";
 
 const bodySchema = z.object({
   service: z.string().min(1),
@@ -28,12 +30,29 @@ const bodySchema = z.object({
   firstName: z.string().min(2),
   lastName: z.string().min(2),
   email: z.string().email(),
-  phone: z.string().min(10),
+  phone: z
+    .string()
+    .min(10)
+    .refine(isValidAuPhone, "Enter a valid Australian phone number"),
   address: z.string().min(5),
   notes: z.string().optional(),
   extras: z.array(z.string()).default([]),
   paymentMethod: z.enum(["pay_now", "pay_on_collection"]),
 });
+
+// Lock checkout redirect URLs to the configured site URL in production so
+// a spoofed Host/Origin header can't redirect a paying customer elsewhere.
+function getCheckoutOrigin(req: Request): string {
+  if (process.env.NODE_ENV === "production") return SITE_URL;
+  const origin = req.headers.get("origin");
+  if (origin) return origin.replace(/\/$/, "");
+  const host = req.headers.get("host");
+  if (host) {
+    const proto = host.startsWith("localhost") ? "http" : "https";
+    return `${proto}://${host}`;
+  }
+  return SITE_URL;
+}
 
 function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
   const svc = services.find((s) => s.id === serviceId);
@@ -94,6 +113,18 @@ function isAdmin(email: string | null | undefined) {
 }
 
 export async function POST(req: Request) {
+  const ip = clientIp(req);
+  const limit = rateLimit(`bookings:${ip}`, 5, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment and try again." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      }
+    );
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
@@ -208,11 +239,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const origin =
-    req.headers.get("origin")?.replace(/\/$/, "") ??
-    (req.headers.get("host")
-      ? `${req.headers.get("host")!.startsWith("localhost") ? "http" : "https"}://${req.headers.get("host")}`
-      : SITE_URL);
+  const origin = getCheckoutOrigin(req);
 
   const stripe = new Stripe(stripeSecret);
 

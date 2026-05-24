@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import CopyCode from "@/components/CopyCode";
 import { getBookingByCode } from "@/db/queries";
 import { services } from "@/data/services";
 import { reconcileBookingPayment } from "@/lib/booking-confirmation";
@@ -70,11 +71,14 @@ export default async function SuccessPage({
     <>
       <section className="border-b border-line py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            {booking
-              ? `Booking confirmed · ${booking.confirmationCode}`
-              : "Booking confirmed"}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              Booking confirmed
+            </p>
+            {booking && (
+              <CopyCode value={booking.confirmationCode} variant="prominent" />
+            )}
+          </div>
           <h1
             className="mt-3 font-serif italic leading-tight tracking-tight text-foreground"
             style={{ fontSize: "clamp(40px, 6vw, 72px)" }}

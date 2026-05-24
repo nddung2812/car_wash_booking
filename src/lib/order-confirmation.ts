@@ -17,6 +17,7 @@ export type DeliveryResult =
   | "sent"
   | "already-sent"
   | "unpaid"
+  | "amount-mismatch"
   | "email-failed"
   | "error";
 
@@ -51,6 +52,21 @@ export async function deliverOrderConfirmation(
     });
 
     if (session.payment_status !== "paid") return { result: "unpaid", session };
+
+    // Defence-in-depth: if checkout stamped an expected total, make sure
+    // Stripe charged it. Catches catalogue drift / tampering between create
+    // and pay. Skipped if metadata is missing (e.g. legacy sessions).
+    const expectedRaw = session.metadata?.expected_total_cents;
+    if (expectedRaw) {
+      const expectedCents = Number(expectedRaw);
+      const actualCents = session.amount_total ?? 0;
+      if (Number.isFinite(expectedCents) && expectedCents !== actualCents) {
+        console.error(
+          `[order-confirmation] amount mismatch for ${session.id}: expected ${expectedCents}, got ${actualCents}`,
+        );
+        return { result: "amount-mismatch", session };
+      }
+    }
 
     // Persist the order before doing anything else — even if the email step
     // fails, the customer's purchase is captured for their account page.

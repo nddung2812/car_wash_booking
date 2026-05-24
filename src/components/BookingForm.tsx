@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ import {
 import { LOCATIONS } from "@/lib/seo/business";
 import { cn } from "@/lib/utils";
 import { trackGenerateLead } from "@/lib/analytics";
+import { isValidAuPhone } from "@/lib/phone";
 
 const bookingSchema = z.object({
   service: z.string().min(1, "Choose a wash package to continue"),
@@ -57,7 +58,10 @@ const bookingSchema = z.object({
   phone: z
     .string()
     .min(1, "Enter a contact phone number")
-    .min(10, "Phone number must be at least 10 digits"),
+    .refine(
+      isValidAuPhone,
+      "Enter a valid Australian number, e.g. 0412 345 678",
+    ),
   address: z
     .string()
     .min(1, "Enter your address so we know where to come")
@@ -174,6 +178,57 @@ type BookingFormProps = {
   initialValues?: { phone?: string; address?: string };
 };
 
+const DRAFT_KEY = "hyperdome:booking-draft:v1";
+
+// Sensitive fields are kept in memory only — never persisted to storage.
+const PERSISTED_FIELDS = [
+  "service",
+  "location",
+  "vehicleType",
+  "date",
+  "time",
+  "extras",
+  "notes",
+  "address",
+  "paymentMethod",
+] as const satisfies readonly (keyof BookingFormInput)[];
+
+type PersistedDraft = {
+  step: 1 | 2 | 3;
+  values: Partial<Pick<BookingFormInput, (typeof PERSISTED_FIELDS)[number]>>;
+};
+
+function readDraft(): PersistedDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    return parsed as PersistedDraft;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(draft: PersistedDraft) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* quota / private mode — silently skip */
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function BookingForm({ initialValues }: BookingFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -211,6 +266,37 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
     if (email) setValue("email", email);
   }, [isUserLoaded, user, setValue]);
 
+  // Restore draft from sessionStorage on first mount (skipped for new tabs).
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const draft = readDraft();
+    if (!draft?.values) return;
+    for (const field of PERSISTED_FIELDS) {
+      const v = draft.values[field];
+      if (v === undefined || v === null) continue;
+      // Don't clobber a service preselected from the URL.
+      if (field === "service" && hasValidPreselection) continue;
+      setValue(field, v as never, { shouldValidate: false });
+    }
+    if (draft.step === 2 || draft.step === 3) setCurrentStep(draft.step);
+  }, [setValue, hasValidPreselection]);
+
+  // Persist non-PII step + selections so back/refresh doesn't lose progress.
+  const watchedAll = watch();
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    const subset: PersistedDraft["values"] = {};
+    for (const field of PERSISTED_FIELDS) {
+      const v = (watchedAll as Record<string, unknown>)[field];
+      if (v !== undefined && v !== "") {
+        (subset as Record<string, unknown>)[field] = v;
+      }
+    }
+    writeDraft({ step: currentStep, values: subset });
+  }, [watchedAll, currentStep]);
+
   const watchedService = watch("service");
   const watchedLocation = watch("location");
   const watchedVehicle = watch("vehicleType");
@@ -244,6 +330,8 @@ export default function BookingForm({ initialValues }: BookingFormProps = {}) {
         throw new Error(body.error ?? "Could not create booking");
       }
       const { booking, checkoutUrl, redirectUrl } = await res.json();
+
+      clearDraft();
 
       trackGenerateLead({
         value: total,

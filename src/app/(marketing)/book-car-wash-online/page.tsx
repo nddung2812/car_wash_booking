@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
 
 import BookingForm from "@/components/BookingForm";
+import BookingCancelBanner from "@/components/BookingCancelBanner";
 import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbLd } from "@/lib/seo/jsonld";
@@ -50,6 +51,9 @@ export default async function BookCarWashOnlinePage() {
       </section>
       <section className="py-20 lg:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <Suspense fallback={null}>
+            <BookingCancelBanner />
+          </Suspense>
           <Suspense fallback={null}>
             <BookingForm initialValues={initialValues} />
           </Suspense>
