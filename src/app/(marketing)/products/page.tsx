@@ -4,6 +4,8 @@ import CTABand from "@/components/CTABand";
 import ProductsSection from "@/components/ProductsSection";
 import { listProducts } from "@/lib/products";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Car Care Products",
   description:

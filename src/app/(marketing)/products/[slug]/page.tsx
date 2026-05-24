@@ -19,6 +19,8 @@ import JsonLd from "@/components/seo/JsonLd";
 import CTABand from "@/components/CTABand";
 import { ProductBuyBox } from "@/components/cart/ProductBuyBox";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const products = await listProducts();
   return products.map((p) => ({ slug: p.id }));

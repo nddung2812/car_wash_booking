@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { asc } from "drizzle-orm";
 import { z } from "zod";
 import { db, products } from "@/db";
@@ -76,6 +77,10 @@ export async function POST(req: Request) {
         sortOrder: d.sortOrder,
       })
       .returning();
+    revalidatePath("/products");
+    revalidatePath(`/products/${row.id}`);
+    revalidatePath("/sitemap.xml");
+    revalidatePath("/", "layout");
     return NextResponse.json({ product: row }, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Insert failed";

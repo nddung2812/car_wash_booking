@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, servicePriceOverrides, extraPriceOverrides } from "@/db";
@@ -74,6 +75,9 @@ export async function PUT(req: Request) {
     }
   }
 
+  revalidatePath("/");
+  revalidatePath("/services");
+  revalidatePath("/book-car-wash-online");
   return NextResponse.json({ ok: true });
 }
 

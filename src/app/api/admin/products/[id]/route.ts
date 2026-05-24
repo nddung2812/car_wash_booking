@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, products, type ProductImage } from "@/db";
@@ -68,6 +69,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     .where(eq(products.id, id))
     .returning();
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  revalidatePath("/products");
+  revalidatePath(`/products/${row.id}`);
+  revalidatePath("/", "layout");
   return NextResponse.json({ product: row });
 }
 
@@ -93,5 +97,9 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
       console.warn("[admin/products DELETE] cloudinary destroy:", img.publicId, err);
     }
   }
+  revalidatePath("/products");
+  revalidatePath(`/products/${id}`);
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true });
 }
