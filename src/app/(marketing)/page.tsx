@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import BannerSlider from "@/components/BannerSlider";
+import LiveBanner from "@/components/LiveBanner";
 import BeforeAfterSection from "@/components/BeforeAfterSection";
 import BookingForm from "@/components/BookingForm";
 import CTABand from "@/components/CTABand";
@@ -49,6 +50,7 @@ export default async function Home() {
   const pricing = await getMergedPricing();
   return (
     <>
+      <LiveBanner />
       <BannerSlider />
 
       {/* Marquee */}

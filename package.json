@@ -15,6 +15,7 @@
     "admin:create": "tsx --env-file=.env.local scripts/create-admin-user.mjs"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.195",
     "@clerk/nextjs": "^7.2.7",
     "@emailjs/nodejs": "^5.0.2",
     "@hookform/resolvers": "^5.2.0",
@@ -25,6 +26,7 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "ai": "^6.0.193",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

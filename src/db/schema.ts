@@ -21,6 +21,12 @@ export const bookingStatusEnum = pgEnum("booking_status", [
   "cancelled",
 ]);
 
+export const bannerStatusEnum = pgEnum("banner_status", [
+  "generating",
+  "ready",
+  "failed",
+]);
+
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
@@ -174,6 +180,56 @@ export const extraPriceOverrides = pgTable(
     pk: primaryKey({ columns: [table.extraId, table.vehicleType] }),
   }),
 );
+
+/**
+ * AI-generated marketing banners. Created via the admin banner chat
+ * (`/hyperdome-dashboard/banners`): the agent generates a design in Canva,
+ * exports it, and the export is mirrored into Cloudinary (permanent) here.
+ * `isLive` is exclusive *per slot* — only one banner renders in a given
+ * slot on the public site at a time (enforced transactionally in
+ * `setBannerLive`). `href` is where the banner links to when clicked.
+ */
+export const banners = pgTable(
+  "banners",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    prompt: text("prompt").notNull(),
+    canvaDesignId: text("canva_design_id"),
+    cloudinaryUrl: text("cloudinary_url"),
+    cloudinaryPublicId: text("cloudinary_public_id"),
+    width: integer("width"),
+    height: integer("height"),
+    altText: text("alt_text"),
+    href: text("href").notNull().default("#booking"),
+    status: bannerStatusEnum("status").notNull().default("generating"),
+    isLive: boolean("is_live").notNull().default(false),
+    slot: text("slot").notNull().default("homepage-hero"),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    liveIdx: index("banners_live_idx").on(table.slot, table.isLive),
+    createdAtIdx: index("banners_created_at_idx").on(table.createdAt),
+  }),
+);
+
+/**
+ * Singleton store (one row, `id = 1`) for the business's shared Canva Connect
+ * OAuth credentials. The refresh token rotates on every use, so it must live
+ * in the DB (not env) and be written transactionally — see `src/lib/canva`.
+ */
+export const canvaOauth = pgTable("canva_oauth", {
+  id: integer("id").primaryKey().default(1),
+  refreshToken: text("refresh_token").notNull(),
+  accessToken: text("access_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type BannerRow = typeof banners.$inferSelect;
+export type NewBannerRow = typeof banners.$inferInsert;
+export type CanvaOauthRow = typeof canvaOauth.$inferSelect;
 
 export type ProductRow = typeof products.$inferSelect;
 export type NewProductRow = typeof products.$inferInsert;

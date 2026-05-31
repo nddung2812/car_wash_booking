@@ -16,6 +16,7 @@ const NAV = [
   { href: "/hyperdome-dashboard", label: "Analytics" },
   { href: "/hyperdome-dashboard/products", label: "Products" },
   { href: "/hyperdome-dashboard/prices", label: "Prices" },
+  { href: "/hyperdome-dashboard/banners", label: "Banners" },
 ];
 
 export default async function HyperdomeAdminLayout({
