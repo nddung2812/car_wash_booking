@@ -165,8 +165,14 @@ function buildDays(): { iso: string; weekday: string; day: number; month: string
   for (let i = 0; i < 14; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
+    // Build the ISO date from LOCAL components. Using toISOString() converts to
+    // UTC, which in AU timezones (UTC+10/+11) rolls the date back to the
+    // previous day — storing the wrong booking date than the chip displays.
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
     out.push({
-      iso: d.toISOString().split("T")[0],
+      iso: `${yyyy}-${mm}-${dd}`,
       weekday: d.toLocaleDateString("en-AU", { weekday: "short" }).toUpperCase(),
       day: d.getDate(),
       month: d.toLocaleDateString("en-AU", { month: "short" }).toUpperCase(),
