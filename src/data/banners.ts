@@ -24,6 +24,8 @@ export const banners: Banner[] = [
     image: "/banner2.webp",
     alt: "Browse Hyperdome Car Wash detailing packages",
     href: "#services",
+    eyebrow: "Early bird offer",
+    caption: "First online booking of the day gets $50 off your full detail.",
   },
   {
     id: "banner-3",
