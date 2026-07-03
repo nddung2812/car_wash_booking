@@ -79,6 +79,21 @@ export default function BannerCarousel({ banners }: Props) {
             loading={index === 0 ? "eager" : "lazy"}
             sizes="100vw"
           />
+
+          {banner.caption && (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/50 px-6 text-center sm:px-10">
+              <div className="max-w-lg sm:max-w-2xl lg:max-w-3xl">
+                {banner.eyebrow && (
+                  <span className="inline-flex items-center rounded-pill border border-white/25 bg-white/10 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-white/90 backdrop-blur-md sm:text-xs">
+                    {banner.eyebrow}
+                  </span>
+                )}
+                <p className="mt-4 font-serif text-3xl leading-tight text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.6)] sm:mt-5 sm:text-5xl lg:text-6xl">
+                  {banner.caption}
+                </p>
+              </div>
+            </div>
+          )}
         </Link>
       ))}
 
