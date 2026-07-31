@@ -177,9 +177,9 @@ export default function ReviewsSection() {
 
         <div className="mt-12 flex flex-col items-center gap-3 text-center">
           <p className="text-[15px] text-muted-foreground">
-            Customer testimonials. Read verified reviews on{" "}
+            Customer testimonials. Read verified reviews or leave your own on{" "}
             <a
-              href={SOCIAL_LINKS.google}
+              href={SOCIAL_LINKS.googleReview}
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-4 hover:text-foreground"

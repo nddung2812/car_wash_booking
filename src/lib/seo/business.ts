@@ -20,6 +20,8 @@ export const AGGREGATE_RATING = {
 
 export const SOCIAL_LINKS = {
   google: "https://www.google.com/maps?cid=4738094889088025437",
+  // Google "write a review" deeplink — opens the review dialog on the profile.
+  googleReview: "https://g.page/r/CV0R1q9vgMFBEAE/review",
   facebook: "https://www.facebook.com/handcarwashhyperdome",
   instagram: "https://www.instagram.com/hyperdomecarwash",
 } as const;
