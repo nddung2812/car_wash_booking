@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 
 interface Column {
@@ -7,13 +8,21 @@ interface Column {
   label: string;
 }
 
-interface DataTableProps<T extends object = Record<string, unknown>> {
+interface DataTableProps<T extends object> {
   columns: Column[];
   rows: T[];
+  /**
+   * Override how a single cell renders. Return `undefined` to fall back to the
+   * built-in rendering for that column.
+   */
+  renderCell?: (col: Column, row: T) => ReactNode | undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function DataTable({ columns, rows }: DataTableProps<any>) {
+export default function DataTable<T extends object>({
+  columns,
+  rows,
+  renderCell,
+}: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -32,27 +41,33 @@ export default function DataTable({ columns, rows }: DataTableProps<any>) {
         <tbody>
           {rows.map((row, i) => (
             <tr key={i} className="border-b border-line/60 last:border-0 hover:bg-secondary/60">
-              {columns.map((col) => (
+              {columns.map((col) => {
+                const custom = renderCell?.(col, row);
+                const value = (row as Record<string, unknown>)[col.key];
+                return (
                 <td key={col.key} className="py-3 px-4 text-foreground">
-                  {col.key === "status" ? (
+                  {custom !== undefined ? (
+                    custom
+                  ) : col.key === "status" ? (
                     <Badge
                       variant={
-                        row[col.key] === "Completed"
+                        value === "Completed"
                           ? "default"
-                          : row[col.key] === "Pending"
+                          : value === "Pending"
                             ? "secondary"
                             : "destructive"
                       }
                     >
-                      {String(row[col.key])}
+                      {String(value)}
                     </Badge>
                   ) : col.key === "amount" ? (
-                    <span className="font-mono tabular-nums">${row[col.key]}</span>
+                    <span className="font-mono tabular-nums">${String(value)}</span>
                   ) : (
-                    String(row[col.key])
+                    String(value)
                   )}
                 </td>
-              ))}
+                );
+              })}
             </tr>
           ))}
         </tbody>
