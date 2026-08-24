@@ -5,15 +5,20 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import MetricCard from "./MetricCard";
 import BarChart from "./BarChart";
 import DataTable from "./DataTable";
+import BookingStatusSelect, { type BookingStatus } from "./BookingStatusSelect";
 
 export interface BookingRow {
+  /** Confirmation code, e.g. "LCW-22/08/2026-001" — shown to humans. */
   id: string;
+  /** Booking UUID — what `PATCH /api/bookings/[id]` keys on. */
+  bookingId: string;
   date: string;
   customer: string;
   service: string;
   vehicle: string;
   amount: number;
-  status: string;
+  /** Raw enum value (lowercase), not a display label. */
+  status: BookingStatus;
 }
 
 export interface CustomerAnalyticsData {
@@ -30,6 +35,7 @@ export interface CustomerAnalyticsData {
 
 const bookingColumns = [
   { key: "date", label: "Date" },
+  { key: "id", label: "Ref" },
   { key: "customer", label: "Customer" },
   { key: "service", label: "Service" },
   { key: "vehicle", label: "Vehicle" },
@@ -63,7 +69,23 @@ export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsDat
               No bookings yet — share your booking page to get started.
             </p>
           ) : (
-            <DataTable columns={bookingColumns} rows={bookings} />
+            <DataTable
+              columns={bookingColumns}
+              rows={bookings}
+              renderCell={(col, row: BookingRow) =>
+                col.key === "status" ? (
+                  <BookingStatusSelect
+                    bookingId={row.bookingId}
+                    status={row.status}
+                    confirmationCode={row.id}
+                  />
+                ) : col.key === "id" ? (
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {row.id}
+                  </span>
+                ) : undefined
+              }
+            />
           )}
         </CardContent>
       </Card>

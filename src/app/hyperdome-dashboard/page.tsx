@@ -18,10 +18,6 @@ import type { CostAnalyticsData } from "@/components/dashboard/CostAnalytics";
 
 export const dynamic = "force-dynamic";
 
-function statusLabel(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
 export default async function HyperdomeAnalyticsPage() {
   const [rawBookings, stats, servicePopularity, vehicleDistribution] =
     await Promise.all([
@@ -33,12 +29,13 @@ export default async function HyperdomeAnalyticsPage() {
 
   const bookings: BookingRow[] = rawBookings.map((b) => ({
     id: b.confirmationCode,
+    bookingId: b.id,
     date: b.date,
     customer: `${b.firstName} ${b.lastName}`.trim(),
     service: b.serviceName,
     vehicle: b.vehicleType.charAt(0).toUpperCase() + b.vehicleType.slice(1),
     amount: Number(b.total),
-    status: statusLabel(b.status),
+    status: b.status,
   }));
 
   const totalBookings = stats?.total ?? 0;
