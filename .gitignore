@@ -23,3 +23,10 @@ drizzle/
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Local DB backups (contain customer PII — never commit)
+/backups/
+
+# Invoices — contain bank details, PayID and client ABNs.
+# Repo is PUBLIC: remove this line only if you truly want them published.
+/invoices/
