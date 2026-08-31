@@ -36,6 +36,13 @@
       "when": 1788220528657,
       "tag": "0004_smart_rockslide",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788671397211,
+      "tag": "0005_damp_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }

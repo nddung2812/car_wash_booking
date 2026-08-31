@@ -4,7 +4,7 @@ import { ArrowRight, Droplet, Shield, Sparkles, Sprout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const cards = [
-  { icon: Shield, label: "No-lock-in", body: "Cancel from your phone, anytime." },
+  { icon: Shield, label: "Bay held", body: "$10 deposit secures it — comes off the price." },
   { icon: Sprout, label: "Eco-grade", body: "92% water reclaimed on every wash." },
   { icon: Sparkles, label: "Hand-finished", body: "Detail-first, machine-second." },
   { icon: Droplet, label: "Showroom-fresh", body: "Inspection before you drive away." },

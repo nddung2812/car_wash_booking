@@ -4,6 +4,7 @@ import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
 import { SectionIntro } from "@/components/SectionIntro";
 import { breadcrumbLd, type FaqItem } from "@/lib/seo/jsonld";
+import { SUPPORT_EMAIL } from "@/lib/booking-payment";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -46,7 +47,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "What payment methods do you accept?",
-    a: "We accept cash, credit and debit cards, EFTPOS, Apple Pay and Google Pay at both locations.",
+    a: "A $10 deposit is paid online by card when you book, and it comes off the price. On the day we accept cash, credit and debit cards, EFTPOS, Apple Pay and Google Pay at both locations.",
   },
   {
     q: "Can I wait while my car is being washed?",
@@ -58,7 +59,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: "How do I cancel or reschedule a booking?",
-    a: "Log in to your account and review your bookings on the 'My account' page (or call the relevant location directly — Shailer Park on (07) 3801 1988 or Loganholme on (07) 3806 0358) to cancel or reschedule.",
+    a: `Email ${SUPPORT_EMAIL} with your LCW-… booking code and we'll move or cancel it for you. Your $10 deposit isn't refunded automatically — get in touch and we'll sort it out. If we have to cancel on you, it's refunded in full.`,
   },
 ];
 

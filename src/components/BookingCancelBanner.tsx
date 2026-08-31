@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, X } from "lucide-react";
 
+import { SUPPORT_EMAIL } from "@/lib/booking-payment";
+
 export default function BookingCancelBanner() {
   const params = useSearchParams();
   const [dismissed, setDismissed] = useState(false);
@@ -24,21 +26,29 @@ export default function BookingCancelBanner() {
         <p className="text-muted-foreground">
           {code ? (
             <>
-              Your booking{" "}
-              <span className="font-mono text-foreground">{code}</span> is held.
-              Finish payment by re-submitting below, or switch to{" "}
-              <span className="font-medium text-foreground">
-                pay at collection
-              </span>{" "}
-              and we&rsquo;ll settle when you arrive.
+              No payment was taken, so booking{" "}
+              <span className="font-mono text-foreground">{code}</span>{" "}
+              isn&rsquo;t confirmed and your slot isn&rsquo;t held. Run through
+              the form again to reserve it, or email{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-medium text-foreground underline underline-offset-2"
+              >
+                {SUPPORT_EMAIL}
+              </a>{" "}
+              if something went wrong.
             </>
           ) : (
             <>
-              No payment was taken. You can try again or switch to{" "}
-              <span className="font-medium text-foreground">
-                pay at collection
-              </span>
-              .
+              No payment was taken and your slot isn&rsquo;t held. Run through
+              the form again when you&rsquo;re ready, or email{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-medium text-foreground underline underline-offset-2"
+              >
+                {SUPPORT_EMAIL}
+              </a>{" "}
+              if something went wrong.
             </>
           )}
         </p>

@@ -9,6 +9,7 @@ import type {
   BookingRow,
   CustomerAnalyticsData,
 } from "@/components/dashboard/CustomerAnalytics";
+import { balanceDue } from "@/lib/booking-payment";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,9 @@ export default async function HyperdomeAnalyticsPage() {
     service: b.serviceName,
     vehicle: b.vehicleType.charAt(0).toUpperCase() + b.vehicleType.slice(1),
     amount: Number(b.total),
+    paidNow: Number(b.amountPaid),
+    balance: balanceDue(Number(b.total), Number(b.amountPaid)),
+    paymentIntentId: b.stripePaymentIntentId,
     status: b.status,
   }));
 

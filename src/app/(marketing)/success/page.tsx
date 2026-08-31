@@ -17,6 +17,7 @@ import CopyCode from "@/components/CopyCode";
 import { getBookingByCode } from "@/db/queries";
 import { services } from "@/data/services";
 import { reconcileBookingPayment } from "@/lib/booking-confirmation";
+import { SUPPORT_EMAIL, balanceDue } from "@/lib/booking-payment";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed",
@@ -66,6 +67,12 @@ export default async function SuccessPage({
       : null;
   const vehicleLabel = titleCaseVehicle(booking?.vehicleType);
   const totalLabel = booking?.total ? `$${Number(booking.total).toFixed(2)}` : null;
+
+  const amountPaid = booking ? Number(booking.amountPaid) : 0;
+  const balance = booking ? balanceDue(Number(booking.total), amountPaid) : 0;
+  // Deposit taken and something still owed on the day — worth spelling out so
+  // nobody arrives expecting the wash to be fully paid for.
+  const showSplit = amountPaid > 0 && balance > 0;
 
   return (
     <>
@@ -152,6 +159,26 @@ export default async function SuccessPage({
                       </span>
                     </div>
                   )}
+                  {showSplit && (
+                    <>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                          Deposit paid
+                        </span>
+                        <span className="text-[15px] text-foreground">
+                          ${amountPaid.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                          Due at collection
+                        </span>
+                        <span className="text-[15px] text-foreground">
+                          ${balance.toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <p className="max-w-md text-[15px] text-muted-foreground">
@@ -168,11 +195,17 @@ export default async function SuccessPage({
                     label: "Arrive on time",
                     body: "Spot held 15 min past your slot.",
                   },
-                  {
-                    Icon: Shield,
-                    label: "Free cancel",
-                    body: "Reschedule from your phone.",
-                  },
+                  amountPaid > 0
+                    ? {
+                        Icon: Shield,
+                        label: "Change of plans?",
+                        body: "Email us and we'll sort it out.",
+                      }
+                    : {
+                        Icon: Shield,
+                        label: "Free cancel",
+                        body: "Reschedule from your phone.",
+                      },
                   {
                     Icon: SparkleIcon,
                     label: "Love it guarantee",
@@ -191,6 +224,21 @@ export default async function SuccessPage({
                   </li>
                 ))}
               </ul>
+
+              {showSplit && (
+                <p className="text-[13px] leading-relaxed text-muted-foreground">
+                  Your ${amountPaid.toFixed(2)} deposit comes off the final
+                  price — ${balance.toFixed(2)} to settle on the day. To cancel
+                  or move your slot, email{" "}
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL}?subject=Booking ${booking?.confirmationCode ?? ""}`}
+                    className="font-medium text-foreground underline underline-offset-2"
+                  >
+                    {SUPPORT_EMAIL}
+                  </a>
+                  .
+                </p>
+              )}
             </div>
           </div>
         </div>

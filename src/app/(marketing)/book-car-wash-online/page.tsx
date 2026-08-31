@@ -49,7 +49,8 @@ export default async function BookCarWashOnlinePage() {
             Reserve a hand-finished car wash at Hyperdome Car Wash in under a
             minute. Same-day online booking is open at both our Shailer Park
             and Loganholme bays inside Hyperdome Shopping Centre — pick a
-            package, choose a time, and pay when you arrive.
+            package, choose a time, and hold your bay with a $10 deposit that
+            comes off the price on the day.
           </p>
         </div>
       </section>

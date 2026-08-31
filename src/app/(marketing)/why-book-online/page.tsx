@@ -17,6 +17,7 @@ import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
 import { BUSINESS_PHONE, BUSINESS_PHONE_DISPLAY } from "@/lib/seo/business";
 import { breadcrumbLd, faqPageLd, type FaqItem } from "@/lib/seo/jsonld";
+import { SUPPORT_EMAIL } from "@/lib/booking-payment";
 
 export const metadata: Metadata = {
   title: "Why Book Online — Skip the Queue",
@@ -101,11 +102,11 @@ const faqs: FaqItem[] = [
   },
   {
     q: "Do I pay online or in person?",
-    a: "In person, on the day. Online booking just reserves your slot — no card details required. We accept cash, EFTPOS, credit card, Apple Pay and Google Pay at both locations.",
+    a: "Both. A $10 deposit is taken online by card when you book — it holds your bay and comes straight off the price. The balance is settled on the day: cash, EFTPOS, credit card, Apple Pay or Google Pay at both locations. You can also pay the full amount online if you'd rather have nothing to do on arrival.",
   },
   {
     q: "Can I cancel or reschedule my online booking?",
-    a: "Yes. Reply to your confirmation email or call us on (07) 3806 0358 with your LCW-… code and we'll move your slot — no fees if you give us reasonable notice.",
+    a: `Yes — email ${SUPPORT_EMAIL} with your LCW-… code and we'll move your slot. The $10 deposit isn't refunded automatically; if you need to cancel, get in touch and we'll sort it out. If we ever have to cancel on you, it's refunded in full.`,
   },
   {
     q: "Should I book Loganholme or Shailer Park?",
