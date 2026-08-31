@@ -10,7 +10,14 @@ import {
   getExtraPrice,
   services,
 } from "@/data/services";
-import { PAY_NOW_PAID_STATUS } from "@/lib/booking-payment";
+import {
+  PAY_NOW_PAID_STATUS,
+  PAYMENT_STATUS_DEPOSIT_PAID,
+  PAYMENT_STATUS_PAID,
+  balanceDue,
+  depositPaidStatus,
+  isSettled,
+} from "@/lib/booking-payment";
 
 const SENT_FLAG = "booking_email_sent";
 
@@ -25,10 +32,11 @@ export type ReconcileResult =
   | "error";
 
 /**
- * Verifies a Stripe Checkout session for a pay-now booking. On success, marks
- * the booking paid and fires the EmailJS notification with
- * `payment_status="Already Paid"`. Idempotent via a PaymentIntent metadata
- * flag — refreshing the success page never re-sends.
+ * Verifies a Stripe Checkout session for a booking that pays up front — either
+ * the full amount or a deposit. On success, records what was captured, marks
+ * the booking confirmed and fires the EmailJS notification. Idempotent via a
+ * PaymentIntent metadata flag, so refreshing the success page and a webhook
+ * delivery for the same session never double-send.
  */
 export async function reconcileBookingPayment(
   code: string,
@@ -41,7 +49,7 @@ export async function reconcileBookingPayment(
   if (!booking) return "not-found";
 
   // Already reconciled in a prior request — DB is the fast path.
-  if (booking.paymentStatus === "paid") return "already-sent";
+  if (isSettled(booking.paymentStatus)) return "already-sent";
 
   try {
     const stripe = new Stripe(secret);
@@ -51,10 +59,14 @@ export async function reconcileBookingPayment(
 
     if (session.payment_status !== "paid") return "unpaid";
 
-    // Defence-in-depth: ensure what Stripe charged matches the price we
-    // calculated server-side at booking time. A mismatch means either a
-    // catalogue change mid-flight or session tampering — refuse to confirm.
-    const expectedCents = Math.round(Number(booking.total) * 100);
+    // Defence-in-depth: ensure what Stripe charged matches the amount we asked
+    // for server-side at booking time — the deposit for a deposit booking, the
+    // full total for a pay-now one. A mismatch means either a catalogue change
+    // mid-flight or session tampering, so refuse to confirm.
+    // (`depositAmount` falls back to total for rows written before the column.)
+    const isDeposit = booking.paymentMethod === "deposit";
+    const askedFor = Number(booking.depositAmount) || Number(booking.total);
+    const expectedCents = Math.round(askedFor * 100);
     const actualCents = session.amount_total ?? 0;
     if (expectedCents !== actualCents) {
       console.error(
@@ -67,11 +79,21 @@ export async function reconcileBookingPayment(
     const piId = typeof pi === "string" ? pi : pi?.id;
     const piMeta = pi && typeof pi !== "string" ? pi.metadata ?? {} : {};
 
+    const amountPaid = Math.round(actualCents) / 100;
+    const balance = balanceDue(Number(booking.total), amountPaid);
+    const settled = {
+      paymentStatus: isDeposit
+        ? PAYMENT_STATUS_DEPOSIT_PAID
+        : PAYMENT_STATUS_PAID,
+      amountPaid: amountPaid.toFixed(2),
+      stripePaymentIntentId: piId ?? null,
+    };
+
     if (piMeta[SENT_FLAG] === "true") {
       // Backfill DB if Stripe says we already sent.
       await db
         .update(bookings)
-        .set({ paymentStatus: "paid" })
+        .set(settled)
         .where(sql`${bookings.id} = ${booking.id}`);
       return "already-sent";
     }
@@ -108,14 +130,18 @@ export async function reconcileBookingPayment(
       subtotal: Number(booking.subtotal),
       gst: Number(booking.gst),
       total: Number(booking.total),
-      paymentStatus: PAY_NOW_PAID_STATUS,
+      paymentStatus: isDeposit
+        ? depositPaidStatus(amountPaid, balance)
+        : PAY_NOW_PAID_STATUS,
+      amountPaid,
+      balanceDue: balance,
     });
 
     if (!emailed.ok) return "email-failed";
 
     await db
       .update(bookings)
-      .set({ paymentStatus: "paid", status: "confirmed" })
+      .set({ ...settled, status: "confirmed", updatedAt: new Date() })
       .where(sql`${bookings.id} = ${booking.id}`);
 
     if (piId) {

@@ -11,8 +11,14 @@ import { getMergedPricing } from "@/lib/pricing";
 import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
 import { sendBookingNotification } from "@/lib/email";
 import {
+  OFFERED_PAYMENT_METHODS,
   PAY_AT_COLLECTION_STATUS,
   PAY_NOW_PENDING_STATUS,
+  PAYMENT_STATUS_UNPAID,
+  SUPPORT_EMAIL,
+  amountDueNow,
+  balanceDue,
+  type PaymentMethod,
 } from "@/lib/booking-payment";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { isValidAuPhone } from "@/lib/phone";
@@ -34,7 +40,11 @@ const bodySchema = z.object({
   address: z.string().min(5),
   notes: z.string().optional(),
   extras: z.array(z.string()).default([]),
-  paymentMethod: z.enum(["pay_now", "pay_on_collection"]),
+  // Only the currently-offered methods are accepted. While deposits are on,
+  // this is what stops a crafted request from booking a slot for free.
+  paymentMethod: z.enum(
+    OFFERED_PAYMENT_METHODS as readonly [PaymentMethod, ...PaymentMethod[]],
+  ),
 });
 
 // Lock checkout redirect URLs to the configured site URL in production so
@@ -150,7 +160,12 @@ export async function POST(req: Request) {
   }
 
   const code = await genCode();
-  const isPayNow = data.paymentMethod === "pay_now";
+  // Both "pay now" and "deposit" take money up front — they differ only in how
+  // much. Anything else settles entirely at collection.
+  const dueNow = amountDueNow(data.paymentMethod, pricing.total);
+  const needsCheckout = dueNow > 0;
+  const isDeposit = data.paymentMethod === "deposit";
+  const balanceAtCollection = balanceDue(pricing.total, dueNow);
 
   const [row] = await db
     .insert(bookings)
@@ -175,7 +190,9 @@ export async function POST(req: Request) {
       total: pricing.total.toFixed(2),
       status: "pending",
       paymentMethod: data.paymentMethod,
-      paymentStatus: isPayNow ? PAY_NOW_PENDING_STATUS : "unpaid",
+      paymentStatus: needsCheckout ? PAY_NOW_PENDING_STATUS : PAYMENT_STATUS_UNPAID,
+      depositAmount: dueNow.toFixed(2),
+      amountPaid: "0.00",
     })
     .returning();
 
@@ -183,8 +200,9 @@ export async function POST(req: Request) {
     LOCATIONS.find((l) => l.slug === data.location)?.addressLocality ??
     data.location;
 
-  // Pay-at-collection: confirm immediately and email now.
-  if (!isPayNow) {
+  // Pay-at-collection: confirm immediately and email now. Only reachable with
+  // DEPOSIT_ENABLED off — the zod enum rejects the method otherwise.
+  if (!needsCheckout) {
     void sendBookingNotification({
       confirmationCode: code,
       serviceId: data.service,
@@ -215,14 +233,25 @@ export async function POST(req: Request) {
     );
   }
 
-  // Pay-now: create a Stripe Checkout Session. Email is deferred until the
-  // success page reconciles the payment.
+  // Deposit / pay-now: create a Stripe Checkout Session. Email is deferred
+  // until the payment is reconciled (success page, or the booking webhook if
+  // the customer closes the tab).
+
+  // Leaves no stranded pending_payment row behind when checkout can't start.
+  // Cancelled rather than deleted: genCode() derives the daily sequence from
+  // count(*), so removing a row would collide the next code with an existing one.
+  const abandon = () =>
+    db
+      .update(bookings)
+      .set({ status: "cancelled", updatedAt: new Date() })
+      .where(sql`${bookings.id} = ${row.id}`);
+
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
   if (!stripeSecret) {
+    await abandon();
     return NextResponse.json(
       {
-        error:
-          "Online payment isn't configured yet. Please choose pay at collection.",
+        error: `Card payment isn't available right now. Please call us or email ${SUPPORT_EMAIL} and we'll book you in.`,
       },
       { status: 503 }
     );
@@ -249,13 +278,23 @@ export async function POST(req: Request) {
     0,
   )).toFixed(2);
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      success_url: `${origin}/success?code=${encodeURIComponent(code)}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/book-car-wash-online?canceled=1&code=${encodeURIComponent(code)}`,
-      customer_email: data.email,
-      line_items: [
+  // A deposit is one line for the part-payment; paying in full itemises the
+  // wash and each extra the way it always has.
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = isDeposit
+    ? [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "aud",
+            unit_amount: Math.round(dueNow * 100),
+            product_data: {
+              name: `Booking deposit — ${pricing.svc.name}`,
+              description: `${code} · ${data.date} ${data.time} · ${locationName} · $${balanceAtCollection.toFixed(2)} balance due at collection`,
+            },
+          },
+        },
+      ]
+    : [
         {
           quantity: 1,
           price_data: {
@@ -268,24 +307,41 @@ export async function POST(req: Request) {
           },
         },
         ...extrasLineItems,
-      ],
+      ];
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${origin}/success?code=${encodeURIComponent(code)}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/book-car-wash-online?canceled=1&code=${encodeURIComponent(code)}`,
+      customer_email: data.email,
+      line_items: lineItems,
       submit_type: "pay",
+      // Abandoned checkouts expire instead of holding a pending_payment row
+      // open forever; the booking webhook cancels the row when they do.
+      // Stripe requires at least 30 minutes — 35 leaves clock-skew headroom.
+      expires_at: Math.floor(Date.now() / 1000) + 35 * 60,
       metadata: {
         source: "car_wash_booking",
         booking_code: code,
         booking_id: row.id,
         full_name: `${data.firstName} ${data.lastName}`.trim(),
+        payment_kind: data.paymentMethod,
+        amount_due_now_cents: String(Math.round(dueNow * 100)),
+        booking_total_cents: String(Math.round(pricing.total * 100)),
       },
       payment_intent_data: {
         metadata: {
           source: "car_wash_booking",
           booking_code: code,
           booking_id: row.id,
+          payment_kind: data.paymentMethod,
         },
       },
     });
 
     if (!session.url) {
+      await abandon();
       return NextResponse.json(
         { error: "Could not start checkout. Please try again." },
         { status: 502 }
@@ -303,6 +359,7 @@ export async function POST(req: Request) {
     );
   } catch (err) {
     console.error("[bookings] Stripe error:", err);
+    await abandon().catch(() => {});
     return NextResponse.json(
       { error: "Payment provider error. Please try again in a moment." },
       { status: 502 }

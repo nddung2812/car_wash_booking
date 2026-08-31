@@ -38,6 +38,16 @@ import { LOCATIONS } from "@/lib/seo/business";
 import { cn } from "@/lib/utils";
 import { trackGenerateLead } from "@/lib/analytics";
 import { isValidAuPhone } from "@/lib/phone";
+import {
+  DEFAULT_PAYMENT_METHOD,
+  DEPOSIT_ENABLED,
+  OFFERED_PAYMENT_METHODS,
+  SUPPORT_EMAIL,
+  amountDueNow,
+  balanceDue,
+  isOfferedPaymentMethod,
+  type PaymentMethod,
+} from "@/lib/booking-payment";
 
 const bookingSchema = z.object({
   service: z.string().min(1, "Choose a wash package to continue"),
@@ -70,9 +80,10 @@ const bookingSchema = z.object({
     .min(5, "Address must be at least 5 characters"),
   notes: z.string().optional(),
   extras: z.array(z.string()).default([]),
-  paymentMethod: z.enum(["pay_now", "pay_on_collection"], {
-    message: "Choose how you'd like to pay",
-  }),
+  paymentMethod: z.enum(
+    OFFERED_PAYMENT_METHODS as readonly [PaymentMethod, ...PaymentMethod[]],
+    { message: "Choose how you'd like to pay" },
+  ),
 });
 
 type BookingFormInput = z.input<typeof bookingSchema>;
@@ -266,6 +277,7 @@ export default function BookingForm({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       extras: [],
+      paymentMethod: DEFAULT_PAYMENT_METHOD,
       ...(hasValidPreselection ? { service: preselectedService! } : {}),
       ...(initialValues?.phone ? { phone: initialValues.phone } : {}),
       ...(initialValues?.address ? { address: initialValues.address } : {}),
@@ -292,6 +304,9 @@ export default function BookingForm({
       if (v === undefined || v === null) continue;
       // Don't clobber a service preselected from the URL.
       if (field === "service" && hasValidPreselection) continue;
+      // A draft saved before deposits went live can hold a method we no longer
+      // offer — fall through to the default rather than restoring it.
+      if (field === "paymentMethod" && !isOfferedPaymentMethod(v)) continue;
       setValue(field, v as never, { shouldValidate: false });
     }
     if (draft.step === 2 || draft.step === 3) setCurrentStep(draft.step);
@@ -330,6 +345,38 @@ export default function BookingForm({
   const total = +(getServicePrice(selectedServiceData, watchedVehicle) + extrasSubtotal).toFixed(2);
   const gst = +(total / 11).toFixed(2);
   const subtotal = +(total - gst).toFixed(2);
+
+  // Charged at checkout vs. still owed on arrival. Shares its maths with the
+  // API via booking-payment.ts, so the two can't drift.
+  const selectedMethod = watchedPaymentMethod ?? DEFAULT_PAYMENT_METHOD;
+  const dueToday = amountDueNow(selectedMethod, total);
+  const balanceAtCollection = balanceDue(total, dueToday);
+  const payLabel =
+    dueToday > 0 ? `Pay $${dueToday.toFixed(2)} & book` : "Confirm & book";
+
+  const paymentOptions = OFFERED_PAYMENT_METHODS.map((value) => {
+    const due = amountDueNow(value, total);
+    const rest = balanceDue(total, due);
+    if (value === "deposit") {
+      return {
+        value,
+        title: `$${due.toFixed(2)} deposit`,
+        subtitle: `$${rest.toFixed(2)} on the day`,
+      };
+    }
+    if (value === "pay_now") {
+      return {
+        value,
+        title: "Pay in full",
+        subtitle: `$${due.toFixed(2)} now — nothing on the day`,
+      };
+    }
+    return {
+      value,
+      title: "Pay at collection",
+      subtitle: "Settle when we hand the keys back",
+    };
+  });
 
   const onSubmit = async (data: BookingFormData) => {
     setSubmitError(null);
@@ -550,11 +597,32 @@ export default function BookingForm({
           </div>
         </div>
 
-        <div className="flex items-baseline justify-between gap-3 border-t border-line bg-brand-soft-gradient px-6 py-5">
+        <div className="flex items-baseline justify-between gap-3 border-t border-line px-6 py-4">
           <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Total
           </span>
-          <span className="font-serif text-3xl leading-none text-primary">${total.toFixed(2)}</span>
+          <span className="font-serif text-2xl leading-none text-foreground">
+            ${total.toFixed(2)}
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-line bg-brand-soft-gradient px-6 py-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Due today
+            </span>
+            <span className="font-serif text-3xl leading-none text-primary">
+              ${dueToday.toFixed(2)}
+            </span>
+          </div>
+          {balanceAtCollection > 0 && (
+            <div className="flex items-baseline justify-between gap-3 font-mono text-[12px] tabular-nums">
+              <span className="text-muted-foreground">At collection</span>
+              <span className="text-foreground">
+                ${balanceAtCollection.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -572,12 +640,10 @@ export default function BookingForm({
           )}
           <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
             {isSubmitting
-              ? watchedPaymentMethod === "pay_now"
+              ? dueToday > 0
                 ? "Redirecting…"
                 : "Booking…"
-              : watchedPaymentMethod === "pay_now"
-                ? `Pay $${total.toFixed(2)} & book`
-                : "Confirm & book"}
+              : payLabel}
             <ArrowRight className="size-4" />
           </Button>
           <Button type="button" variant="ghost" onClick={goBack} className="w-full">
@@ -1091,18 +1157,7 @@ export default function BookingForm({
                   errors.paymentMethod && INVALID_GROUP_CLASS,
                 )}
               >
-                {[
-                  {
-                    value: "pay_now" as const,
-                    title: "Pay now (card)",
-                    subtitle: "Secure card checkout via Stripe",
-                  },
-                  {
-                    value: "pay_on_collection" as const,
-                    title: "Pay at collection",
-                    subtitle: "Settle when we hand the keys back",
-                  },
-                ].map((opt) => {
+                {paymentOptions.map((opt) => {
                   const active = watchedPaymentMethod === opt.value;
                   return (
                     <button
@@ -1137,6 +1192,22 @@ export default function BookingForm({
                 })}
               </div>
               <FieldError message={errors.paymentMethod?.message} />
+
+              {DEPOSIT_ENABLED && (
+                <p className="rounded-[14px] border border-dashed border-line bg-card/40 px-4 py-3 text-[13px] leading-relaxed text-muted-foreground">
+                  Your deposit holds the bay and comes off the final price — it
+                  isn&rsquo;t an extra charge. It isn&rsquo;t refunded
+                  automatically: if you need to cancel or move your slot, email{" "}
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL}`}
+                    className="font-medium text-foreground underline underline-offset-2"
+                  >
+                    {SUPPORT_EMAIL}
+                  </a>{" "}
+                  and we&rsquo;ll sort it out. If we ever have to cancel on you,
+                  you get it back in full.
+                </p>
+              )}
             </div>
           </section>
         )}
@@ -1173,12 +1244,10 @@ export default function BookingForm({
             ) : (
               <Button type="submit" size="lg" disabled={isSubmitting} className="sm:w-auto">
                 {isSubmitting
-                  ? watchedPaymentMethod === "pay_now"
+                  ? dueToday > 0
                     ? "Redirecting…"
                     : "Booking…"
-                  : watchedPaymentMethod === "pay_now"
-                    ? `Pay $${total.toFixed(2)} & book`
-                    : "Confirm & book"}
+                  : payLabel}
                 <ArrowRight className="size-4" />
               </Button>
             )}

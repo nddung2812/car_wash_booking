@@ -38,6 +38,7 @@ Path alias `@/*` → `src/*`.
 | GET | `/api/bookings/[id]` | Public (UUID) |
 | PATCH | `/api/bookings/[id]` | Admin |
 | POST | `/api/webhooks/clerk` | Svix-signed |
+| POST | `/api/webhooks/stripe-bookings` | Stripe-signed |
 | POST | `/api/products/checkout` | Public |
 | POST | `/api/products/stripe-webhook` | Stripe-signed |
 
@@ -50,7 +51,7 @@ Drizzle ORM over Neon serverless HTTP driver (`@neondatabase/serverless`). Clien
 Three tables:
 
 - **users** — synced from Clerk via webhook. Carries `stripe_customer_id` (set on first products checkout) so future Stripe sessions reuse the same Customer and auto-prefill name/email/phone/shipping. FKs on bookings/orders use `ON UPDATE CASCADE` so `ensureUserRow` can safely re-key a stale user id without orphaning historical rows.
-- **bookings** — confirmation codes are server-generated as `LCW-DD/MM/YYYY-###`. Pricing (subtotal, 10% GST, total) is always calculated server-side in the POST route, never trusted from the client. Includes `payment_method` (`pay_now` / `pay_on_collection`), `payment_status` (`unpaid` / `pending_payment` / `paid`), and `stripe_session_id` for pay-now bookings.
+- **bookings** — confirmation codes are server-generated as `LCW-DD/MM/YYYY-###`. Pricing (subtotal, 10% GST, total) is always calculated server-side in the POST route, never trusted from the client. Includes `payment_method` (`deposit` / `pay_now`; `pay_on_collection` retained for pre-deposit rows), `payment_status` (`unpaid` / `pending_payment` / `deposit_paid` / `paid`), `stripe_session_id`, `stripe_payment_intent_id` (for refunds), `deposit_amount` (asked for at checkout) and `amount_paid` (actually captured). **Balance due is always derived** as `total - amount_paid`, never stored.
 - **orders** — every paid products-store checkout, unique on `stripe_session_id` (idempotent insert via `ON CONFLICT DO NOTHING`). Items stored as JSONB (`{ name, qty, amount, productId }[]`). Records `email`, `full_name`, `phone`, `shipping_address`, totals breakdown, `stripe_payment_intent_id`.
 
 Query helpers for dashboard aggregations live in `src/db/queries.ts` (also `listOrdersByUser`, `getOrderById`). Mock cost/profit data comes from `src/data/mock-dashboard.ts` (live revenue data is real; cost data is static mock).
@@ -63,12 +64,20 @@ Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout
 
 ### Booking Flow
 
-1. `BookingForm.tsx` (client) — multi-step form using React Hook Form + Zod, steps: service → schedule + add-ons → customer details + **payment method** (pay now / pay at collection)
-2. `POST /api/bookings` — validates, calculates price, generates confirmation code, saves booking with chosen payment method
-   - **Pay at collection** → fires EmailJS immediately with `{{payment_status}} = "Pay later - At collection"`, returns `redirectUrl: /success?code=…`
-   - **Pay now** → saves booking as `pending_payment`, creates a Stripe Checkout Session (one line item for service + one per extra, customer_email prefilled), returns `checkoutUrl`. Email is **not** sent yet.
-3. Stripe redirects pay-now customers to `/success?code=…&session_id=…`. `reconcileBookingPayment()` (`src/lib/booking-confirmation.ts`) verifies the session, marks the booking `paid`/`confirmed`, fires EmailJS with `{{payment_status}} = "PAID - Online"`. Idempotent via a `booking_email_sent` flag on the PaymentIntent metadata (same pattern as products `deliverOrderConfirmation`).
-4. Constants for the two payment-status strings live in `src/lib/booking-payment.ts` (`PAY_AT_COLLECTION_STATUS`, `PAY_NOW_PAID_STATUS`). Both flows share `sendBookingNotification()` in `src/lib/email.ts`; the EmailJS booking template must include the `{{payment_status}}` variable.
+**Every booking takes a card up front.** The free "pay at collection" path was removed to stop no-shows — customers either pay a **$10 deposit** (default) or pay in full. The deposit is a part-payment, not a surcharge: it comes off the final price and carries GST like the rest.
+
+`src/lib/booking-payment.ts` is the single source of truth, imported by **both** client and server so displayed and charged amounts can't drift (same pattern as `SHIPPING_FEE` in `src/lib/shipping.ts`):
+- `DEPOSIT_ENABLED` — master kill switch. Flip to `false` and the form + API revert to the old pay-now / pay-at-collection pair. One-line revert, requires a redeploy.
+- `DEPOSIT_AMOUNT` (10), `SUPPORT_EMAIL`, `OFFERED_PAYMENT_METHODS`, `amountDueNow()`, `balanceDue()`, `depositFor()` (clamped to the total so an admin price override below $10 can't over-charge).
+- `payment_status` values: `unpaid` · `pending_payment` · `deposit_paid` · `paid`. `isSettled()` covers the last two.
+
+1. `BookingForm.tsx` (client) — steps: service → schedule + add-ons → customer details + **payment method** (deposit / pay in full). Summary panel splits Total into **Due today** and **At collection**. A draft restored from sessionStorage drops any `paymentMethod` no longer in `OFFERED_PAYMENT_METHODS`.
+2. `POST /api/bookings` — validates, prices server-side, generates the confirmation code, saves the booking with `deposit_amount` (what checkout will ask for) and `amount_paid = 0`. The zod enum only accepts currently-offered methods — that's what stops a crafted request booking a slot for free. Creates a Stripe Checkout Session (**one** deposit line item, or the itemised wash + extras when paying in full) with `expires_at` at 35 min, and returns `checkoutUrl`. Email is **not** sent yet. If Stripe fails, the row is marked `cancelled` rather than deleted — `genCode()` derives the daily sequence from `count(*)`, so deleting would collide the next code.
+3. Stripe redirects to `/success?code=…&session_id=…`. `reconcileBookingPayment()` (`src/lib/booking-confirmation.ts`) verifies the session, checks the charged amount against `deposit_amount`, records `amount_paid` + `stripe_payment_intent_id`, marks the booking `deposit_paid`/`paid` + `confirmed`, and fires EmailJS. Idempotent via a `booking_email_sent` flag on the PaymentIntent metadata (same pattern as products `deliverOrderConfirmation`).
+4. `POST /api/webhooks/stripe-bookings` is the safety net for a customer who pays and closes the tab before redirecting back. `checkout.session.completed` → same `reconcileBookingPayment()`, so whichever path arrives second is a no-op. `checkout.session.expired` → cancels the row if still `pending_payment`. **Ignores any session whose `metadata.source` isn't `car_wash_booking`**, so products-store orders delivered to this endpoint pass through untouched. Separate signing secret (`STRIPE_BOOKING_WEBHOOK_SECRET`) from the products webhook.
+5. `{{payment_status}}` strings live in `booking-payment.ts` (`PAY_AT_COLLECTION_STATUS`, `PAY_NOW_PAID_STATUS`, `depositPaidStatus()`). All flows share `sendBookingNotification()` in `src/lib/email.ts`; the EmailJS booking template must include `{{payment_status}}`, and optionally `{{amount_paid}}` / `{{balance_due}}` which are now passed too (EmailJS ignores params a template doesn't reference).
+
+**Deposit refunds are deliberately manual.** There is no self-serve cancel or refund path — the friction *is* the filter. Customers email `SUPPORT_EMAIL` and an admin refunds in the Stripe dashboard; the bookings table on `/hyperdome-dashboard` links each captured payment straight to `dashboard.stripe.com/payments/{id}`. Customer-facing copy says the deposit "isn't refunded automatically", not "non-refundable", and promises a full refund whenever the shop cancels.
 
 ### External Services
 
@@ -87,7 +96,9 @@ Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout
 
 Required: `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, `ADMIN_EMAILS`
 
-Optional: `DATABASE_URL_UNPOOLED` (migrations), `EMAILJS_*` (notifications — EmailJS booking template must include `{{payment_status}}` for online / at-collection labeling), `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `BOOKING_NOTIFICATION_EMAIL`, `STRIPE_SECRET_KEY` (powers **both** products-store card checkout **and** the booking "pay now" option — without it the booking form's pay-now branch returns a 503 and `/products/checkout` shows a "payments not configured" message), `EMAILJS_ORDER_TEMPLATE_ID` (products order-confirmation template, defaults to `template_zq9r66g`), `STRIPE_WEBHOOK_SECRET` (enables the `/api/products/stripe-webhook` fallback for closed-tab orders — bookings rely on the `/success` page reconciliation, no separate webhook yet)
+Optional: `DATABASE_URL_UNPOOLED` (migrations), `EMAILJS_*` (notifications — EmailJS booking template must include `{{payment_status}}` for online / at-collection labeling), `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `BOOKING_NOTIFICATION_EMAIL`, `STRIPE_SECRET_KEY` (powers **both** products-store card checkout **and** the booking "pay now" option — without it the booking form's pay-now branch returns a 503 and `/products/checkout` shows a "payments not configured" message), `EMAILJS_ORDER_TEMPLATE_ID` (products order-confirmation template, defaults to `template_zq9r66g`), `STRIPE_WEBHOOK_SECRET` (enables the `/api/products/stripe-webhook` fallback for closed-tab orders), `STRIPE_BOOKING_WEBHOOK_SECRET` (enables `/api/webhooks/stripe-bookings`, the equivalent fallback for bookings — without it the `/success` page is the only confirmation path and a customer who closes the tab after paying leaves a `pending_payment` booking the shop never hears about)
+
+⚠️ If `STRIPE_WEBHOOK_SECRET` is ever set, `/api/products/stripe-webhook` will also receive **booking** sessions and record them as products orders — it has no `metadata.source` guard. Add one before enabling it.
 
 ### Products Store (`/products`)
 

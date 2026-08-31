@@ -19,6 +19,13 @@ type BookingEmailParams = {
   gst: number;
   total: number;
   paymentStatus: string;
+  /**
+   * Deposit flow. Optional: EmailJS ignores params the template doesn't
+   * reference, so these are available to `{{amount_paid}}` / `{{balance_due}}`
+   * whenever the booking template is updated to show them.
+   */
+  amountPaid?: number;
+  balanceDue?: number;
 };
 
 function resolveRecipient(): string | null {
@@ -74,6 +81,8 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     subtotal: params.subtotal.toFixed(2),
     gst: params.gst.toFixed(2),
     total: params.total.toFixed(2),
+    amount_paid: (params.amountPaid ?? 0).toFixed(2),
+    balance_due: (params.balanceDue ?? params.total).toFixed(2),
     currency: "AUD",
     submitted_at: submittedAt,
     payment_status: params.paymentStatus,

@@ -17,6 +17,12 @@ export interface BookingRow {
   service: string;
   vehicle: string;
   amount: number;
+  /** Captured up front — deposit or full payment. 0 if nothing taken yet. */
+  paidNow: number;
+  /** Still owed on arrival: amount - paidNow. */
+  balance: number;
+  /** Stripe PaymentIntent, for issuing a refund against an emailed request. */
+  paymentIntentId: string | null;
   /** Raw enum value (lowercase), not a display label. */
   status: BookingStatus;
 }
@@ -40,6 +46,7 @@ const bookingColumns = [
   { key: "service", label: "Service" },
   { key: "vehicle", label: "Vehicle" },
   { key: "amount", label: "Amount" },
+  { key: "balance", label: "To collect" },
   { key: "status", label: "Status" },
 ];
 
@@ -79,6 +86,28 @@ export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsDat
                     status={row.status}
                     confirmationCode={row.id}
                   />
+                ) : col.key === "balance" ? (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono tabular-nums">
+                      ${row.balance.toFixed(2)}
+                    </span>
+                    {row.paidNow > 0 &&
+                      (row.paymentIntentId ? (
+                        <a
+                          href={`https://dashboard.stripe.com/payments/${row.paymentIntentId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                          title="Open in Stripe to refund"
+                        >
+                          ${row.paidNow.toFixed(2)} paid
+                        </a>
+                      ) : (
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          ${row.paidNow.toFixed(2)} paid
+                        </span>
+                      ))}
+                  </div>
                 ) : col.key === "id" ? (
                   <span className="font-mono text-[11px] text-muted-foreground">
                     {row.id}

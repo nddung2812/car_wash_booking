@@ -15,6 +15,11 @@ import CopyCode from "@/components/CopyCode";
 import { listBookingsByUser, listOrdersByUser } from "@/db/queries";
 import { services } from "@/data/services";
 import { cn } from "@/lib/utils";
+import {
+  PAYMENT_STATUS_DEPOSIT_PAID,
+  PAYMENT_STATUS_PAID,
+  balanceDue,
+} from "@/lib/booking-payment";
 
 export const metadata: Metadata = {
   title: "My Account",
@@ -56,11 +61,18 @@ const PAYMENT_STYLES: Record<string, string> = {
   paid: "bg-brand-soft text-primary ring-primary/30",
   unpaid: "bg-secondary text-foreground/70 ring-line",
   pending_payment: "bg-yellow-soft/40 text-yellow-ink ring-line",
+  deposit_paid: "bg-brand-soft/60 text-primary ring-primary/20",
 };
 
-function paymentPill(method: string, status: string) {
-  if (status === "paid") return { label: "Paid online", className: PAYMENT_STYLES.paid };
-  if (method === "pay_now")
+function paymentPill(method: string, status: string, balance: number) {
+  if (status === PAYMENT_STATUS_PAID)
+    return { label: "Paid online", className: PAYMENT_STYLES.paid };
+  if (status === PAYMENT_STATUS_DEPOSIT_PAID)
+    return {
+      label: `Deposit paid · $${balance.toFixed(2)} due`,
+      className: PAYMENT_STYLES.deposit_paid,
+    };
+  if (method === "pay_now" || method === "deposit")
     return { label: "Awaiting payment", className: PAYMENT_STYLES.pending_payment };
   return { label: "Pay at collection", className: PAYMENT_STYLES.unpaid };
 }
@@ -160,7 +172,11 @@ export default async function AccountPage({
                     row.serviceName ??
                     services.find((s) => s.id === row.serviceId)?.name ??
                     "Wash";
-                  const pay = paymentPill(row.paymentMethod, row.paymentStatus);
+                  const pay = paymentPill(
+                    row.paymentMethod,
+                    row.paymentStatus,
+                    balanceDue(Number(row.total), Number(row.amountPaid)),
+                  );
                   return (
                     <li key={row.id}>
                       <Link

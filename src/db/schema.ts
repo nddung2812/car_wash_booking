@@ -105,6 +105,15 @@ export const bookings = pgTable(
     paymentMethod: text("payment_method").notNull().default("pay_on_collection"),
     paymentStatus: text("payment_status").notNull().default("unpaid"),
     stripeSessionId: text("stripe_session_id"),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    /** Up-front part-payment we asked for at checkout. 0 for legacy rows. */
+    depositAmount: numeric("deposit_amount", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0.00"),
+    /** What Stripe actually captured. Balance due = total - amountPaid. */
+    amountPaid: numeric("amount_paid", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0.00"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
