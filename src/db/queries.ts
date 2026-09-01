@@ -35,7 +35,10 @@ export async function getBookingStats() {
       total: sql<number>`count(*)::int`,
       completed: sql<number>`count(*) filter (where ${bookings.status} = 'completed')::int`,
       pending: sql<number>`count(*) filter (where ${bookings.status} = 'pending')::int`,
-      revenue: sql<string>`coalesce(sum(${bookings.total}) filter (where ${bookings.status} = 'completed'), 0)`,
+      // Revenue counts confirmed and completed bookings. Filtering on
+      // 'completed' alone reported $0 against 33 real bookings, because the
+      // workflow leaves rows at 'confirmed' and nothing ever promotes them.
+      revenue: sql<string>`coalesce(sum(${bookings.total}) filter (where ${bookings.status} in ('confirmed', 'completed')), 0)`,
     })
     .from(bookings);
   return rows[0];
