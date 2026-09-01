@@ -5,16 +5,10 @@ import {
   getServicePopularity,
   getVehicleDistribution,
 } from "@/db/queries";
-import {
-  mockMonthlyCosts,
-  mockCostBreakdown,
-  mockProfitMargins,
-} from "@/data/mock-dashboard";
 import type {
   BookingRow,
   CustomerAnalyticsData,
 } from "@/components/dashboard/CustomerAnalytics";
-import type { CostAnalyticsData } from "@/components/dashboard/CostAnalytics";
 
 export const dynamic = "force-dynamic";
 
@@ -60,21 +54,5 @@ export default async function HyperdomeAnalyticsPage() {
     bookings,
   };
 
-  const totalCosts = mockCostBreakdown.reduce((sum, i) => sum + i.amount, 0);
-  const netProfit = totalRevenue - totalCosts;
-  const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-
-  const costData: CostAnalyticsData = {
-    summary: {
-      totalRevenue,
-      totalCosts,
-      netProfit,
-      profitMargin,
-    },
-    monthlyCosts: mockMonthlyCosts,
-    costBreakdown: mockCostBreakdown,
-    profitMargins: mockProfitMargins,
-  };
-
-  return <DashboardTabs customerData={customerData} costData={costData} />;
+  return <DashboardTabs customerData={customerData} />;
 }

@@ -3,27 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, Settings, ArrowLeft } from "lucide-react";
+import { Users, Settings, ArrowLeft } from "lucide-react";
 import CustomerAnalytics, { type CustomerAnalyticsData } from "./CustomerAnalytics";
-import CostAnalytics, { type CostAnalyticsData } from "./CostAnalytics";
 import PriceUpdateCMS from "./PriceUpdateCMS";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 import { cn } from "@/lib/utils";
 
-type Tab = "customers" | "costs" | "pricing";
+type Tab = "customers" | "pricing";
 
 const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: "customers", label: "Customer Analytics", icon: Users },
-  { id: "costs", label: "Cost Analytics", icon: DollarSign },
   { id: "pricing", label: "Price Update", icon: Settings },
 ];
 
 export default function DashboardTabs({
   customerData,
-  costData,
 }: {
   customerData: CustomerAnalyticsData;
-  costData: CostAnalyticsData;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("customers");
 
@@ -70,7 +66,6 @@ export default function DashboardTabs({
 
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {activeTab === "customers" && <CustomerAnalytics data={customerData} />}
-        {activeTab === "costs" && <CostAnalytics data={costData} />}
         {activeTab === "pricing" && <PriceUpdateCMS />}
       </div>
     </div>

@@ -53,7 +53,7 @@ Three tables:
 - **bookings** — confirmation codes are server-generated as `LCW-DD/MM/YYYY-###`. `admin_email_sent_at` / `customer_email_sent_at` record which halves of the confirmation actually landed (null = never sent, sweepable). Pricing (subtotal, 10% GST, total) is always calculated server-side in the POST route, never trusted from the client. Includes `payment_method` (`pay_now` / `pay_on_collection`), `payment_status` (`unpaid` / `pending_payment` / `paid`), and `stripe_session_id` for pay-now bookings.
 - **orders** — every paid products-store checkout, unique on `stripe_session_id` (idempotent insert via `ON CONFLICT DO NOTHING`). Items stored as JSONB (`{ name, qty, amount, productId }[]`). Records `email`, `full_name`, `phone`, `shipping_address`, totals breakdown, `stripe_payment_intent_id`.
 
-Query helpers for dashboard aggregations live in `src/db/queries.ts` (also `listOrdersByUser`, `getOrderById`). Mock cost/profit data comes from `src/data/mock-dashboard.ts` (live revenue data is real; cost data is static mock).
+Query helpers for dashboard aggregations live in `src/db/queries.ts` (also `listOrdersByUser`, `getOrderById`). The dashboard shows **only real booking data** — the Cost Analytics tab and its fabricated cost/profit figures were removed on 2026-09-01. `src/data/mock-dashboard.ts` now holds `mockBookings` alone, used by `npm run db:seed` for local dev.
 
 `src/lib/users.ts → ensureUserRow()` is the canonical helper for guaranteeing a `users` row exists before FK-linking. Handles three cases: already linked / fresh insert / email collision with a stale Clerk id → re-key (cascades to children). Used by `/api/bookings` POST and `recordOrderFromSession`.
 
