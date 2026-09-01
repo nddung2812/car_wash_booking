@@ -34,7 +34,7 @@ export interface CustomerAnalyticsData {
 }
 
 const bookingColumns = [
-  { key: "date", label: "Date" },
+  { key: "date", label: "Reserved Date" },
   { key: "id", label: "Ref" },
   { key: "customer", label: "Customer" },
   { key: "service", label: "Service" },
