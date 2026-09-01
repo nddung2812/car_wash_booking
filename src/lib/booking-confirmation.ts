@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 
 import { db, bookings } from "@/db";
 import { getBookingByCode } from "@/db/queries";
-import { sendBookingNotification } from "@/lib/email";
+import { deliverBookingEmails } from "@/lib/booking-notify";
 import { LOCATIONS } from "@/lib/seo/business";
 import { getMergedExtras } from "@/lib/pricing";
 import {
@@ -90,7 +90,7 @@ export async function reconcileBookingPayment(
       LOCATIONS.find((l) => l.slug === booking.location)?.addressLocality ??
       booking.location;
 
-    const emailed = await sendBookingNotification({
+    const delivered = await deliverBookingEmails(booking.id, {
       confirmationCode: booking.confirmationCode,
       serviceId: booking.serviceId,
       serviceName: booking.serviceName ?? svc?.name ?? booking.serviceId,
@@ -111,7 +111,10 @@ export async function reconcileBookingPayment(
       paymentStatus: PAY_NOW_PAID_STATUS,
     });
 
-    if (!emailed.ok) return "email-failed";
+    // The business copy is the one that gates reconciliation: if it did not
+    // land we leave the booking unreconciled so a page refresh retries. The
+    // customer copy failing is recorded on the row and swept up separately.
+    if (!delivered.admin) return "email-failed";
 
     await db
       .update(bookings)

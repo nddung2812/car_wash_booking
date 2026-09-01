@@ -19,7 +19,43 @@ type BookingEmailParams = {
   gst: number;
   total: number;
   paymentStatus: string;
+  /** Send to this address instead of the admin/notification inbox. */
+  recipientOverride?: string | null;
 };
+
+/** Display name customers see in their inbox. EmailJS template "From Name"
+ *  must be set to {{from_name}} for this to take effect. */
+const BUSINESS_FROM_NAME = "Logan Car Wash Support";
+
+/**
+ * EmailJS can transiently 5xx. Three attempts with a short backoff before we
+ * give up — the caller then records the failure so it can be retried later.
+ */
+async function sendWithRetry(
+  serviceId: string,
+  templateId: string,
+  templateParams: Record<string, unknown>,
+  keys: { publicKey: string; privateKey: string },
+  label: string,
+) {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await emailjs.send(serviceId, templateId, templateParams, keys);
+      if (attempt > 1) {
+        console.log(`[email] ${label} sent on attempt ${attempt}`);
+      }
+      return { ok: true as const };
+    } catch (err) {
+      lastErr = err;
+      console.error(`[email] ${label} attempt ${attempt}/3 failed`, err);
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 400));
+      }
+    }
+  }
+  return { ok: false as const, reason: "send-failed" as const, error: lastErr };
+}
 
 function resolveRecipient(): string | null {
   const explicit = process.env.BOOKING_NOTIFICATION_EMAIL?.trim();
@@ -42,7 +78,12 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     return { ok: false as const, reason: "missing-config" };
   }
 
-  const recipient = resolveRecipient();
+  // A recipientOverride means this is customer-facing: the business becomes
+  // the sender/reply-to. Without it we keep the original internal-notification
+  // behaviour (to the admin inbox, reply-to the customer).
+  const businessInbox = resolveRecipient();
+  const customerFacing = Boolean(params.recipientOverride?.trim());
+  const recipient = params.recipientOverride?.trim() || businessInbox;
   const submittedAt = new Date().toLocaleString("en-AU", {
     timeZone: "Australia/Brisbane",
     dateStyle: "medium",
@@ -66,7 +107,8 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     full_name: `${params.firstName} ${params.lastName}`.trim(),
     email: params.email,
     to_email: recipient ?? params.email,
-    reply_to: params.email,
+    from_name: BUSINESS_FROM_NAME,
+    reply_to: customerFacing ? (businessInbox ?? params.email) : params.email,
     phone: params.phone,
     address: params.address,
     notes: params.notes?.trim() ? params.notes : "—",
@@ -79,16 +121,13 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     payment_status: params.paymentStatus,
   };
 
-  try {
-    await emailjs.send(serviceId, templateId, templateParams, {
-      publicKey,
-      privateKey,
-    });
-    return { ok: true as const };
-  } catch (err) {
-    console.error("[email] EmailJS send failed", err);
-    return { ok: false as const, reason: "send-failed", error: err };
-  }
+  return sendWithRetry(
+    serviceId,
+    templateId,
+    templateParams,
+    { publicKey, privateKey },
+    `booking ${params.confirmationCode} → ${recipient ?? params.email}`,
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -155,14 +194,54 @@ export async function sendOrderConfirmation(params: OrderEmailParams) {
     pickup_locations: "Shailer Park or Loganholme",
   };
 
-  try {
-    await emailjs.send(serviceId, templateId, templateParams, {
-      publicKey,
-      privateKey,
-    });
-    return { ok: true as const };
-  } catch (err) {
-    console.error("[email] order confirmation send failed", err);
-    return { ok: false as const, reason: "send-failed", error: err };
+  return sendWithRetry(
+    serviceId,
+    templateId,
+    templateParams,
+    { publicKey, privateKey },
+    `order ${params.orderReference} → ${params.customerEmail}`,
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Generic one-off customer message.                                          */
+/*  Plain subject + body, for service notices and apologies. Uses its own      */
+/*  EmailJS template (EMAILJS_MESSAGE_TEMPLATE_ID) with just five variables:   */
+/*  {{to_email}} {{from_name}} {{reply_to}} {{subject}} {{message}}            */
+/* -------------------------------------------------------------------------- */
+
+type CustomerMessageParams = {
+  toEmail: string;
+  subject: string;
+  message: string;
+};
+
+export async function sendCustomerMessage(params: CustomerMessageParams) {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_MESSAGE_TEMPLATE_ID?.trim();
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+
+  if (!serviceId || !publicKey || !privateKey) {
+    console.warn("[email] EmailJS env vars missing — skipping customer message");
+    return { ok: false as const, reason: "missing-config" };
   }
+  if (!templateId) {
+    console.warn("[email] EMAILJS_MESSAGE_TEMPLATE_ID not set");
+    return { ok: false as const, reason: "missing-template" };
+  }
+
+  return sendWithRetry(
+    serviceId,
+    templateId,
+    {
+      to_email: params.toEmail,
+      from_name: BUSINESS_FROM_NAME,
+      reply_to: resolveRecipient() ?? params.toEmail,
+      subject: params.subject,
+      message: params.message,
+    },
+    { publicKey, privateKey },
+    `message → ${params.toEmail}`,
+  );
 }

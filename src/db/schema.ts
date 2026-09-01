@@ -105,6 +105,10 @@ export const bookings = pgTable(
     paymentMethod: text("payment_method").notNull().default("pay_on_collection"),
     paymentStatus: text("payment_status").notNull().default("unpaid"),
     stripeSessionId: text("stripe_session_id"),
+    // Null = the notification has not landed yet. Lets a failed send be seen
+    // and retried instead of disappearing silently.
+    adminEmailSentAt: timestamp("admin_email_sent_at"),
+    customerEmailSentAt: timestamp("customer_email_sent_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

@@ -29,6 +29,13 @@
       "when": 1780229841256,
       "tag": "0003_strange_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788220528657,
+      "tag": "0004_smart_rockslide",
+      "breakpoints": true
     }
   ]
 }

@@ -9,7 +9,7 @@ import { listBookings } from "@/db/queries";
 import { getExtraPrice, type ExtraService } from "@/data/services";
 import { getMergedPricing } from "@/lib/pricing";
 import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
-import { sendBookingNotification } from "@/lib/email";
+import { deliverBookingEmails } from "@/lib/booking-notify";
 import {
   PAY_AT_COLLECTION_STATUS,
   PAY_NOW_PENDING_STATUS,
@@ -184,8 +184,14 @@ export async function POST(req: Request) {
     data.location;
 
   // Pay-at-collection: confirm immediately and email now.
+  //
+  // Awaited deliberately. This used to be `void sendBookingNotification(...)`,
+  // so the response flushed and Vercel froze the instance before the request
+  // reached EmailJS — 25 of 32 bookings went out with no confirmation at all.
+  // The extra ~500ms on submit buys a guarantee the email was actually handed
+  // over, and a persisted record when it wasn't.
   if (!isPayNow) {
-    void sendBookingNotification({
+    await deliverBookingEmails(row.id, {
       confirmationCode: code,
       serviceId: data.service,
       serviceName: pricing.svc.name,
