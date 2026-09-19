@@ -16,12 +16,18 @@ interface DataTableProps<T extends object> {
    * built-in rendering for that column.
    */
   renderCell?: (col: Column, row: T) => ReactNode | undefined;
+  /**
+   * Totals row pinned under the body, keyed by column key. Columns missing
+   * from the map render empty. Omit entirely for no footer.
+   */
+  footer?: Record<string, ReactNode>;
 }
 
 export default function DataTable<T extends object>({
   columns,
   rows,
   renderCell,
+  footer,
 }: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto">
@@ -71,6 +77,20 @@ export default function DataTable<T extends object>({
             </tr>
           ))}
         </tbody>
+        {footer && (
+          <tfoot>
+            <tr className="border-t-2 border-line bg-secondary/40">
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  className="py-3 px-4 font-medium text-foreground"
+                >
+                  {footer[col.key] ?? null}
+                </td>
+              ))}
+            </tr>
+          </tfoot>
+        )}
       </table>
     </div>
   );

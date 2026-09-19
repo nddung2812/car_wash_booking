@@ -1,11 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Users, DollarSign, TrendingUp, UserCheck } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import MetricCard from "./MetricCard";
 import BarChart from "./BarChart";
 import DataTable from "./DataTable";
 import BookingStatusSelect, { type BookingStatus } from "./BookingStatusSelect";
+import MonthFilter, { type MonthOption } from "./MonthFilter";
 
 export interface BookingRow {
   /** Confirmation code, e.g. "LCW-22/08/2026-001" — shown to humans. */
@@ -37,6 +39,12 @@ export interface CustomerAnalyticsData {
   servicePopularity: { label: string; value: number }[];
   vehicleDistribution: { label: string; value: number }[];
   bookings: BookingRow[];
+  /** Every month that has bookings — the filter's option list. */
+  months: MonthOption[];
+  /** `YYYY-MM` currently filtered to, or null for all time. */
+  activeMonth: string | null;
+  /** Pre-formatted label for `activeMonth`, e.g. "September 2026". */
+  activeMonthLabel: string | null;
 }
 
 const bookingColumns = [
@@ -50,10 +58,123 @@ const bookingColumns = [
   { key: "status", label: "Status" },
 ];
 
+const money = (n: number) =>
+  n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * Totals for the rows on screen, all three reconciling as
+ * `total = received + receivable`. Cancelled rows are excluded from every
+ * figure and reported separately — they're not revenue and never will be.
+ */
+function totalsFor(rows: BookingRow[]) {
+  const live = rows.filter((r) => r.status !== "cancelled");
+  const dead = rows.filter((r) => r.status === "cancelled");
+  const sum = (xs: BookingRow[], key: "amount" | "paidNow" | "balance") =>
+    xs.reduce((n, r) => n + r[key], 0);
+
+  return {
+    /** Bookings that still count — cancelled ones excluded. */
+    liveCount: live.length,
+    cancelledCount: dead.length,
+    /** Full value of the live bookings. The management-fee base. */
+    total: sum(live, "amount"),
+    /** Already captured through Stripe — deposits plus paid-in-full. */
+    received: sum(live, "paidNow"),
+    /** Still owed, collected when the car turns up. */
+    receivable: sum(live, "balance"),
+    cancelledAmount: sum(dead, "amount"),
+  };
+}
+
+/** A stacked footer cell: caption, figure, and an optional note beneath. */
+function FooterFigure({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: number;
+  note?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </span>
+      <span className="font-mono text-[15px] tabular-nums text-foreground">
+        ${money(value)}
+      </span>
+      {note && (
+        <span className="font-mono text-[10px] text-muted-foreground">{note}</span>
+      )}
+    </div>
+  );
+}
+
 export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsData }) {
-  const { summary, servicePopularity, vehicleDistribution, bookings } = data;
+  const {
+    summary,
+    servicePopularity,
+    vehicleDistribution,
+    bookings,
+    months,
+    activeMonth,
+    activeMonthLabel,
+  } = data;
+  const scope = activeMonthLabel ?? "All time";
+  const totals = totalsFor(bookings);
+
+  const bookingFooter: Record<string, ReactNode> = {
+    date: (
+      <div className="flex flex-col gap-1">
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          {scope}
+        </span>
+        <span className="font-mono text-[15px] tabular-nums text-foreground">
+          {totals.liveCount}{" "}
+          {totals.liveCount === 1 ? "booking" : "bookings"}
+        </span>
+        {totals.cancelledCount > 0 && (
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {totals.cancelledCount} cancelled, excluded
+          </span>
+        )}
+      </div>
+    ),
+    amount: (
+      <FooterFigure
+        label="Total"
+        value={totals.total}
+        note={
+          totals.cancelledCount > 0
+            ? `$${money(totals.cancelledAmount)} cancelled, not counted`
+            : undefined
+        }
+      />
+    ),
+    balance: (
+      <FooterFigure
+        label="Receivable"
+        value={totals.receivable}
+        note={`$${money(totals.received)} already received`}
+      />
+    ),
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-0.5">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Showing
+          </p>
+          <h2 className="font-serif text-2xl leading-none tracking-tight text-foreground">
+            {scope}
+          </h2>
+        </div>
+        <MonthFilter months={months} active={activeMonth} />
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard title="Total Bookings" value={summary.totalBookings} icon={Users} />
         <MetricCard title="Total Revenue" value={`$${summary.totalRevenue.toLocaleString()}`} icon={DollarSign} color="bg-emerald-500/15 text-emerald-700" />
@@ -68,17 +189,22 @@ export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsDat
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Bookings</CardTitle>
+          <CardTitle>
+            {activeMonthLabel ? `Bookings — ${activeMonthLabel}` : "Recent Bookings"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {bookings.length === 0 ? (
             <p className="py-12 text-center font-mono text-[12px] uppercase tracking-[0.14em] text-muted-foreground">
-              No bookings yet — share your booking page to get started.
+              {activeMonthLabel
+                ? `No bookings reserved in ${activeMonthLabel}.`
+                : "No bookings yet — share your booking page to get started."}
             </p>
           ) : (
             <DataTable
               columns={bookingColumns}
               rows={bookings}
+              footer={bookingFooter}
               renderCell={(col, row: BookingRow) =>
                 col.key === "status" ? (
                   <BookingStatusSelect
@@ -115,6 +241,24 @@ export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsDat
                 ) : undefined
               }
             />
+          )}
+
+          {bookings.length > 0 && (
+            <p className="mt-4 font-mono text-[11px] leading-relaxed text-muted-foreground">
+              <span className="text-foreground">${money(totals.total)} total</span>
+              {"  =  "}
+              ${money(totals.received)} received
+              {"  +  "}
+              ${money(totals.receivable)} receivable on collection.
+              {totals.cancelledCount > 0 && (
+                <>
+                  {" "}
+                  Excludes {totals.cancelledCount} cancelled{" "}
+                  {totals.cancelledCount === 1 ? "booking" : "bookings"} ($
+                  {money(totals.cancelledAmount)}).
+                </>
+              )}
+            </p>
           )}
         </CardContent>
       </Card>
