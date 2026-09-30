@@ -79,6 +79,37 @@ export async function getBookingStats(month?: BookingMonth) {
   return rows[0];
 }
 
+/**
+ * Repeat-customer share for the dashboard card: of the customers with a
+ * booking in the period, how many have made two or more bookings by the end of
+ * it — so both a returning customer and one who booked twice in the month
+ * count. All time (no month) reduces to "booked more than once". Customers are
+ * matched on lower-cased email; cancelled rows (mostly abandoned Stripe
+ * checkouts) never count as a visit.
+ */
+export async function getRepeatCustomerStats(month?: BookingMonth) {
+  const email = sql`lower(trim(${bookings.email}))`;
+  const periodFilter = month ? sql`and ${bookings.date} like ${`${month}-%`}` : sql``;
+  // Text `YYYY-MM-DD` sorts correctly, so "on or before the month" is a string compare.
+  const historyFilter = month ? sql`and ${bookings.date} < ${`${month}-99`}` : sql``;
+  const result = await db.execute<{ customers: number; repeat: number }>(sql`
+    with period as (
+      select distinct ${email} as e from ${bookings}
+      where ${bookings.status} <> 'cancelled' ${periodFilter}
+    ),
+    history as (
+      select ${email} as e, count(*) as n from ${bookings}
+      where ${bookings.status} <> 'cancelled' ${historyFilter}
+      group by 1
+    )
+    select count(*)::int as customers,
+           count(*) filter (where history.n > 1)::int as repeat
+    from period join history using (e)
+  `);
+  const row = result.rows[0];
+  return { customers: Number(row?.customers ?? 0), repeat: Number(row?.repeat ?? 0) };
+}
+
 export async function getServicePopularity(month?: BookingMonth) {
   return db
     .select({

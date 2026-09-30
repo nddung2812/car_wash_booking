@@ -5,6 +5,7 @@ import {
   getBookingStats,
   getServicePopularity,
   getVehicleDistribution,
+  getRepeatCustomerStats,
 } from "@/db/queries";
 import type {
   BookingRow,
@@ -60,14 +61,21 @@ export default async function HyperdomeAnalyticsPage({
         ? monthParam
         : currentMonth();
 
-  const [rawBookings, monthRows, stats, servicePopularity, vehicleDistribution] =
-    await Promise.all([
-      listBookings(200, month),
-      listBookingMonths(),
-      getBookingStats(month),
-      getServicePopularity(month),
-      getVehicleDistribution(month),
-    ]);
+  const [
+    rawBookings,
+    monthRows,
+    stats,
+    servicePopularity,
+    vehicleDistribution,
+    repeatStats,
+  ] = await Promise.all([
+    listBookings(200, month),
+    listBookingMonths(),
+    getBookingStats(month),
+    getServicePopularity(month),
+    getVehicleDistribution(month),
+    getRepeatCustomerStats(month),
+  ]);
 
   const bookings: BookingRow[] = rawBookings.map((b) => ({
     id: b.confirmationCode,
@@ -105,7 +113,10 @@ export default async function HyperdomeAnalyticsPage({
       totalBookings,
       totalRevenue,
       avgPerBooking,
-      repeatCustomers: 0,
+      repeatCustomers:
+        repeatStats.customers > 0
+          ? Math.round((repeatStats.repeat / repeatStats.customers) * 1000) / 10
+          : 0,
     },
     servicePopularity: servicePopularity.map((r) => ({
       label: r.label,
