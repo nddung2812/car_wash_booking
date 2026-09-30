@@ -11,6 +11,8 @@ export interface MonthSummary {
   shortLabel: string;
   /** Full label, e.g. "September 2026". */
   label: string;
+  /** Set when the period isn't the plain calendar month, e.g. "24 Aug – 30 Sep". */
+  period?: string;
   count: number;
   amount: number;
 }
@@ -76,7 +78,9 @@ export default function MonthlySummary({ months }: { months: MonthSummary[] }) {
           <CardTitle>Monthly bookings</CardTitle>
           <p className="font-mono text-[11px] text-muted-foreground">
             Bar height is booking value; the count sits under each month. Grouped
-            by the date the booking was submitted; cancelled bookings excluded.
+            by billing period, using the date each booking was submitted;
+            cancelled bookings excluded. Bookings made 24–31 Aug 2026 count
+            towards September.
           </p>
         </CardHeader>
         <CardContent>
@@ -122,7 +126,7 @@ export default function MonthlySummary({ months }: { months: MonthSummary[] }) {
                       <div
                         key={m.month}
                         tabIndex={0}
-                        aria-label={`${m.label}: ${m.count} ${
+                        aria-label={`${m.label}${m.period ? ` (${m.period})` : ""}: ${m.count} ${
                           m.count === 1 ? "booking" : "bookings"
                         }, $${money(m.amount)}`}
                         className="group flex min-w-[56px] flex-1 flex-col items-center outline-none"
@@ -143,6 +147,11 @@ export default function MonthlySummary({ months }: { months: MonthSummary[] }) {
                             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                               {m.label}
                             </p>
+                            {m.period && (
+                              <p className="font-mono text-[10px] text-muted-foreground">
+                                {m.period}
+                              </p>
+                            )}
                             <p className="font-mono text-[13px] tabular-nums text-foreground">
                               ${money(m.amount)}
                             </p>
@@ -187,7 +196,14 @@ export default function MonthlySummary({ months }: { months: MonthSummary[] }) {
               <tbody>
                 {[...months].reverse().map((m) => (
                   <tr key={m.month} className="border-b border-line/60">
-                    <td className="py-2 pr-4">{m.label}</td>
+                    <td className="py-2 pr-4">
+                      {m.label}
+                      {m.period && (
+                        <span className="ml-2 font-mono text-[11px] text-muted-foreground">
+                          {m.period}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2 pr-4 text-right font-mono tabular-nums">{m.count}</td>
                     <td className="py-2 pr-4 text-right font-mono tabular-nums">
                       ${money(m.amount)}

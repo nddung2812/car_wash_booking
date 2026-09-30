@@ -40,15 +40,32 @@ export async function listBookingMonths() {
 }
 
 /**
- * Per-month booking count and value, oldest first — the Summary tab's chart.
+ * Billing periods that don't line up with a calendar month. The first period
+ * closed on 23 Aug 2026, so bookings made 24–31 Aug belong to September's.
+ * Dates are Brisbane calendar days; `until` is exclusive.
+ */
+export const PERIOD_ROLLOVERS = [
+  { from: "2026-08-24", until: "2026-09-01", month: "2026-09" },
+] as const;
+
+/**
+ * Per-period booking count and value, oldest first — the Summary tab's chart.
  * Grouped by the month the form was *submitted* (`created_at`), not the
- * reserved wash date the month filter uses. `created_at` is a UTC wall-clock
- * `timestamp`, so it's converted to Brisbane time first — the same calendar
- * `genCode()` stamps into confirmation codes. Cancelled rows (mostly
- * abandoned Stripe checkouts) are excluded.
+ * reserved wash date the month filter uses, with `PERIOD_ROLLOVERS` applied.
+ * `created_at` is a UTC wall-clock `timestamp`, so it's converted to Brisbane
+ * time first — the same calendar `genCode()` stamps into confirmation codes.
+ * Cancelled rows (mostly abandoned Stripe checkouts) are excluded.
  */
 export async function getMonthlyBookingSummary() {
-  const month = sql<string>`to_char((${bookings.createdAt} at time zone 'UTC') at time zone 'Australia/Brisbane', 'YYYY-MM')`;
+  const submitted = sql`((${bookings.createdAt} at time zone 'UTC') at time zone 'Australia/Brisbane')`;
+  const rollovers = sql.join(
+    PERIOD_ROLLOVERS.map(
+      (r) =>
+        sql`when ${submitted} >= ${r.from}::timestamp and ${submitted} < ${r.until}::timestamp then ${r.month}::text`,
+    ),
+    sql` `,
+  );
+  const month = sql<string>`case ${rollovers} else to_char(${submitted}, 'YYYY-MM') end`;
   return db
     .select({
       month,
@@ -57,8 +74,10 @@ export async function getMonthlyBookingSummary() {
     })
     .from(bookings)
     .where(sql`${bookings.status} <> 'cancelled'`)
-    .groupBy(month)
-    .orderBy(month);
+    // By position: `month` carries bind parameters, and Postgres won't match
+    // a re-bound copy of it in GROUP BY against the one in the select list.
+    .groupBy(sql`1`)
+    .orderBy(sql`1`);
 }
 
 export async function listBookingsByUser(userId: string, limit = 50) {

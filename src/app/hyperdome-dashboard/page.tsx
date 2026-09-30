@@ -7,6 +7,7 @@ import {
   getVehicleDistribution,
   getRepeatCustomerStats,
   getMonthlyBookingSummary,
+  PERIOD_ROLLOVERS,
 } from "@/db/queries";
 import type { MonthSummary } from "@/components/dashboard/MonthlySummary";
 import type {
@@ -36,6 +37,31 @@ const shortMonthFormatter = new Intl.DateTimeFormat("en-AU", {
   year: "2-digit",
   timeZone: "UTC",
 });
+
+const dayFormatter = new Intl.DateTimeFormat("en-AU", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+const day = (iso: string) => new Date(`${iso}T00:00:00Z`);
+
+/**
+ * The date range a chart month actually covers, e.g. "24 Aug – 30 Sep", or
+ * undefined for a plain calendar month. Only `PERIOD_ROLLOVERS` produce one.
+ */
+function periodRange(month: string) {
+  let start = day(`${month}-01`);
+  const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0));
+  const plain = start.getTime();
+  const plainEnd = end.getTime();
+  for (const r of PERIOD_ROLLOVERS) {
+    if (r.month === month) start = day(r.from);
+    if (r.from.startsWith(month)) end.setTime(day(r.from).getTime() - 86_400_000);
+  }
+  if (start.getTime() === plain && end.getTime() === plainEnd) return undefined;
+  return `${dayFormatter.format(start)} – ${dayFormatter.format(end)}`;
+}
 
 /** Every `YYYY-MM` from `first` to `last` inclusive. */
 function monthRange(first: string, last: string) {
@@ -167,6 +193,7 @@ export default async function HyperdomeAnalyticsPage({
             month: m,
             label: monthLabel(m),
             shortLabel: shortMonthFormatter.format(new Date(`${m}-01T00:00:00Z`)),
+            period: periodRange(m),
             count: Number(byMonth.get(m)?.count ?? 0),
             amount: Number(byMonth.get(m)?.amount ?? 0),
           }),
