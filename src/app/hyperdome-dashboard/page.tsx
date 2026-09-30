@@ -6,7 +6,9 @@ import {
   getServicePopularity,
   getVehicleDistribution,
   getRepeatCustomerStats,
+  getMonthlyBookingSummary,
 } from "@/db/queries";
+import type { MonthSummary } from "@/components/dashboard/MonthlySummary";
 import type {
   BookingRow,
   CustomerAnalyticsData,
@@ -27,6 +29,27 @@ const monthFormatter = new Intl.DateTimeFormat("en-AU", {
 
 function monthLabel(month: string) {
   return monthFormatter.format(new Date(`${month}-01T00:00:00Z`));
+}
+
+const shortMonthFormatter = new Intl.DateTimeFormat("en-AU", {
+  month: "short",
+  year: "2-digit",
+  timeZone: "UTC",
+});
+
+/** Every `YYYY-MM` from `first` to `last` inclusive. */
+function monthRange(first: string, last: string) {
+  const out: string[] = [];
+  let [y, m] = first.split("-").map(Number);
+  const [ly, lm] = last.split("-").map(Number);
+  while (y < ly || (y === ly && m <= lm)) {
+    out.push(`${y}-${String(m).padStart(2, "0")}`);
+    if (++m > 12) {
+      m = 1;
+      y++;
+    }
+  }
+  return out;
 }
 
 /**
@@ -68,6 +91,7 @@ export default async function HyperdomeAnalyticsPage({
     servicePopularity,
     vehicleDistribution,
     repeatStats,
+    monthlyRows,
   ] = await Promise.all([
     listBookings(200, month),
     listBookingMonths(),
@@ -75,6 +99,7 @@ export default async function HyperdomeAnalyticsPage({
     getServicePopularity(month),
     getVehicleDistribution(month),
     getRepeatCustomerStats(month),
+    getMonthlyBookingSummary(),
   ]);
 
   const bookings: BookingRow[] = rawBookings.map((b) => ({
@@ -132,5 +157,20 @@ export default async function HyperdomeAnalyticsPage({
     activeMonthLabel: month ? monthLabel(month) : null,
   };
 
-  return <DashboardTabs customerData={customerData} />;
+  // Zero-fill quiet months so the chart's time axis has no silent gaps.
+  const byMonth = new Map(monthlyRows.map((r) => [r.month, r]));
+  const monthlySummary: MonthSummary[] =
+    monthlyRows.length === 0
+      ? []
+      : monthRange(monthlyRows[0].month, monthlyRows[monthlyRows.length - 1].month).map(
+          (m) => ({
+            month: m,
+            label: monthLabel(m),
+            shortLabel: shortMonthFormatter.format(new Date(`${m}-01T00:00:00Z`)),
+            count: Number(byMonth.get(m)?.count ?? 0),
+            amount: Number(byMonth.get(m)?.amount ?? 0),
+          }),
+        );
+
+  return <DashboardTabs customerData={customerData} monthlySummary={monthlySummary} />;
 }

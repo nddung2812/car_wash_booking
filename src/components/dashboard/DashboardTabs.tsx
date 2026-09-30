@@ -3,23 +3,27 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Users, Settings, ArrowLeft } from "lucide-react";
+import { Users, Settings, ArrowLeft, BarChart3 } from "lucide-react";
 import CustomerAnalytics, { type CustomerAnalyticsData } from "./CustomerAnalytics";
 import PriceUpdateCMS from "./PriceUpdateCMS";
+import MonthlySummary, { type MonthSummary } from "./MonthlySummary";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 import { cn } from "@/lib/utils";
 
-type Tab = "customers" | "pricing";
+type Tab = "customers" | "summary" | "pricing";
 
 const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: "customers", label: "Customer Analytics", icon: Users },
+  { id: "summary", label: "Summary", icon: BarChart3 },
   { id: "pricing", label: "Price Update", icon: Settings },
 ];
 
 export default function DashboardTabs({
   customerData,
+  monthlySummary,
 }: {
   customerData: CustomerAnalyticsData;
+  monthlySummary: MonthSummary[];
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("customers");
 
@@ -66,6 +70,7 @@ export default function DashboardTabs({
 
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {activeTab === "customers" && <CustomerAnalytics data={customerData} />}
+        {activeTab === "summary" && <MonthlySummary months={monthlySummary} />}
         {activeTab === "pricing" && <PriceUpdateCMS />}
       </div>
     </div>

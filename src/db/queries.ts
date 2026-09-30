@@ -39,6 +39,28 @@ export async function listBookingMonths() {
     .orderBy(desc(sql`substring(${bookings.date} from 1 for 7)`));
 }
 
+/**
+ * Per-month booking count and value, oldest first — the Summary tab's chart.
+ * Grouped by the month the form was *submitted* (`created_at`), not the
+ * reserved wash date the month filter uses. `created_at` is a UTC wall-clock
+ * `timestamp`, so it's converted to Brisbane time first — the same calendar
+ * `genCode()` stamps into confirmation codes. Cancelled rows (mostly
+ * abandoned Stripe checkouts) are excluded.
+ */
+export async function getMonthlyBookingSummary() {
+  const month = sql<string>`to_char((${bookings.createdAt} at time zone 'UTC') at time zone 'Australia/Brisbane', 'YYYY-MM')`;
+  return db
+    .select({
+      month,
+      count: sql<number>`count(*)::int`,
+      amount: sql<string>`coalesce(sum(${bookings.total}), 0)`,
+    })
+    .from(bookings)
+    .where(sql`${bookings.status} <> 'cancelled'`)
+    .groupBy(month)
+    .orderBy(month);
+}
+
 export async function listBookingsByUser(userId: string, limit = 50) {
   return db
     .select()
