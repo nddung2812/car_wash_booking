@@ -105,7 +105,9 @@ export default function BannerCarousel({ banners }: Props) {
         type="button"
         onClick={goToPrevious}
         aria-label="Previous banner"
-        className="absolute left-4 top-1/2 z-20 grid size-12 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur-md transition-colors hover:bg-black/60"
+        // On phones the arrows sit in the bottom corners: centred vertically
+        // they covered the first and last words of the caption.
+        className="absolute bottom-3 left-4 z-20 grid size-11 place-items-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur-md transition-colors hover:bg-black/60 sm:bottom-auto sm:top-1/2 sm:size-12 sm:-translate-y-1/2"
       >
         <ChevronLeft className="size-5" />
       </button>
@@ -113,7 +115,7 @@ export default function BannerCarousel({ banners }: Props) {
         type="button"
         onClick={goToNext}
         aria-label="Next banner"
-        className="absolute right-4 top-1/2 z-20 grid size-12 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur-md transition-colors hover:bg-black/60"
+        className="absolute bottom-3 right-4 z-20 grid size-11 place-items-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur-md transition-colors hover:bg-black/60 sm:bottom-auto sm:top-1/2 sm:size-12 sm:-translate-y-1/2"
       >
         <ChevronRight className="size-5" />
       </button>
