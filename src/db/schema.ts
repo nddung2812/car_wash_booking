@@ -101,6 +101,15 @@ export const bookings = pgTable(
     subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
     gst: numeric("gst", { precision: 10, scale: 2 }).notNull(),
     total: numeric("total", { precision: 10, scale: 2 }).notNull(),
+    /**
+     * Dollars taken off the wash price, GST-inclusive. `total` is already net
+     * of this — it is recorded so the discount stays visible after the fact.
+     */
+    discountAmount: numeric("discount_amount", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0.00"),
+    /** Which offer the discount came from, e.g. "senior". Null = none. */
+    discountType: text("discount_type"),
     status: bookingStatusEnum("status").notNull().default("pending"),
     paymentMethod: text("payment_method").notNull().default("pay_on_collection"),
     paymentStatus: text("payment_status").notNull().default("unpaid"),

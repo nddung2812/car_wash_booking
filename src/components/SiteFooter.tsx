@@ -4,6 +4,7 @@ import { Facebook } from "lucide-react";
 import { ChromeBrand } from "@/components/visuals/ChromeBrand";
 import { services } from "@/data/services";
 import { SOCIAL_LINKS } from "@/lib/seo/business";
+import { SENIOR_DISCOUNT_ENABLED } from "@/lib/booking-discount";
 
 export default function SiteFooter() {
   return (
@@ -54,6 +55,9 @@ export default function SiteFooter() {
             <ul className="mt-4 flex flex-col gap-1.5 text-[14px] text-background/85">
               <li><Link href="/services" className="hover:text-background">Services</Link></li>
               <li><Link href="/book-car-wash-online" className="hover:text-background">Book a wash</Link></li>
+              {SENIOR_DISCOUNT_ENABLED && (
+                <li><Link href="/seniors-discount" className="hover:text-background">Seniors discount</Link></li>
+              )}
               <li><Link href="/contact#reviews" className="hover:text-background">Reviews</Link></li>
               <li><Link href="/contact" className="hover:text-background">Locations</Link></li>
               <li><Link href="/faq" className="hover:text-background">FAQ</Link></li>

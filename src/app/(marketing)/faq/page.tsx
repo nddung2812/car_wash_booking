@@ -3,8 +3,16 @@ import type { Metadata } from "next";
 import CTABand from "@/components/CTABand";
 import JsonLd from "@/components/seo/JsonLd";
 import { SectionIntro } from "@/components/SectionIntro";
-import { breadcrumbLd, type FaqItem } from "@/lib/seo/jsonld";
+import { breadcrumbLd, faqPageLd, type FaqItem } from "@/lib/seo/jsonld";
 import { SUPPORT_EMAIL } from "@/lib/booking-payment";
+import {
+  SENIOR_DISCOUNT_AMOUNT,
+  SENIOR_DISCOUNT_CARD_NOTICE,
+  SENIOR_DISCOUNT_CARDS_LABEL,
+  SENIOR_DISCOUNT_DAYS_LABEL,
+  SENIOR_DISCOUNT_ENABLED,
+  SENIOR_DISCOUNT_SURCHARGE_NOTICE,
+} from "@/lib/booking-discount";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -49,6 +57,14 @@ const faqs: FaqItem[] = [
     q: "What payment methods do you accept?",
     a: "A $10 deposit is paid online by card when you book, and it comes off the price. On the day we accept cash, credit and debit cards, EFTPOS, Apple Pay and Google Pay at both locations.",
   },
+  ...(SENIOR_DISCOUNT_ENABLED
+    ? [
+        {
+          q: "Do you offer a seniors or pensioner discount?",
+          a: `Yes. ${SENIOR_DISCOUNT_CARDS_LABEL} holders save $${SENIOR_DISCOUNT_AMOUNT} on any wash or detail booked for a ${SENIOR_DISCOUNT_DAYS_LABEL}, all year at both locations. Tick the seniors box when you book online and the discount comes off before you pay. ${SENIOR_DISCOUNT_CARD_NOTICE} ${SENIOR_DISCOUNT_SURCHARGE_NOTICE}`,
+        },
+      ]
+    : []),
   {
     q: "Can I wait while my car is being washed?",
     a: "Yes — the shopping centre has a food court, cinema and coffee shops a short walk from both bays. For express washes you're welcome to wait nearby. For detail packages (2–5 hours) we recommend shopping or running errands and returning at your pickup time.",
@@ -109,6 +125,7 @@ export default function FaqPage() {
 
       <CTABand />
 
+      <JsonLd id="ld-faq" data={faqPageLd(faqs)} />
       <JsonLd
         id="ld-faq-breadcrumb"
         data={breadcrumbLd([

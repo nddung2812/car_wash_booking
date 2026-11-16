@@ -1,5 +1,12 @@
 import { services, extraServices } from "@/data/services";
 import {
+  SENIOR_DISCOUNT_AMOUNT,
+  SENIOR_DISCOUNT_CARD_NOTICE,
+  SENIOR_DISCOUNT_CARDS_LABEL,
+  SENIOR_DISCOUNT_DAYS_LABEL,
+  SENIOR_DISCOUNT_SURCHARGE_NOTICE,
+} from "@/lib/booking-discount";
+import {
   AGGREGATE_RATING,
   AREA_SERVED,
   BUSINESS_DESCRIPTION,
@@ -253,6 +260,36 @@ export function extrasOfferCatalogLd() {
       priceCurrency: "AUD",
       price: svc.pricing.sedan,
       availability: "https://schema.org/InStock",
+    })),
+  };
+}
+
+/**
+ * The seniors & pensioner offer as structured data. Described rather than
+ * priced per package — the saving is a flat amount off whichever wash is
+ * booked, on the listed days.
+ */
+export function seniorsOfferLd() {
+  const url = `${SITE_URL}/seniors-discount`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Offer",
+    "@id": `${url}#offer`,
+    name: `Seniors & pensioner discount — $${SENIOR_DISCOUNT_AMOUNT} off any car wash`,
+    description: `$${SENIOR_DISCOUNT_AMOUNT} off any car wash or detail package for ${SENIOR_DISCOUNT_CARDS_LABEL} holders, for bookings on a ${SENIOR_DISCOUNT_DAYS_LABEL}. ${SENIOR_DISCOUNT_CARD_NOTICE} ${SENIOR_DISCOUNT_SURCHARGE_NOTICE}`,
+    url,
+    offeredBy: { "@id": ORG_ID },
+    eligibleCustomerType: "Seniors Card and Pensioner Concession Card holders",
+    availability: "https://schema.org/InStock",
+    priceSpecification: {
+      "@type": "PriceSpecification",
+      priceCurrency: "AUD",
+      description: `$${SENIOR_DISCOUNT_AMOUNT} off the regular package price, GST inclusive`,
+    },
+    itemOffered: services.map((svc) => ({
+      "@type": "Service",
+      name: svc.name,
+      url: `${SITE_URL}/services#${svc.id}`,
     })),
   };
 }

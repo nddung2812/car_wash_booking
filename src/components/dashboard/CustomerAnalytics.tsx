@@ -19,6 +19,8 @@ export interface BookingRow {
   service: string;
   vehicle: string;
   amount: number;
+  /** Seniors & pensioner discount already taken off `amount`. 0 = none. */
+  discount: number;
   /** Captured up front — deposit or full payment. 0 if nothing taken yet. */
   paidNow: number;
   /** Still owed on arrival: amount - paidNow. */
@@ -233,6 +235,16 @@ export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsDat
                           ${row.paidNow.toFixed(2)} paid
                         </span>
                       ))}
+                  </div>
+                ) : col.key === "amount" && row.discount > 0 ? (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono tabular-nums">${row.amount}</span>
+                    <span
+                      className="w-fit rounded bg-yellow-soft px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-yellow-ink"
+                      title="Seniors & pensioner discount applied — check the card at collection"
+                    >
+                      Senior −${row.discount.toFixed(0)} · check card
+                    </span>
                   </div>
                 ) : col.key === "id" ? (
                   <span className="font-mono text-[11px] text-muted-foreground">

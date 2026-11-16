@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { LOCATIONS, SITE_URL } from "@/lib/seo/business";
 import { listProducts } from "@/lib/products";
+import { SENIOR_DISCOUNT_ENABLED } from "@/lib/booking-discount";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
@@ -12,6 +13,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/contact`, lastModified, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE_URL}/faq`, lastModified, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/why-book-online`, lastModified, changeFrequency: "monthly", priority: 0.5 },
+    ...(SENIOR_DISCOUNT_ENABLED
+      ? [
+          {
+            url: `${SITE_URL}/seniors-discount`,
+            lastModified,
+            changeFrequency: "monthly" as const,
+            priority: 0.7,
+          },
+        ]
+      : []),
     { url: `${SITE_URL}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.2 },
     { url: `${SITE_URL}/data-deletion`, lastModified, changeFrequency: "yearly", priority: 0.2 },
     { url: `${SITE_URL}/products`, lastModified, changeFrequency: "weekly", priority: 0.8 },

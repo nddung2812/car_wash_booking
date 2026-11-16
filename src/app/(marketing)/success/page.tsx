@@ -18,6 +18,10 @@ import { getBookingByCode } from "@/db/queries";
 import { services } from "@/data/services";
 import { reconcileBookingPayment } from "@/lib/booking-confirmation";
 import { SUPPORT_EMAIL, balanceDue } from "@/lib/booking-payment";
+import {
+  SENIOR_DISCOUNT_CARD_NOTICE,
+  SENIOR_DISCOUNT_NAME,
+} from "@/lib/booking-discount";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed",
@@ -73,6 +77,7 @@ export default async function SuccessPage({
   // Deposit taken and something still owed on the day — worth spelling out so
   // nobody arrives expecting the wash to be fully paid for.
   const showSplit = amountPaid > 0 && balance > 0;
+  const discount = booking ? Number(booking.discountAmount) : 0;
 
   return (
     <>
@@ -159,6 +164,16 @@ export default async function SuccessPage({
                       </span>
                     </div>
                   )}
+                  {discount > 0 && (
+                    <div className="flex flex-col gap-1 sm:col-span-2">
+                      <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        {SENIOR_DISCOUNT_NAME}
+                      </span>
+                      <span className="text-[15px] text-foreground">
+                        −${discount.toFixed(2)} — already taken off your total
+                      </span>
+                    </div>
+                  )}
                   {showSplit && (
                     <>
                       <div className="flex flex-col gap-1">
@@ -224,6 +239,12 @@ export default async function SuccessPage({
                   </li>
                 ))}
               </ul>
+
+              {discount > 0 && (
+                <p className="w-full rounded-[14px] border border-yellow bg-yellow-soft px-4 py-3 text-left text-[13px] leading-relaxed text-foreground">
+                  Please bring your card. {SENIOR_DISCOUNT_CARD_NOTICE}
+                </p>
+              )}
 
               {showSplit && (
                 <p className="text-[13px] leading-relaxed text-muted-foreground">

@@ -43,6 +43,13 @@
       "when": 1788671397211,
       "tag": "0005_damp_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794834635776,
+      "tag": "0006_mysterious_ezekiel_stane",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,7 @@
 import emailjs from "@emailjs/nodejs";
 
+import { seniorDiscountEmailNote } from "@/lib/booking-discount";
+
 type BookingEmailParams = {
   confirmationCode: string;
   serviceId: string;
@@ -28,7 +30,30 @@ type BookingEmailParams = {
    */
   amountPaid?: number;
   balanceDue?: number;
+  /**
+   * Seniors & pensioner discount already taken off `total`. When non-zero the
+   * notes line carries a reminder about the card, so it shows in both copies
+   * without the EmailJS template needing a change. Also passed as
+   * `{{discount}}` for a template that wants its own row.
+   */
+  discountAmount?: number;
 };
+
+/**
+ * The `{{notes}}` value: the customer's own notes, plus the discount reminder
+ * when one applied. Exported for the test script.
+ */
+export function bookingEmailNotes(
+  notes: string | null | undefined,
+  discountAmount: number | null | undefined,
+): string {
+  const own = notes?.trim() ?? "";
+  const discount = discountAmount ?? 0;
+  if (discount > 0) {
+    return [own, seniorDiscountEmailNote(discount)].filter(Boolean).join(" | ");
+  }
+  return own || "—";
+}
 
 /** Display name customers see in their inbox. EmailJS template "From Name"
  *  must be set to {{from_name}} for this to take effect. */
@@ -118,11 +143,12 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     reply_to: customerFacing ? (businessInbox ?? params.email) : params.email,
     phone: params.phone,
     address: params.address,
-    notes: params.notes?.trim() ? params.notes : "—",
+    notes: bookingEmailNotes(params.notes, params.discountAmount),
     extras: extrasFormatted,
     subtotal: params.subtotal.toFixed(2),
     gst: params.gst.toFixed(2),
     total: params.total.toFixed(2),
+    discount: (params.discountAmount ?? 0).toFixed(2),
     amount_paid: (params.amountPaid ?? 0).toFixed(2),
     balance_due: (params.balanceDue ?? params.total).toFixed(2),
     currency: "AUD",

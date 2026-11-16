@@ -12,6 +12,7 @@ import LocationsSection from "@/components/LocationsSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import { SectionIntro } from "@/components/SectionIntro";
 import ServicesSection from "@/components/ServicesSection";
+import SeniorsOfferStrip from "@/components/SeniorsOfferStrip";
 import { Marquee } from "@/components/visuals/Marquee";
 import JsonLd from "@/components/seo/JsonLd";
 import {
@@ -59,7 +60,10 @@ export default async function Home() {
       {/* Services + add-ons */}
       <section id="services" className="py-20 lg:py-24">
         <div className="container mx-auto flex flex-col gap-20 px-4 sm:px-6 lg:px-8">
-          <ServicesSection />
+          <div className="flex flex-col gap-8">
+            <ServicesSection />
+            <SeniorsOfferStrip />
+          </div>
           <ExtraServicesSection />
         </div>
       </section>

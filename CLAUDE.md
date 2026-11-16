@@ -80,6 +80,22 @@ Clerk middleware protects `/dashboard(.*)`. `<ClerkProvider>` in the root layout
 
 **Deposit refunds are deliberately manual.** There is no self-serve cancel or refund path — the friction *is* the filter. Customers email `SUPPORT_EMAIL` and an admin refunds in the Stripe dashboard; the bookings table on `/hyperdome-dashboard` links each captured payment straight to `dashboard.stripe.com/payments/{id}`. Customer-facing copy says the deposit "isn't refunded automatically", not "non-refundable", and promises a full refund whenever the shop cancels.
 
+### Seniors & pensioner discount
+
+**$10 off any wash for bookings on a Wednesday or Thursday, all year.** Self-declared: the customer ticks a box in step 3, nothing is verified online, and staff may ask to see the Seniors Card / Pensioner Concession Card at collection. It applies identically to deposit and pay-in-full bookings.
+
+`src/lib/booking-discount.ts` is the single source of truth, imported by client and server (same pattern as `booking-payment.ts`):
+- `SENIOR_DISCOUNT_ENABLED` — kill switch. `false` hides the tick box, makes the API refuse the claim, 404s `/seniors-discount` and removes the promo strip, FAQ entry, footer link and sitemap entry. Requires a redeploy.
+- `SENIOR_DISCOUNT_AMOUNT` (10), `SENIOR_DISCOUNT_WEEKDAYS` ([3, 4]), and every customer-facing string (card notice, surcharge notice) so the form, emails and promo pages can't disagree.
+- `priceBooking()` — the one piece of money maths behind both the form's summary panel and the API. The discount comes off the **wash**, never the extras, and is clamped to the wash price.
+- `weekdayOfIsoDate()` reads the weekday off the `YYYY-MM-DD` string in UTC, so eligibility never depends on the browser's or Vercel's timezone.
+
+The client sends only a boolean `seniorDiscount`; `POST /api/bookings` recomputes the amount. A claim on a non-eligible day is **rejected with a 400**, not silently priced at full rate — otherwise the customer lands on Stripe $10 above what the form showed. `bookings.total` is stored net; `discount_amount` / `discount_type` (`"senior"`) record what came off (migration 0006). Stripe line items can't be negative, so the wash line is charged net with the saving named in its description. Staff see it via a "check card" line appended to the email `{{notes}}` (no EmailJS template change needed; `{{discount}}` is also passed) and a badge in the dashboard Amount column.
+
+Promotion: `SeniorsOfferStrip` under the price cards on `/` and `/services`, the `/seniors-discount` page (discounted price table, FAQ + Offer JSON-LD), an FAQ entry, and marked Wed/Thu tiles in the date picker. Promo links use `?senior=1`, which opens the form with the box pre-ticked.
+
+`npx tsx scripts/test-senior-discount.ts` checks the rules (no DB, Stripe or email).
+
 ### External Services
 
 - **EmailJS** — booking notification emails (`src/lib/email.ts`)
@@ -140,3 +156,13 @@ Customer-facing dashboard for signed-in users. Single page (`src/app/(marketing)
 ### Before/After Gallery (Full Detail)
 
 `BeforeAfterSection` (server) → `BeforeAfterCarousel` (client, side-by-side pair per slide, stacks on mobile) renders on the homepage and `/services`. Images come from the **`before-after` Cloudinary folder** — `getBeforeAfterPairs()` in `src/lib/cloudinary.ts` lists it via the Admin Search API (server-only `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`/`CLOUDINARY_CLOUD_NAME`), ISR-cached for 1h. The account is **dynamic-folder mode** (assets keyed by `asset_folder`, `public_id` randomised, `display_name` = original filename — returned by default, `with_field` is *not* a valid option here; the search expression must use the unquoted `:` glob, e.g. `asset_folder:before-after/*`). Pairing: **one subfolder per slide** (recommended) — `before-after/<slide>/` containing one file whose name contains `before` and one containing `after` (e.g. `before-after/slide-1/before-1.jpg` + `after-1.jpg`); slide label derived from the subfolder name. Flat fallback: two files directly in `before-after/` sharing a base name with a before/after token. Unpaired files ignored. Delivery URLs bake in `f_auto,q_auto,c_limit,w_1400,h_1400` (modern format, auto quality, scale-down only, no crop, neither dimension > 1400px so never a 4K download — no `dpr_auto` on purpose) and use `next/image unoptimized` to bypass the global fetch loader. Each pair carries the source `beforeRatio`/`afterRatio`; the carousel shows the full uncropped image at its natural ratio on mobile and a fixed 4:3 side-by-side on desktop (`sm:`). Empty folder → section renders `null` in production, dev placeholder otherwise. Folder (re)created with `node scripts/cloudinary-create-folder.mjs [name]`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -48,6 +48,17 @@ import {
   isOfferedPaymentMethod,
   type PaymentMethod,
 } from "@/lib/booking-payment";
+import {
+  SENIOR_DISCOUNT_AMOUNT,
+  SENIOR_DISCOUNT_CARD_NOTICE,
+  SENIOR_DISCOUNT_CARDS_LABEL,
+  SENIOR_DISCOUNT_DAYS_LABEL,
+  SENIOR_DISCOUNT_DAYS_SHORT,
+  SENIOR_DISCOUNT_ENABLED,
+  SENIOR_DISCOUNT_QUERY,
+  isSeniorDiscountDay,
+  priceBooking,
+} from "@/lib/booking-discount";
 
 const bookingSchema = z.object({
   service: z.string().min(1, "Choose a wash package to continue"),
@@ -84,6 +95,9 @@ const bookingSchema = z.object({
     OFFERED_PAYMENT_METHODS as readonly [PaymentMethod, ...PaymentMethod[]],
     { message: "Choose how you'd like to pay" },
   ),
+  // The customer's claim only. Whether it actually applies depends on the day
+  // booked — worked out by priceBooking() here and again on the server.
+  seniorDiscount: z.boolean().default(false),
 });
 
 type BookingFormInput = z.input<typeof bookingSchema>;
@@ -166,7 +180,14 @@ const fullDateFormatter = new Intl.DateTimeFormat("en-AU", {
   month: "short",
 });
 
-function buildDays(): { iso: string; weekday: string; day: number; month: string; isToday: boolean }[] {
+function buildDays(): {
+  iso: string;
+  weekday: string;
+  day: number;
+  month: string;
+  isToday: boolean;
+  seniorDay: boolean;
+}[] {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   start.setDate(start.getDate() + 1); // earliest = tomorrow
@@ -183,6 +204,7 @@ function buildDays(): { iso: string; weekday: string; day: number; month: string
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     out.push({
+      seniorDay: isSeniorDiscountDay(`${yyyy}-${mm}-${dd}`),
       iso: `${yyyy}-${mm}-${dd}`,
       weekday: d.toLocaleDateString("en-AU", { weekday: "short" }).toUpperCase(),
       day: d.getDate(),
@@ -212,6 +234,7 @@ const PERSISTED_FIELDS = [
   "notes",
   "address",
   "paymentMethod",
+  "seniorDiscount",
 ] as const satisfies readonly (keyof BookingFormInput)[];
 
 type PersistedDraft = {
@@ -259,6 +282,9 @@ export default function BookingForm({
   const searchParams = useSearchParams();
   const preselectedService = searchParams.get("service");
   const hasValidPreselection = services.some((s) => s.id === preselectedService);
+  // `?senior=1` — the link the seniors promo uses, so the box arrives ticked.
+  const seniorFromUrl =
+    SENIOR_DISCOUNT_ENABLED && searchParams.get(SENIOR_DISCOUNT_QUERY) === "1";
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(
     hasValidPreselection ? 2 : 1,
@@ -278,6 +304,7 @@ export default function BookingForm({
     defaultValues: {
       extras: [],
       paymentMethod: DEFAULT_PAYMENT_METHOD,
+      seniorDiscount: seniorFromUrl,
       ...(hasValidPreselection ? { service: preselectedService! } : {}),
       ...(initialValues?.phone ? { phone: initialValues.phone } : {}),
       ...(initialValues?.address ? { address: initialValues.address } : {}),
@@ -307,10 +334,13 @@ export default function BookingForm({
       // A draft saved before deposits went live can hold a method we no longer
       // offer — fall through to the default rather than restoring it.
       if (field === "paymentMethod" && !isOfferedPaymentMethod(v)) continue;
+      // Arriving from the seniors promo link wins over an older un-ticked
+      // draft; and a draft can't switch the offer back on once it's disabled.
+      if (field === "seniorDiscount" && (seniorFromUrl || !SENIOR_DISCOUNT_ENABLED)) continue;
       setValue(field, v as never, { shouldValidate: false });
     }
     if (draft.step === 2 || draft.step === 3) setCurrentStep(draft.step);
-  }, [setValue, hasValidPreselection]);
+  }, [setValue, hasValidPreselection, seniorFromUrl]);
 
   // Persist non-PII step + selections so back/refresh doesn't lose progress.
   const watchedAll = watch();
@@ -342,9 +372,23 @@ export default function BookingForm({
     (sum, e) => sum + getExtraPrice(e, watchedVehicle),
     0,
   );
-  const total = +(getServicePrice(selectedServiceData, watchedVehicle) + extrasSubtotal).toFixed(2);
-  const gst = +(total / 11).toFixed(2);
-  const subtotal = +(total - gst).toFixed(2);
+  // Seniors & pensioner discount: the tick is only a claim — it takes effect
+  // when the chosen day is one the offer runs on. Same priceBooking() the API
+  // uses, so the summary and the Stripe charge can't disagree.
+  const seniorClaimed = SENIOR_DISCOUNT_ENABLED && watch("seniorDiscount") === true;
+  const seniorDayChosen = isSeniorDiscountDay(watchedDate);
+  const {
+    discount: seniorDiscount,
+    total,
+    gst,
+    subtotal,
+  } = priceBooking({
+    servicePrice: getServicePrice(selectedServiceData, watchedVehicle),
+    extrasTotal: extrasSubtotal,
+    seniorClaimed,
+    date: watchedDate,
+  });
+  const seniorApplied = seniorDiscount > 0;
 
   // Charged at checkout vs. still owed on arrival. Shares its maths with the
   // API via booking-payment.ts, so the two can't drift.
@@ -384,7 +428,9 @@ export default function BookingForm({
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        // Send the claim only when it actually applied to the day booked, so
+        // a tick left on from an earlier Wed/Thu choice is never refused.
+        body: JSON.stringify({ ...data, seniorDiscount: seniorApplied }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -587,6 +633,16 @@ export default function BookingForm({
         )}
 
         <div className="flex flex-col gap-2 border-t border-dashed border-line px-6 py-4 font-mono text-[12px] tabular-nums">
+          {seniorApplied && (
+            <div className="flex justify-between gap-3" data-testid="summary-senior-discount">
+              <span className="font-sans font-medium text-foreground">
+                Seniors &amp; pensioner discount
+              </span>
+              <span className="font-medium text-foreground">
+                −${seniorDiscount.toFixed(2)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Subtotal (ex GST)</span>
             <span className="text-foreground">${subtotal.toFixed(2)}</span>
@@ -908,8 +964,13 @@ export default function BookingForm({
                       type="button"
                       onClick={() => setValue("date", d.iso, { shouldValidate: true })}
                       aria-pressed={active}
+                      aria-label={
+                        d.seniorDay
+                          ? `${d.weekday} ${d.day} ${d.month} — seniors and pensioners save $${SENIOR_DISCOUNT_AMOUNT}`
+                          : undefined
+                      }
                       className={cn(
-                        "flex flex-col items-center justify-center gap-0.5 rounded-lg border py-2 text-center transition-all",
+                        "relative flex flex-col items-center justify-center gap-0.5 rounded-lg border py-2 text-center transition-all",
                         active
                           ? "border-primary bg-primary text-primary-foreground shadow-glow"
                           : "border-line bg-card/40 text-foreground hover:border-line-2",
@@ -939,11 +1000,48 @@ export default function BookingForm({
                       >
                         {d.month}
                       </span>
+                      {d.seniorDay && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute right-1.5 top-1.5 size-2 rounded-full bg-yellow ring-1 ring-yellow-ink/30"
+                        />
+                      )}
                     </button>
                   );
                 })}
               </div>
               <FieldError message={errors.date?.message} />
+              {SENIOR_DISCOUNT_ENABLED &&
+                (seniorClaimed && watchedDate && !seniorDayChosen ? (
+                  <p
+                    role="status"
+                    className="flex items-start gap-2 rounded-[14px] border border-yellow bg-yellow-soft px-4 py-3 text-[13px] leading-relaxed text-foreground"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="mt-1.5 size-2 shrink-0 rounded-full bg-yellow ring-1 ring-yellow-ink/30"
+                    />
+                    <span>
+                      The seniors &amp; pensioner discount only runs on{" "}
+                      {SENIOR_DISCOUNT_DAYS_LABEL}. Pick a marked day to save $
+                      {SENIOR_DISCOUNT_AMOUNT}, or carry on at the regular price.
+                    </span>
+                  </p>
+                ) : (
+                  <p className="flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground">
+                    <span
+                      aria-hidden="true"
+                      className="mt-1.5 size-2 shrink-0 rounded-full bg-yellow ring-1 ring-yellow-ink/30"
+                    />
+                    <span>
+                      Seniors &amp; pensioners save ${SENIOR_DISCOUNT_AMOUNT} on
+                      any wash booked for a {SENIOR_DISCOUNT_DAYS_LABEL}.
+                      {seniorApplied
+                        ? " Your discount is applied."
+                        : " Tick the box at the last step."}
+                    </span>
+                  </p>
+                ))}
             </div>
 
             <div id="field-time" className="flex flex-col gap-4 scroll-mt-24">
@@ -1144,6 +1242,84 @@ export default function BookingForm({
                 {...register("notes")}
               />
             </div>
+
+            {SENIOR_DISCOUNT_ENABLED && (
+              <div id="field-seniorDiscount" className="flex flex-col gap-3 scroll-mt-24">
+                <Label className={LABEL_CLASS}>Seniors &amp; pensioners</Label>
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={seniorApplied}
+                  disabled={!seniorDayChosen}
+                  onClick={() =>
+                    setValue("seniorDiscount", !seniorClaimed, { shouldDirty: true })
+                  }
+                  className={cn(
+                    "grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[14px] border p-3 text-left transition-all sm:p-4",
+                    seniorApplied
+                      ? "border-primary bg-primary/5 shadow-soft"
+                      : "border-line bg-card/40",
+                    seniorDayChosen
+                      ? "lift hover:border-line-2"
+                      : "cursor-not-allowed opacity-60",
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "grid size-5 place-items-center rounded-md border transition-colors",
+                      seniorApplied
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-line-2",
+                    )}
+                  >
+                    {seniorApplied && <Check className="size-3.5" strokeWidth={3} />}
+                  </span>
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-[14px] font-medium leading-snug text-foreground">
+                      I hold a {SENIOR_DISCOUNT_CARDS_LABEL}
+                    </span>
+                    <span className="text-[12px] leading-snug text-muted-foreground">
+                      ${SENIOR_DISCOUNT_AMOUNT} off any wash · {SENIOR_DISCOUNT_DAYS_SHORT} bookings
+                    </span>
+                  </span>
+                  <span className="font-mono text-[14px] tabular-nums text-foreground">
+                    −${SENIOR_DISCOUNT_AMOUNT}
+                  </span>
+                </button>
+
+                {seniorApplied ? (
+                  <p
+                    role="status"
+                    className="rounded-[14px] border border-yellow bg-yellow-soft px-4 py-3 text-[13px] leading-relaxed text-foreground"
+                  >
+                    ${seniorDiscount.toFixed(2)} off applied — whether you pay
+                    the deposit or pay in full. {SENIOR_DISCOUNT_CARD_NOTICE}
+                  </p>
+                ) : !seniorDayChosen ? (
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                    Available for {SENIOR_DISCOUNT_DAYS_LABEL} bookings
+                    {watchedDate
+                      ? ` — yours is for ${fullDateFormatter.format(new Date(watchedDate))}. `
+                      : ". "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentStep(2);
+                        setTimeout(() => scrollToField("date"), 50);
+                      }}
+                      className="font-medium text-foreground underline underline-offset-2"
+                    >
+                      Change day
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                    {SENIOR_DISCOUNT_CARD_NOTICE}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div
               id="field-paymentMethod"

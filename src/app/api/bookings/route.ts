@@ -20,6 +20,14 @@ import {
   balanceDue,
   type PaymentMethod,
 } from "@/lib/booking-payment";
+import {
+  SENIOR_DISCOUNT_DAYS_LABEL,
+  SENIOR_DISCOUNT_ENABLED,
+  SENIOR_DISCOUNT_NAME,
+  SENIOR_DISCOUNT_TYPE,
+  isSeniorDiscountDay,
+  priceBooking,
+} from "@/lib/booking-discount";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { isValidAuPhone } from "@/lib/phone";
 import { isAdminEmail } from "@/lib/auth";
@@ -45,6 +53,10 @@ const bodySchema = z.object({
   paymentMethod: z.enum(
     OFFERED_PAYMENT_METHODS as readonly [PaymentMethod, ...PaymentMethod[]],
   ),
+  // Self-declared seniors / pensioner discount. The amount is never taken
+  // from the client — only this claim, which is re-checked against the
+  // booking date below.
+  seniorDiscount: z.boolean().optional().default(false),
 });
 
 // Lock checkout redirect URLs to the configured site URL in production so
@@ -61,7 +73,13 @@ function getCheckoutOrigin(req: Request): string {
   return SITE_URL;
 }
 
-async function priceFor(serviceId: string, vehicleType: string, extras: string[]) {
+async function priceFor(
+  serviceId: string,
+  vehicleType: string,
+  extras: string[],
+  seniorClaimed: boolean,
+  date: string,
+) {
   const { services, extras: extrasCatalogue } = await getMergedPricing();
   const svc = services.find((s) => s.id === serviceId);
   if (!svc) return null;
@@ -84,10 +102,14 @@ async function priceFor(serviceId: string, vehicleType: string, extras: string[]
     (sum, e) => sum + getExtraPrice(e, vehicleType),
     0,
   );
-  const total = +(servicePrice + extrasSubtotal).toFixed(2);
-  const gst = +(total / 11).toFixed(2);
-  const subtotal = +(total - gst).toFixed(2);
-  return { svc, extraObjs, subtotal, gst, total };
+  // Same maths as the form's summary panel — see booking-discount.ts.
+  const priced = priceBooking({
+    servicePrice,
+    extrasTotal: extrasSubtotal,
+    seniorClaimed,
+    date,
+  });
+  return { svc, extraObjs, ...priced };
 }
 
 async function genCode() {
@@ -131,7 +153,28 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data;
-  const pricing = await priceFor(data.service, data.vehicleType, data.extras);
+
+  // A claim on a day the offer doesn't run is refused outright rather than
+  // silently priced at full rate — the customer would otherwise be sent to
+  // Stripe for $10 more than the form just showed them.
+  if (data.seniorDiscount && !isSeniorDiscountDay(data.date)) {
+    return NextResponse.json(
+      {
+        error: SENIOR_DISCOUNT_ENABLED
+          ? `The ${SENIOR_DISCOUNT_NAME.toLowerCase()} is only available for ${SENIOR_DISCOUNT_DAYS_LABEL} bookings. Pick one of those days, or untick the discount to continue.`
+          : `The ${SENIOR_DISCOUNT_NAME.toLowerCase()} isn't available right now. Untick it to continue.`,
+      },
+      { status: 400 },
+    );
+  }
+
+  const pricing = await priceFor(
+    data.service,
+    data.vehicleType,
+    data.extras,
+    data.seniorDiscount,
+    data.date,
+  );
   if (!pricing) {
     return NextResponse.json({ error: "Unknown service or extra" }, { status: 400 });
   }
@@ -188,6 +231,8 @@ export async function POST(req: Request) {
       subtotal: pricing.subtotal.toFixed(2),
       gst: pricing.gst.toFixed(2),
       total: pricing.total.toFixed(2),
+      discountAmount: pricing.discount.toFixed(2),
+      discountType: pricing.discount > 0 ? SENIOR_DISCOUNT_TYPE : null,
       status: "pending",
       paymentMethod: data.paymentMethod,
       paymentStatus: needsCheckout ? PAY_NOW_PENDING_STATUS : PAYMENT_STATUS_UNPAID,
@@ -231,6 +276,7 @@ export async function POST(req: Request) {
       gst: pricing.gst,
       total: pricing.total,
       paymentStatus: PAY_AT_COLLECTION_STATUS,
+      discountAmount: pricing.discount,
     });
 
     return NextResponse.json(
@@ -279,10 +325,13 @@ export async function POST(req: Request) {
       },
     }));
 
-  const serviceBasePrice = +(pricing.total - pricing.extraObjs.reduce(
-    (s, e) => s + getExtraPrice(e, data.vehicleType),
-    0,
-  )).toFixed(2);
+  // The wash line carries the discount: Stripe line items can't be negative,
+  // so the wash is charged net and the saving is spelled out beside it.
+  const serviceBasePrice = pricing.serviceCharge;
+  const discountSuffix =
+    pricing.discount > 0
+      ? ` · ${SENIOR_DISCOUNT_NAME} −$${pricing.discount.toFixed(2)}`
+      : "";
 
   // A deposit is one line for the part-payment; paying in full itemises the
   // wash and each extra the way it always has.
@@ -295,7 +344,7 @@ export async function POST(req: Request) {
             unit_amount: Math.round(dueNow * 100),
             product_data: {
               name: `Booking deposit — ${pricing.svc.name}`,
-              description: `${code} · ${data.date} ${data.time} · ${locationName} · $${balanceAtCollection.toFixed(2)} balance due at collection`,
+              description: `${code} · ${data.date} ${data.time} · ${locationName} · $${balanceAtCollection.toFixed(2)} balance due at collection${discountSuffix}`,
             },
           },
         },
@@ -308,7 +357,7 @@ export async function POST(req: Request) {
             unit_amount: Math.round(serviceBasePrice * 100),
             product_data: {
               name: `${pricing.svc.name} — ${data.vehicleType}`,
-              description: `Booking ${code} · ${data.date} ${data.time} · ${locationName}`,
+              description: `Booking ${code} · ${data.date} ${data.time} · ${locationName}${discountSuffix}`,
             },
           },
         },
@@ -335,6 +384,7 @@ export async function POST(req: Request) {
         payment_kind: data.paymentMethod,
         amount_due_now_cents: String(Math.round(dueNow * 100)),
         booking_total_cents: String(Math.round(pricing.total * 100)),
+        discount_cents: String(Math.round(pricing.discount * 100)),
       },
       payment_intent_data: {
         metadata: {

@@ -78,6 +78,8 @@ export async function PUT(req: Request) {
   revalidatePath("/");
   revalidatePath("/services");
   revalidatePath("/book-car-wash-online");
+  // Shows every package price less the seniors discount.
+  revalidatePath("/seniors-discount");
   return NextResponse.json({ ok: true });
 }
 
