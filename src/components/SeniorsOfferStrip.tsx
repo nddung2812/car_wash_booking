@@ -39,15 +39,22 @@ export default function SeniorsOfferStrip({
           <BadgePercent className="size-5" />
         </span>
         <div className="flex flex-col gap-1.5">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            All year · Every {SENIOR_DISCOUNT_DAYS_LABEL}
+          {/* The days are the condition of the offer, so they lead: a solid
+              badge and a place in the headline, never just small print. */}
+          <span className="w-fit rounded-md bg-yellow px-2.5 py-1 font-mono text-[12px] font-semibold uppercase tracking-[0.12em] text-yellow-ink">
+            {SENIOR_DISCOUNT_DAYS_LABEL} only · All year
           </span>
           <p className="font-serif text-2xl leading-tight tracking-tight text-foreground sm:text-3xl">
-            Seniors &amp; pensioners save ${SENIOR_DISCOUNT_AMOUNT} on any wash.
+            Seniors &amp; pensioners save ${SENIOR_DISCOUNT_AMOUNT} on any wash{" "}
+            <span className="underline decoration-yellow decoration-4 underline-offset-4">
+              every {SENIOR_DISCOUNT_DAYS_LABEL}
+            </span>
+            .
           </p>
           <p className="max-w-xl text-[14px] leading-relaxed text-muted-foreground">
-            Tick the seniors box when you book online and show your card at
-            collection. {SENIOR_DISCOUNT_SURCHARGE_NOTICE}
+            Book a {SENIOR_DISCOUNT_DAYS_LABEL.replace("&", "or")} slot online,
+            tick the seniors box and show your card at collection.{" "}
+            {SENIOR_DISCOUNT_SURCHARGE_NOTICE}
           </p>
         </div>
       </div>
