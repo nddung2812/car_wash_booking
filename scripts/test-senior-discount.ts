@@ -130,7 +130,16 @@ check("with the discount, every catalogue price drops by exactly $10 and extras 
 });
 check("worked example: Exterior Wash sedan, Wednesday", () => {
   const p = priceBooking({ servicePrice: 40, extrasTotal: 0, seniorClaimed: true, date: "2026-11-18" });
-  assert.deepEqual(p, { serviceCharge: 30, discount: 10, subtotal: 27.27, gst: 2.73, total: 30 });
+  assert.deepEqual(p, {
+    serviceCharge: 30,
+    discount: 10,
+    promoDiscount: 0,
+    seniorDiscount: 10,
+    discountType: "senior",
+    subtotal: 27.27,
+    gst: 2.73,
+    total: 30,
+  });
 });
 
 console.log("What the customer pays");

@@ -20,7 +20,8 @@ import { reconcileBookingPayment } from "@/lib/booking-confirmation";
 import { SUPPORT_EMAIL, balanceDue } from "@/lib/booking-payment";
 import {
   SENIOR_DISCOUNT_CARD_NOTICE,
-  SENIOR_DISCOUNT_NAME,
+  discountParts,
+  seniorPartOf,
 } from "@/lib/booking-discount";
 
 export const metadata: Metadata = {
@@ -77,7 +78,14 @@ export default async function SuccessPage({
   // Deposit taken and something still owed on the day — worth spelling out so
   // nobody arrives expecting the wash to be fully paid for.
   const showSplit = amountPaid > 0 && balance > 0;
-  const discount = booking ? Number(booking.discountAmount) : 0;
+  // One row per offer that came off — the November special and the seniors
+  // discount can both apply to the same booking.
+  const discounts = booking
+    ? discountParts(Number(booking.discountAmount), booking.discountType)
+    : [];
+  const seniorDiscount = booking
+    ? seniorPartOf(Number(booking.discountAmount), booking.discountType)
+    : 0;
 
   return (
     <>
@@ -164,16 +172,16 @@ export default async function SuccessPage({
                       </span>
                     </div>
                   )}
-                  {discount > 0 && (
-                    <div className="flex flex-col gap-1 sm:col-span-2">
+                  {discounts.map((part) => (
+                    <div key={part.type} className="flex flex-col gap-1 sm:col-span-2">
                       <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                        {SENIOR_DISCOUNT_NAME}
+                        {part.name}
                       </span>
                       <span className="text-[15px] text-foreground">
-                        −${discount.toFixed(2)} — already taken off your total
+                        −${part.amount.toFixed(2)} — already taken off your total
                       </span>
                     </div>
-                  )}
+                  ))}
                   {showSplit && (
                     <>
                       <div className="flex flex-col gap-1">
@@ -240,7 +248,7 @@ export default async function SuccessPage({
                 ))}
               </ul>
 
-              {discount > 0 && (
+              {seniorDiscount > 0 && (
                 <p className="w-full rounded-[14px] border border-yellow bg-yellow-soft px-4 py-3 text-left text-[13px] leading-relaxed text-foreground">
                   Please bring your card. {SENIOR_DISCOUNT_CARD_NOTICE}
                 </p>

@@ -56,6 +56,9 @@ import {
   SENIOR_DISCOUNT_DAYS_SHORT,
   SENIOR_DISCOUNT_ENABLED,
   SENIOR_DISCOUNT_QUERY,
+  NOVEMBER_PROMO,
+  isNovemberPromoDate,
+  isNovemberPromoService,
   isSeniorDiscountDay,
   priceBooking,
 } from "@/lib/booking-discount";
@@ -187,6 +190,8 @@ function buildDays(): {
   month: string;
   isToday: boolean;
   seniorDay: boolean;
+  /** Inside the November special's window (whatever the wash package). */
+  promoDay: boolean;
 }[] {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -205,6 +210,7 @@ function buildDays(): {
     const dd = String(d.getDate()).padStart(2, "0");
     out.push({
       seniorDay: isSeniorDiscountDay(`${yyyy}-${mm}-${dd}`),
+      promoDay: isNovemberPromoDate(`${yyyy}-${mm}-${dd}`),
       iso: `${yyyy}-${mm}-${dd}`,
       weekday: d.toLocaleDateString("en-AU", { weekday: "short" }).toUpperCase(),
       day: d.getDate(),
@@ -377,18 +383,21 @@ export default function BookingForm({
   // uses, so the summary and the Stripe charge can't disagree.
   const seniorClaimed = SENIOR_DISCOUNT_ENABLED && watch("seniorDiscount") === true;
   const seniorDayChosen = isSeniorDiscountDay(watchedDate);
-  const {
-    discount: seniorDiscount,
-    total,
-    gst,
-    subtotal,
-  } = priceBooking({
+  const { seniorDiscount, promoDiscount, total, gst, subtotal } = priceBooking({
     servicePrice: getServicePrice(selectedServiceData, watchedVehicle),
     extrasTotal: extrasSubtotal,
     seniorClaimed,
     date: watchedDate,
+    serviceId: watchedService,
   });
   const seniorApplied = seniorDiscount > 0;
+
+  // November special. Everything here hangs off the dates the picker can
+  // still offer, so once the last eligible day drops out of the 14-day window
+  // every mention of the offer disappears with it — nothing to switch off.
+  const promoOnOffer = days.some((d) => d.promoDay);
+  const promoServiceChosen = promoOnOffer && isNovemberPromoService(watchedService);
+  const promoApplied = promoDiscount > 0;
 
   // Charged at checkout vs. still owed on arrival. Shares its maths with the
   // API via booking-payment.ts, so the two can't drift.
@@ -633,6 +642,16 @@ export default function BookingForm({
         )}
 
         <div className="flex flex-col gap-2 border-t border-dashed border-line px-6 py-4 font-mono text-[12px] tabular-nums">
+          {promoApplied && (
+            <div className="flex justify-between gap-3" data-testid="summary-promo-discount">
+              <span className="font-sans font-medium text-foreground">
+                {NOVEMBER_PROMO.name}
+              </span>
+              <span className="font-medium text-foreground">
+                −${promoDiscount.toFixed(2)}
+              </span>
+            </div>
+          )}
           {seniorApplied && (
             <div className="flex justify-between gap-3" data-testid="summary-senior-discount">
               <span className="font-sans font-medium text-foreground">
@@ -778,6 +797,11 @@ export default function BookingForm({
                               Best value
                             </span>
                           )}
+                          {promoOnOffer && isNovemberPromoService(service.id) && (
+                            <span className="rounded-pill bg-destructive px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-white">
+                              ${NOVEMBER_PROMO.amount} off · washes to {NOVEMBER_PROMO.lastDateShort}
+                            </span>
+                          )}
                         </div>
                         <p className="text-[14px] leading-snug text-muted-foreground line-clamp-2">
                           {service.description}
@@ -789,9 +813,21 @@ export default function BookingForm({
                       </div>
 
                       <div className="flex flex-col items-end gap-1">
-                        <span className="font-serif text-3xl leading-none text-primary">
-                          ${service.pricing.sedan}
-                        </span>
+                        {promoOnOffer && isNovemberPromoService(service.id) ? (
+                          <>
+                            <span className="font-mono text-[12px] leading-none text-muted-foreground line-through tabular-nums">
+                              <span className="sr-only">Was </span>${service.pricing.sedan}
+                            </span>
+                            <span className="font-serif text-3xl leading-none text-primary">
+                              <span className="sr-only">Now </span>$
+                              {Math.max(service.pricing.sedan - NOVEMBER_PROMO.amount, 0)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-serif text-3xl leading-none text-primary">
+                            ${service.pricing.sedan}
+                          </span>
+                        )}
                         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                           From / sedan
                         </span>
@@ -958,6 +994,12 @@ export default function BookingForm({
               >
                 {days.map((d) => {
                   const active = watchedDate === d.iso;
+                  const promoTile = promoServiceChosen && d.promoDay;
+                  const offers = [
+                    promoTile && `${NOVEMBER_PROMO.name}, $${NOVEMBER_PROMO.amount} off`,
+                    d.seniorDay &&
+                      `seniors and pensioners save $${SENIOR_DISCOUNT_AMOUNT}`,
+                  ].filter(Boolean);
                   return (
                     <button
                       key={d.iso}
@@ -965,8 +1007,8 @@ export default function BookingForm({
                       onClick={() => setValue("date", d.iso, { shouldValidate: true })}
                       aria-pressed={active}
                       aria-label={
-                        d.seniorDay
-                          ? `${d.weekday} ${d.day} ${d.month} — seniors and pensioners save $${SENIOR_DISCOUNT_AMOUNT}`
+                        offers.length > 0
+                          ? `${d.weekday} ${d.day} ${d.month} — ${offers.join("; ")}`
                           : undefined
                       }
                       className={cn(
@@ -1006,11 +1048,38 @@ export default function BookingForm({
                           className="absolute right-1.5 top-1.5 size-2 rounded-full bg-yellow ring-1 ring-yellow-ink/30"
                         />
                       )}
+                      {promoTile && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute left-1.5 top-1.5 size-2 rounded-full bg-destructive ring-1 ring-white/60"
+                        />
+                      )}
                     </button>
                   );
                 })}
               </div>
               <FieldError message={errors.date?.message} />
+              {promoServiceChosen && (
+                <p
+                  role="status"
+                  className="flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="mt-1.5 size-2 shrink-0 rounded-full bg-destructive"
+                  />
+                  <span>
+                    {NOVEMBER_PROMO.name}: ${NOVEMBER_PROMO.amount} off{" "}
+                    {selectedServiceData?.name ?? "this wash"} for washes up to{" "}
+                    {NOVEMBER_PROMO.lastDateLabel}.
+                    {promoApplied
+                      ? " Your discount is applied."
+                      : watchedDate
+                        ? " The day you picked is after the offer ends, so it is at the regular price."
+                        : " Pick a marked day to get it."}
+                  </span>
+                </p>
+              )}
               {SENIOR_DISCOUNT_ENABLED &&
                 (seniorClaimed && watchedDate && !seniorDayChosen ? (
                   <p

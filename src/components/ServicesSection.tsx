@@ -6,9 +6,22 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SectionIntro } from "@/components/SectionIntro";
 import { getMergedServices } from "@/lib/pricing";
+import PromoGate from "@/components/PromoGate";
+import {
+  NOVEMBER_PROMO,
+  isNovemberPromoBookable,
+  isNovemberPromoService,
+} from "@/lib/booking-discount";
+
+const CORNER_BADGE_CLASS =
+  "absolute -right-2 top-4 z-10 -rotate-3 rounded-md bg-destructive px-2.5 py-1 text-center font-mono text-[10px] uppercase leading-tight tracking-[0.14em] text-white shadow-soft sm:-right-3 sm:top-6 sm:-rotate-6 sm:px-3 sm:py-1.5";
 
 const ServicesSection = async () => {
   const services = await getMergedServices();
+  // The November special swaps the corner badge and strikes through the
+  // prices on the package it covers. PromoGate puts both back to normal by
+  // itself once the offer can no longer be booked.
+  const promoLive = isNovemberPromoBookable();
   return (
     <div className="flex h-full flex-col">
       <SectionIntro
@@ -21,6 +34,17 @@ const ServicesSection = async () => {
       <div className="grid flex-1 grid-cols-1 gap-5 sm:grid-cols-2">
         {services.map((service, index) => {
           const isLast = index === services.length - 1;
+          const onPromo = isNovemberPromoService(service.id);
+          const bestValueBadge = service.bestValue ? (
+            <span
+              aria-label={`Best value — save $${service.savings ?? 20}`}
+              className={CORNER_BADGE_CLASS}
+            >
+              Best value
+              <br />
+              Save ${service.savings ?? 20}
+            </span>
+          ) : null;
           return (
             <article
               id={service.id}
@@ -31,15 +55,19 @@ const ServicesSection = async () => {
                 isLast && "sm:col-span-2",
               )}
             >
-              {service.bestValue && (
-                <span
-                  aria-label={`Best value — save $${service.savings ?? 20}`}
-                  className="absolute -right-2 top-4 z-10 -rotate-3 rounded-md bg-destructive px-2.5 py-1 text-center font-mono text-[10px] uppercase leading-tight tracking-[0.14em] text-white shadow-soft sm:-right-3 sm:top-6 sm:-rotate-6 sm:px-3 sm:py-1.5"
-                >
-                  Best value
-                  <br />
-                  Save ${service.savings ?? 20}
-                </span>
+              {onPromo ? (
+                <PromoGate initialLive={promoLive} fallback={bestValueBadge}>
+                  <span
+                    aria-label={`${NOVEMBER_PROMO.name} — $${NOVEMBER_PROMO.amount} off washes up to ${NOVEMBER_PROMO.lastDateLabel}`}
+                    className={CORNER_BADGE_CLASS}
+                  >
+                    ${NOVEMBER_PROMO.amount} off
+                    <br />
+                    To {NOVEMBER_PROMO.lastDateShort}
+                  </span>
+                </PromoGate>
+              ) : (
+                bestValueBadge
               )}
 
               {service.promo && (
@@ -90,8 +118,22 @@ const ServicesSection = async () => {
                   ] as const
                 ).map(([fullLabel, shortLabel, value]) => (
                   <div key={fullLabel} className="px-3 py-3 text-center">
+                    {onPromo && (
+                      <PromoGate initialLive={promoLive}>
+                        <div className="mb-1 font-mono text-[12px] leading-none text-muted-foreground line-through tabular-nums">
+                          <span className="sr-only">Was </span>${value}
+                        </div>
+                      </PromoGate>
+                    )}
                     <div className="font-serif text-[26px] leading-none text-ink tabular-nums sm:text-[28px]">
-                      ${value}
+                      {onPromo ? (
+                        <PromoGate initialLive={promoLive} fallback={<>${value}</>}>
+                          <span className="sr-only">Now </span>$
+                          {Math.max(value - NOVEMBER_PROMO.amount, 0)}
+                        </PromoGate>
+                      ) : (
+                        <>${value}</>
+                      )}
                     </div>
                     <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                       <span className="sm:hidden">{shortLabel}</span>

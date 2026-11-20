@@ -1,6 +1,6 @@
 import emailjs from "@emailjs/nodejs";
 
-import { seniorDiscountEmailNote } from "@/lib/booking-discount";
+import { discountEmailNote } from "@/lib/booking-discount";
 
 type BookingEmailParams = {
   confirmationCode: string;
@@ -37,22 +37,26 @@ type BookingEmailParams = {
    * `{{discount}}` for a template that wants its own row.
    */
   discountAmount?: number;
+  /**
+   * `bookings.discount_type` — which offer(s) `discountAmount` came from, so
+   * the notes name the right one. Omitted or null reads as seniors, which is
+   * what every discounted booking was before the November special.
+   */
+  discountType?: string | null;
 };
 
 /**
- * The `{{notes}}` value: the customer's own notes, plus the discount reminder
- * when one applied. Exported for the test script.
+ * The `{{notes}}` value: the customer's own notes, plus a line for each
+ * discount that applied. Exported for the test script.
  */
 export function bookingEmailNotes(
   notes: string | null | undefined,
   discountAmount: number | null | undefined,
+  discountType?: string | null,
 ): string {
   const own = notes?.trim() ?? "";
-  const discount = discountAmount ?? 0;
-  if (discount > 0) {
-    return [own, seniorDiscountEmailNote(discount)].filter(Boolean).join(" | ");
-  }
-  return own || "—";
+  const discountNote = discountEmailNote(discountAmount, discountType);
+  return [own, discountNote].filter(Boolean).join(" | ") || "—";
 }
 
 /** Display name customers see in their inbox. EmailJS template "From Name"
@@ -143,7 +147,7 @@ export async function sendBookingNotification(params: BookingEmailParams) {
     reply_to: customerFacing ? (businessInbox ?? params.email) : params.email,
     phone: params.phone,
     address: params.address,
-    notes: bookingEmailNotes(params.notes, params.discountAmount),
+    notes: bookingEmailNotes(params.notes, params.discountAmount, params.discountType),
     extras: extrasFormatted,
     subtotal: params.subtotal.toFixed(2),
     gst: params.gst.toFixed(2),

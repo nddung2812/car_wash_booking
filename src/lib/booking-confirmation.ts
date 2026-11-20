@@ -136,6 +136,7 @@ export async function reconcileBookingPayment(
       amountPaid,
       balanceDue: balance,
       discountAmount: Number(booking.discountAmount),
+      discountType: booking.discountType,
     });
 
     // The business copy is the one that gates reconciliation: if it did not

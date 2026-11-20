@@ -8,6 +8,7 @@ import BarChart from "./BarChart";
 import DataTable from "./DataTable";
 import BookingStatusSelect, { type BookingStatus } from "./BookingStatusSelect";
 import MonthFilter, { type MonthOption } from "./MonthFilter";
+import { SENIOR_DISCOUNT_TYPE, discountParts } from "@/lib/booking-discount";
 
 export interface BookingRow {
   /** Confirmation code, e.g. "LCW-22/08/2026-001" — shown to humans. */
@@ -19,8 +20,10 @@ export interface BookingRow {
   service: string;
   vehicle: string;
   amount: number;
-  /** Seniors & pensioner discount already taken off `amount`. 0 = none. */
+  /** Discounts already taken off `amount` (promo + seniors). 0 = none. */
   discount: number;
+  /** `bookings.discount_type` — which offer(s) `discount` came from. */
+  discountType: string | null;
   /** Captured up front — deposit or full payment. 0 if nothing taken yet. */
   paidNow: number;
   /** Still owed on arrival: amount - paidNow. */
@@ -239,12 +242,25 @@ export default function CustomerAnalytics({ data }: { data: CustomerAnalyticsDat
                 ) : col.key === "amount" && row.discount > 0 ? (
                   <div className="flex flex-col gap-0.5">
                     <span className="font-mono tabular-nums">${row.amount}</span>
-                    <span
-                      className="w-fit rounded bg-yellow-soft px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-yellow-ink"
-                      title="Seniors & pensioner discount applied — check the card at collection"
-                    >
-                      Senior −${row.discount.toFixed(0)} · check card
-                    </span>
+                    {discountParts(row.discount, row.discountType).map((part) =>
+                      part.type === SENIOR_DISCOUNT_TYPE ? (
+                        <span
+                          key={part.type}
+                          className="w-fit rounded bg-yellow-soft px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-yellow-ink"
+                          title="Seniors & pensioner discount applied — check the card at collection"
+                        >
+                          Senior −${part.amount.toFixed(0)} · check card
+                        </span>
+                      ) : (
+                        <span
+                          key={part.type}
+                          className="w-fit rounded bg-destructive/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-destructive"
+                          title={`${part.name} applied — nothing to check`}
+                        >
+                          {part.name} −${part.amount.toFixed(0)}
+                        </span>
+                      ),
+                    )}
                   </div>
                 ) : col.key === "id" ? (
                   <span className="font-mono text-[11px] text-muted-foreground">

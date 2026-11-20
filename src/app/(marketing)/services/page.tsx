@@ -5,6 +5,7 @@ import CTABand from "@/components/CTABand";
 import ExtraServicesSection from "@/components/ExtraServicesSection";
 import ServicesSection from "@/components/ServicesSection";
 import SeniorsOfferStrip from "@/components/SeniorsOfferStrip";
+import NovemberPromoStrip from "@/components/NovemberPromoStrip";
 import JsonLd from "@/components/seo/JsonLd";
 import { services } from "@/data/services";
 import {
@@ -53,6 +54,7 @@ export default function ServicesPage() {
         <div className="container mx-auto mt-12 flex flex-col gap-20 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-8">
             <ServicesSection />
+            <NovemberPromoStrip />
             <SeniorsOfferStrip />
           </div>
           <ExtraServicesSection />

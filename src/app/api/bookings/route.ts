@@ -24,7 +24,10 @@ import {
   SENIOR_DISCOUNT_DAYS_LABEL,
   SENIOR_DISCOUNT_ENABLED,
   SENIOR_DISCOUNT_NAME,
-  SENIOR_DISCOUNT_TYPE,
+  brisbaneTodayIso,
+  discountParts,
+  isNovemberPromoDate,
+  isNovemberPromoService,
   isSeniorDiscountDay,
   priceBooking,
 } from "@/lib/booking-discount";
@@ -108,6 +111,7 @@ async function priceFor(
     extrasTotal: extrasSubtotal,
     seniorClaimed,
     date,
+    serviceId: svc.id,
   });
   return { svc, extraObjs, ...priced };
 }
@@ -164,6 +168,21 @@ export async function POST(req: Request) {
           ? `The ${SENIOR_DISCOUNT_NAME.toLowerCase()} is only available for ${SENIOR_DISCOUNT_DAYS_LABEL} bookings. Pick one of those days, or untick the discount to continue.`
           : `The ${SENIOR_DISCOUNT_NAME.toLowerCase()} isn't available right now. Untick it to continue.`,
       },
+      { status: 400 },
+    );
+  }
+
+  // The November special is priced off the wash date, and the form only
+  // offers future dates. This closes the one gap that leaves: a hand-built
+  // request naming a date that has already gone, to claim the offer after it
+  // has ended. Refused rather than re-priced, same reasoning as above.
+  if (
+    isNovemberPromoService(data.service) &&
+    isNovemberPromoDate(data.date) &&
+    data.date.trim() < brisbaneTodayIso()
+  ) {
+    return NextResponse.json(
+      { error: "That date has already passed. Please pick another day." },
       { status: 400 },
     );
   }
@@ -232,7 +251,7 @@ export async function POST(req: Request) {
       gst: pricing.gst.toFixed(2),
       total: pricing.total.toFixed(2),
       discountAmount: pricing.discount.toFixed(2),
-      discountType: pricing.discount > 0 ? SENIOR_DISCOUNT_TYPE : null,
+      discountType: pricing.discountType,
       status: "pending",
       paymentMethod: data.paymentMethod,
       paymentStatus: needsCheckout ? PAY_NOW_PENDING_STATUS : PAYMENT_STATUS_UNPAID,
@@ -277,6 +296,7 @@ export async function POST(req: Request) {
       total: pricing.total,
       paymentStatus: PAY_AT_COLLECTION_STATUS,
       discountAmount: pricing.discount,
+      discountType: pricing.discountType,
     });
 
     return NextResponse.json(
@@ -328,10 +348,9 @@ export async function POST(req: Request) {
   // The wash line carries the discount: Stripe line items can't be negative,
   // so the wash is charged net and the saving is spelled out beside it.
   const serviceBasePrice = pricing.serviceCharge;
-  const discountSuffix =
-    pricing.discount > 0
-      ? ` · ${SENIOR_DISCOUNT_NAME} −$${pricing.discount.toFixed(2)}`
-      : "";
+  const discountSuffix = discountParts(pricing.discount, pricing.discountType)
+    .map((part) => ` · ${part.name} −$${part.amount.toFixed(2)}`)
+    .join("");
 
   // A deposit is one line for the part-payment; paying in full itemises the
   // wash and each extra the way it always has.

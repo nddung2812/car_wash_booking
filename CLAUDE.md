@@ -96,6 +96,18 @@ Promotion: `SeniorsOfferStrip` under the price cards on `/` and `/services`, the
 
 `npx tsx scripts/test-senior-discount.ts` checks the rules (no DB, Stripe or email).
 
+### November special (dated promo, ends by itself)
+
+**$25 off Detail & Hand Polish (`mini-detail`) for washes dated up to and including 1 Dec 2026** — sedan $95 → $70, wagon $110 → $85, SUV $120 → $95. Config is `NOVEMBER_PROMO` in `src/lib/booking-discount.ts`.
+
+- **Eligibility is the wash date, never today's date.** The form only offers future dates, so after `lastDate` there is nothing eligible left to pick — no flag to flip, no deploy on the day. To end it early set `lastDate` in the past; to run another dated promo change the values.
+- Applied automatically (no tick box, nothing sent by the client). `priceBooking()` takes `serviceId` and returns `promoDiscount` / `seniorDiscount` / `discountType`.
+- **Stacks with the seniors discount**: promo comes off first, seniors off the remainder (sedan on a Wed/Thu = $60). `bookings.discount_type` is `"november"`, `"senior"` or `"november+senior"`; `discount_amount` is the combined figure and `discountParts()` splits it back for emails, the success page, the Stripe line description and the dashboard badges. Only the seniors part triggers "check card".
+- `POST /api/bookings` rejects (400) a promo-eligible booking whose date is already past in Brisbane — the one way to claim it after it ends.
+- Promo copy (`NovemberPromoStrip`, the struck-through prices and corner badge in `ServicesSection`) hides when `isNovemberPromoBookable()` goes false, i.e. from 1 Dec Brisbane time. `PromoGate` (client) re-checks on load so cached HTML can't keep advertising it. The booking form derives its own promo UI from the dates left in the 14-day picker.
+
+`npx tsx scripts/test-november-promo.ts` checks the rules (no DB, Stripe or email).
+
 ### External Services
 
 - **EmailJS** — booking notification emails (`src/lib/email.ts`)

@@ -13,6 +13,7 @@ import ReviewsSection from "@/components/ReviewsSection";
 import { SectionIntro } from "@/components/SectionIntro";
 import ServicesSection from "@/components/ServicesSection";
 import SeniorsOfferStrip from "@/components/SeniorsOfferStrip";
+import NovemberPromoStrip from "@/components/NovemberPromoStrip";
 import { Marquee } from "@/components/visuals/Marquee";
 import JsonLd from "@/components/seo/JsonLd";
 import {
@@ -62,6 +63,7 @@ export default async function Home() {
         <div className="container mx-auto flex flex-col gap-20 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-8">
             <ServicesSection />
+            <NovemberPromoStrip />
             <SeniorsOfferStrip />
           </div>
           <ExtraServicesSection />
